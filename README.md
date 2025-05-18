@@ -147,11 +147,47 @@ npm start
 
 ## 在Farcaster中使用
 
-要在Warpcast或其他Farcaster客户端中使用本MiniApp：
+本项目使用Farcaster的Frames机制实现，这意味着**无需**在Warpcast开发者平台注册或审核，可以直接部署并使用。
 
-1. 部署应用到公开可访问的URL
-2. 确保`.well-known/farcaster.json`正确配置
-3. 在Warpcast中添加你的应用
+### 部署到Farcaster生态系统
+
+1. **部署应用**
+   - 将应用部署到公开可访问的URL（如通过Vercel）
+   - 确保设置了正确的环境变量，特别是`NEXT_PUBLIC_URL`
+
+2. **验证Frame配置**
+   ```bash
+   # 测试Frame配置是否正确
+   curl -X GET https://你的域名/.well-known/farcaster.json
+   
+   # 使用Frame预览工具（可选）
+   npx @farcaster/frame-preview https://你的域名
+   ```
+
+3. **分享你的应用**
+   - 直接在Warpcast中发布一个包含你的应用URL的Cast
+   - Warpcast会自动识别URL中的Frame元数据并渲染交互界面
+
+### 在Warpcast中使用
+
+1. **访问应用**
+   - 用户只需点击你的应用链接
+   - Warpcast会自动将URL渲染为交互式Frame
+
+2. **交互方式**
+   - 用户可以通过Frame的按钮与应用交互
+   - 点击按钮会触发对应的操作（如浏览故事、创建叙事等）
+   - 所有交互都在Warpcast内部完成，无需离开应用
+
+3. **分享应用**
+   - 用户可以通过"分享"按钮将你的应用分享给其他人
+   - 这将创建一个新的Cast，其中包含应用链接
+
+### 常见问题
+
+- **应用未渲染为Frame**: 确认`app/.well-known/farcaster.json/route.ts`和`app/page.tsx`中的Frame元数据配置正确
+- **按钮不工作**: 检查按钮配置是否符合Frame规范，确保action类型正确
+- **图片不显示**: 确保图片URL是公开可访问的，并正确设置了NEXT_PUBLIC_URL
 
 ## 使用方法
 
