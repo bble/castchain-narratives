@@ -23,7 +23,7 @@ CastChain Narratives是一个基于Farcaster的MiniApp，使用户能够创建�
 1. 克隆仓库
 
 ```bash
-git clone https://github.com/your-username/castchain-narratives.git
+git clone https://github.com/bble/castchain-narratives.git
 cd castchain-narratives
 ```
 
