@@ -1,28 +1,31 @@
 import { Metadata } from "next";
-import App from "@/components/pages/app";
 import { APP_URL } from "@/lib/constants";
+import Home from "@/components/Home";
 
-const frame = {
-  version: "next",
-  imageUrl: `${APP_URL}/images/feed.png`,
-  button: {
-    title: "探索链上叙事",
-    action: {
-      type: "launch_frame",
-      name: "CastChain Narratives",
-      url: APP_URL,
-      splashImageUrl: `${APP_URL}/images/splash.png`,
-      splashBackgroundColor: "#282c34",
-    },
-  },
-};
+export function generateMetadata(): Metadata {
+  const frame = {
+    version: "next",
+    image: `${APP_URL}/images/feed.png`,
+    title: "CastChain Narratives",
+    buttons: [
+      {
+        label: "浏览故事",
+        action: "post_redirect"
+      },
+      {
+        label: "创建故事",
+        action: "post"
+      }
+    ],
+  };
 
-export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "CastChain Narratives | 链上叙事",
+    title: "CastChain Narratives",
+    description: "协作式故事创作平台，记录在链上",
     openGraph: {
-      title: "CastChain Narratives | 链上叙事",
-      description: "参与去中心化的、可分支的、协作式故事创作，让你的创作永存于链上",
+      title: "CastChain Narratives",
+      description: "协作式故事创作平台，记录在链上",
+      images: [`${APP_URL}/images/og.png`],
     },
     other: {
       "fc:frame": JSON.stringify(frame),
@@ -30,6 +33,6 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function Home() {
-  return <App />;
+export default function HomePage() {
+  return <Home />;
 }

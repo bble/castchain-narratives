@@ -6,183 +6,16 @@ import {
   UserAchievement,
   NarrativeStatus, 
   CollaborationRules,
-  AchievementType
+  AchievementType,
+  Notification,
+  AchievementMetadata
 } from "@/types/narrative";
 import { generateId } from "./utils";
-
-// 模拟数据 - 在实际应用中这些应该从API获取
-export const MOCK_NARRATIVES: Narrative[] = [
-  {
-    narrativeId: "1",
-    title: "虚空中的低语",
-    description: "在一个遥远的星系，一艘孤独的飞船接收到了一个神秘的信号...",
-    creatorFid: 1234,
-    creatorUsername: "stellarCaptain",
-    creatorDisplayName: "星际船长",
-    creatorPfp: "https://picsum.photos/id/1005/200/200",
-    status: NarrativeStatus.ACTIVE,
-    collaborationRules: CollaborationRules.OPEN,
-    tags: ["科幻", "恐怖", "太空"],
-    branchCount: 5,
-    contributionCount: 23,
-    contributorCount: 12,
-    featuredImageUrl: "https://picsum.photos/id/237/300/200",
-    createdAt: "2025-05-01T12:00:00Z",
-    updatedAt: "2025-05-18T15:30:00Z",
-  },
-  {
-    narrativeId: "2",
-    title: "失落的秘境",
-    description: "一群探险者在亚马逊丛林深处发现了一个不为人知的古代文明...",
-    creatorFid: 5678,
-    creatorUsername: "explorer42",
-    creatorDisplayName: "丛林探险家",
-    creatorPfp: "https://picsum.photos/id/1012/200/200",
-    status: NarrativeStatus.ACTIVE,
-    collaborationRules: CollaborationRules.OPEN,
-    tags: ["冒险", "悬疑", "古代文明"],
-    branchCount: 3,
-    contributionCount: 15,
-    contributorCount: 8,
-    featuredImageUrl: "https://picsum.photos/id/240/300/200",
-    createdAt: "2025-05-05T10:00:00Z",
-    updatedAt: "2025-05-17T14:20:00Z",
-  },
-  {
-    narrativeId: "3",
-    title: "魔法学院的日常",
-    description: "在一个充满魔法的世界，一个普通少年意外获得了入学资格...",
-    creatorFid: 9012,
-    creatorUsername: "magicStudent",
-    creatorDisplayName: "魔法学徒",
-    creatorPfp: "https://picsum.photos/id/1025/200/200",
-    status: NarrativeStatus.ACTIVE,
-    collaborationRules: CollaborationRules.OPEN,
-    tags: ["奇幻", "魔法", "校园"],
-    branchCount: 8,
-    contributionCount: 42,
-    contributorCount: 25,
-    featuredImageUrl: "https://picsum.photos/id/250/300/200",
-    createdAt: "2025-04-20T09:00:00Z",
-    updatedAt: "2025-05-18T16:45:00Z",
-  },
-];
-
-// 模拟贡献数据
-export const MOCK_CONTRIBUTIONS: Record<string, NarrativeContribution[]> = {
-  "1": [
-    {
-      contributionId: "1-1",
-      narrativeId: "1",
-      contributorFid: 1234,
-      contributorUsername: "stellarCaptain",
-      contributorDisplayName: "星际船长",
-      contributorPfp: "https://picsum.photos/id/1005/200/200",
-      parentContributionId: null,
-      branchId: null,
-      textContent: "在一个遥远的星系，一艘孤独的飞船接收到了一个神秘的信号...",
-      castHash: "0x1234",
-      createdAt: "2025-05-01T12:00:00Z",
-      upvotes: 7,
-      isBranchStart: false,
-    },
-    {
-      contributionId: "1-2",
-      narrativeId: "1",
-      contributorFid: 5678,
-      contributorUsername: "explorer42",
-      contributorDisplayName: "丛林探险家",
-      contributorPfp: "https://picsum.photos/id/1012/200/200",
-      parentContributionId: "1-1",
-      branchId: null,
-      textContent: "船长命令通信官尝试回应这个信号，但收到的却是一段古老的地球语言...",
-      castHash: "0x1235",
-      createdAt: "2025-05-02T14:30:00Z",
-      upvotes: 5,
-      isBranchStart: false,
-    },
-    {
-      contributionId: "1-3",
-      narrativeId: "1",
-      contributorFid: 9012,
-      contributorUsername: "magicStudent",
-      contributorDisplayName: "魔法学徒",
-      contributorPfp: "https://picsum.photos/id/1025/200/200",
-      parentContributionId: "1-2",
-      branchId: null,
-      textContent: "解码后，信息里只有一句话：'不要回应，他们正在来'...",
-      castHash: "0x1236",
-      createdAt: "2025-05-03T16:45:00Z",
-      upvotes: 12,
-      isBranchStart: false,
-    },
-    {
-      contributionId: "1-4",
-      narrativeId: "1",
-      contributorFid: 1234,
-      contributorUsername: "stellarCaptain",
-      contributorDisplayName: "星际船长",
-      contributorPfp: "https://picsum.photos/id/1005/200/200",
-      parentContributionId: "1-2",
-      branchId: "1-1",
-      textContent: "信号的源头是一个看似荒废的太空站，船长决定派遣一支探索队前往调查...",
-      castHash: "0x1237",
-      createdAt: "2025-05-04T10:15:00Z",
-      upvotes: 9,
-      isBranchStart: true,
-    },
-  ],
-};
-
-// 模拟分支数据
-export const MOCK_BRANCHES: Record<string, NarrativeBranch[]> = {
-  "1": [
-    {
-      branchId: "1-1",
-      narrativeId: "1",
-      name: "探索太空站",
-      description: "关于探索队进入荒废太空站的故事分支",
-      creatorFid: 1234,
-      createdAt: "2025-05-04T10:15:00Z",
-      rootContributionId: "1-4",
-      parentBranchId: null,
-      contributionCount: 5
-    },
-  ],
-};
-
-// 模拟成就数据
-export const MOCK_ACHIEVEMENTS: UserAchievement[] = [
-  {
-    achievementId: "1",
-    type: AchievementType.POPULAR_BRANCH,
-    title: "分支先锋",
-    description: "创建了一个受欢迎的故事分支",
-    imageUrl: "https://picsum.photos/id/1041/300/300",
-    awardedAt: "2025-05-10T12:00:00Z",
-    ownerFid: 1234,
-    narrativeId: "1",
-    contributionId: "1-4",
-    tokenId: "1",
-    transactionHash: "0xabcdef1234567890abcdef1234567890abcdef1234567890",
-  },
-  {
-    achievementId: "2",
-    type: AchievementType.CONTRIBUTOR,
-    title: "优秀贡献者",
-    description: "为多个叙事做出了宝贵贡献",
-    imageUrl: "https://picsum.photos/id/1059/300/300",
-    awardedAt: "2025-05-15T12:00:00Z",
-    ownerFid: 1234,
-    tokenId: "2",
-    transactionHash: "0xfedcba0987654321fedcba0987654321fedcba0987654321",
-  },
-];
 
 // API类
 class API {
   private apiBaseUrl = API_BASE_URL;
-  private headers = {
+  private headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
 
@@ -229,7 +62,7 @@ class API {
   public setAuthToken(token: string) {
     this.headers = {
       ...this.headers,
-      Authorization: `Bearer ${token}`,
+      "Authorization": `Bearer ${token}`,
     };
   }
   
@@ -366,6 +199,7 @@ class API {
     contributionId?: string;
     title?: string;
     description?: string;
+    metadata?: AchievementMetadata;
   }): Promise<{
     success: boolean;
     transactionParams?: any;

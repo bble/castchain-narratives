@@ -15,7 +15,7 @@ interface NarrativeDetailProps {
 }
 
 export default function NarrativeDetail({ narrativeId }: NarrativeDetailProps) {
-  const { context } = useMiniAppContext();
+  const { context, actions } = useMiniAppContext();
   const [narrative, setNarrative] = useState<Narrative | null>(null);
   const [contributions, setContributions] = useState<NarrativeContribution[]>([]);
   const [branches, setBranches] = useState<NarrativeBranch[]>([]);
@@ -83,13 +83,30 @@ export default function NarrativeDetail({ narrativeId }: NarrativeDetailProps) {
     if (!context?.user?.fid || !selectedContribution) return;
     
     try {
-      // 在实际应用中，这应该通过 Farcaster 发布 Cast
-      // 然后由后端处理 Cast 并更新数据库
-      const mockCastHash = `0x${Math.random().toString(16).substring(2)}`;
+      // 通过Farcaster发布Cast
+      let castHash: string;
+      
+      if (actions?.composeCast) {
+        // 准备Cast文本
+        const castText = `${text}\n\n${window.location.origin}/narratives/${narrativeId}`;
+        
+        // 发布Cast
+        const castResult = await actions.composeCast({
+          text: castText
+        });
+        
+        if (!castResult || !castResult.cast?.hash) {
+          throw new Error("发布Cast失败");
+        }
+        
+        castHash = castResult.cast.hash;
+      } else {
+        throw new Error("Farcaster API不可用");
+      }
       
       const result = await api.addContribution({
         narrativeId,
-        castHash: mockCastHash,
+        castHash: castHash,
         contributorFid: context.user.fid,
         contributorUsername: context.user.username,
         contributorDisplayName: context.user.displayName,

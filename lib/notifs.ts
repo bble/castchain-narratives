@@ -22,8 +22,24 @@ export async function sendFrameNotification({
   title: string;
   body: string;
 }): Promise<SendFrameNotificationResult> {
-  // TODO: Get notification details
-  const notificationDetails = { url: "", token: "" };
+  // 从API获取用户通知令牌
+  let notificationDetails;
+  try {
+    const response = await fetch(`${APP_URL}/api/users/${fid}/notification-tokens`);
+    if (response.ok) {
+      const data = await response.json();
+      notificationDetails = { 
+        url: "https://api.coinbase.com/notifications/v1/send",
+        token: data.notificationToken 
+      };
+    } else {
+      console.error("无法获取用户通知令牌:", await response.text());
+      return { state: "error", error: "无法获取用户通知令牌" };
+    }
+  } catch (error) {
+    console.error("获取通知详情失败:", error);
+    return { state: "error", error };
+  }
 
   if (!notificationDetails) {
     return { state: "no_token" };

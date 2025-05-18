@@ -10,6 +10,8 @@ import { CreateNarrative } from "@/components/Narrative/CreateNarrative";
 import NotificationCenter from "@/components/User/NotificationCenter";
 import OnboardingGuide from "@/components/OnboardingGuide";
 import { useMiniAppContext } from "@/hooks/use-miniapp-context";
+import { api } from "@/lib/api";
+import { Notification } from "@/types/narrative";
 
 enum Tab {
   DISCOVER = "发现",
@@ -23,16 +25,16 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>(Tab.DISCOVER);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(true); // 模拟有未读通知
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   
   // 检查未读通知和处理新用户引导
   useEffect(() => {
     if (context?.user?.fid) {
-      // 这里应该从API获取未读通知状态
-      // api.getUserNotifications(context.user.fid, { onlyUnread: true })
-      //  .then(notifications => setHasUnreadNotifications(notifications.length > 0))
-      //  .catch(err => console.error("获取通知状态失败", err));
+      // 从API获取未读通知状态
+      api.getUserNotifications(context.user.fid, { onlyUnread: true })
+        .then(notifications => setHasUnreadNotifications(notifications.length > 0))
+        .catch(err => console.error("获取通知状态失败", err));
       
       // 检查是否需要显示引导
       if (typeof window !== 'undefined') {
