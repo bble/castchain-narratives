@@ -1,0 +1,371 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useMiniAppContext } from "@/hooks/use-miniapp-context";
+import { AchievementType, UserAchievement } from "@/types/narrative";
+import { api } from "@/lib/api";
+import { ACHIEVEMENT_CONTRACT_ADDRESS, MONAD_EXPLORER_URL } from "@/lib/constants";
+import { ethers } from "ethers";
+
+interface AchievementMinterProps {
+  userFid: number;
+  achievementType: AchievementType;
+  narrativeId?: string;
+  contributionId?: string;
+  onMintSuccess?: (achievement: UserAchievement) => void;
+  onClose: () => void;
+}
+
+export default function AchievementMinter({
+  userFid,
+  achievementType,
+  narrativeId,
+  contributionId,
+  onMintSuccess,
+  onClose,
+}: AchievementMinterProps) {
+  const { context } = useMiniAppContext();
+  const [isMinting, setIsMinting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [transactionHash, setTransactionHash] = useState<string | null>(null);
+  const [tokenId, setTokenId] = useState<string | null>(null);
+  const [isPendingConfirmation, setIsPendingConfirmation] = useState(false);
+  
+  // 铸造描述
+  const achievementInfo = {
+    [AchievementType.CREATOR]: {
+      title: "创作者成就",
+      description: "创建原创叙事的杰出创作者",
+      imgUrl: "/images/creator-badge.png",
+    },
+    [AchievementType.CONTRIBUTOR]: {
+      title: "贡献者徽章",
+      description: "积极参与并创作高质量故事内容的贡献者",
+      imgUrl: "/images/contributor-badge.png",
+    },
+    [AchievementType.POPULAR_BRANCH]: {
+      title: "分支先锋成就",
+      description: "创建受欢迎分支的开创者",
+      imgUrl: "/images/branch-pioneer.png",
+    },
+    [AchievementType.COMPLETED_NARRATIVE]: {
+      title: "完成叙事成就",
+      description: "参与并完成一个叙事的成就",
+      imgUrl: "/images/completed-narrative.png",
+    }
+  };
+  
+  const info = achievementInfo[achievementType];
+
+  // 监听交易状态
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    
+    // 如果有交易哈希，并且处于等待确认状态，则轮询交易状态
+    if (transactionHash && isPendingConfirmation) {
+      intervalId = setInterval(async () => {
+        try {
+          // 检查交易状态
+          if (window.ethereum) {
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const receipt = await provider.getTransactionReceipt(transactionHash);
+            
+            if (receipt && receipt.status === 1) {
+              // 交易成功
+              clearInterval(intervalId);
+              
+              // 从事件日志中解析出tokenId
+              const abi = ["event AchievementMinted(uint256 indexed tokenId, address indexed recipient, uint8 achievementType)"];
+              const iface = new ethers.utils.Interface(abi);
+              const log = receipt.logs.find(log => 
+                log.address.toLowerCase() === ACHIEVEMENT_CONTRACT_ADDRESS.toLowerCase()
+              );
+              
+              if (log) {
+                try {
+                  const decodedLog = iface.parseLog(log);
+                  const newTokenId = decodedLog.args.tokenId.toString();
+                  setTokenId(newTokenId);
+                  
+                  // 通知后端交易已确认
+                  await confirmMintToBackend(newTokenId);
+                } catch (error) {
+                  console.error("解析日志失败:", error);
+                }
+              }
+              
+              setIsPendingConfirmation(false);
+              setSuccess(true);
+            } else if (receipt && receipt.status === 0) {
+              // 交易失败
+              clearInterval(intervalId);
+              setIsPendingConfirmation(false);
+              setError("交易失败，请重试");
+            }
+          }
+        } catch (error) {
+          console.error("检查交易状态失败:", error);
+        }
+      }, 5000); // 每5秒检查一次
+    }
+    
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [transactionHash, isPendingConfirmation]);
+  
+  // 准备成就元数据
+  const prepareMetadata = () => {
+    // 基于设计文档9.5部分的元数据结构
+    const metadata = {
+      name: info.title,
+      description: info.description,
+      image: info.imgUrl || "https://picsum.photos/300/300",
+      external_url: `${window.location.origin}/narratives/${narrativeId || ""}`,
+      attributes: [
+        { trait_type: "Type", value: getAchievementTypeValue(achievementType) },
+        { trait_type: "Date Awarded", value: new Date().toISOString().split('T')[0] }
+      ]
+    };
+    
+    // 添加叙事相关属性
+    if (narrativeId) {
+      metadata.attributes.push({ trait_type: "Narrative ID", value: narrativeId });
+    }
+    
+    // 添加贡献相关属性
+    if (contributionId) {
+      metadata.attributes.push({ trait_type: "Contribution ID", value: contributionId });
+    }
+    
+    // 添加FID
+    metadata.attributes.push({ trait_type: "Contributor FID", value: userFid.toString() });
+    
+    return metadata;
+  };
+  
+  // 获取成就类型描述
+  const getAchievementTypeValue = (type: AchievementType) => {
+    switch (type) {
+      case AchievementType.CREATOR:
+        return "Creator Badge";
+      case AchievementType.CONTRIBUTOR:
+        return "Contributor Badge";
+      case AchievementType.POPULAR_BRANCH:
+        return "Branch Pioneer SBT";
+      case AchievementType.COMPLETED_NARRATIVE:
+        return "Chapter Completion NFT";
+      default:
+        return "Achievement";
+    }
+  };
+
+  // 向后端确认铸造完成
+  const confirmMintToBackend = async (newTokenId: string) => {
+    try {
+      // 这里假设我们有一个achievementId
+      const achievementId = `${achievementType}-${userFid}-${Date.now()}`;
+      
+      await api.confirmAchievementMint(
+        achievementId,
+        transactionHash!,
+        newTokenId
+      );
+      
+      // 如果有回调，传递成就信息
+      if (onMintSuccess) {
+        const newAchievement: UserAchievement = {
+          achievementId,
+          type: achievementType,
+          title: info.title,
+          description: info.description,
+          imageUrl: info.imgUrl || "https://picsum.photos/300/300",
+          awardedAt: new Date().toISOString(),
+          ownerFid: userFid,
+          narrativeId: narrativeId,
+          contributionId: contributionId,
+          tokenId: newTokenId,
+          transactionHash: transactionHash!,
+        };
+        
+        onMintSuccess(newAchievement);
+      }
+    } catch (error) {
+      console.error("确认铸造完成失败:", error);
+      // 此处不阻止用户继续，仅记录错误
+    }
+  };
+
+  // 处理铸造请求
+  const handleMint = async () => {
+    if (!context?.user?.fid) return;
+    if (!window.ethereum) {
+      setError("请安装MetaMask或其他兼容的以太坊钱包");
+      return;
+    }
+    
+    try {
+      setIsMinting(true);
+      setError(null);
+      
+      // 准备成就元数据
+      const metadata = prepareMetadata();
+      
+      // 请求铸造参数
+      const result = await api.requestMint({
+        recipientFid: userFid,
+        achievementType,
+        narrativeId,
+        contributionId,
+        title: info.title,
+        description: info.description,
+        metadata: metadata
+      });
+      
+      if (result.success && result.transactionParams) {
+        // 请求用户签名交易
+        try {
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const signer = provider.getSigner();
+          
+          // 发送交易
+          const tx = await signer.sendTransaction({
+            to: result.transactionParams.to,
+            data: result.transactionParams.data,
+            value: result.transactionParams.value || "0",
+            gasLimit: result.transactionParams.gasLimit || undefined
+          });
+          
+          console.log("交易已发送:", tx.hash);
+          setTransactionHash(tx.hash);
+          setIsPendingConfirmation(true);
+          
+          // 等待交易确认会在useEffect中处理
+        } catch (txError: any) {
+          if (txError.code === 4001) { // 用户拒绝交易
+            setError("您取消了交易");
+          } else {
+            console.error("交易失败:", txError);
+            setError("交易失败，请重试");
+          }
+        }
+      } else {
+        setError(result.message || "铸造请求失败");
+      }
+    } catch (err) {
+      console.error("铸造失败", err);
+      setError("铸造过程发生错误，请重试");
+    } finally {
+      setIsMinting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+      <div className="w-full max-w-md rounded-xl bg-gray-900 p-6 shadow-2xl">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-white">{info.title}</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white"
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {success ? (
+          <div className="text-center py-6">
+            <div className="flex justify-center mb-4">
+              <svg className="h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">铸造成功！</h3>
+            <p className="text-gray-400 mb-4">
+              恭喜！你的 {info.title} 已成功铸造
+            </p>
+            {transactionHash && (
+              <a
+                href={`${MONAD_EXPLORER_URL}/tx/${transactionHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-purple-400 hover:underline text-sm"
+              >
+                查看交易详情
+              </a>
+            )}
+            <button
+              onClick={onClose}
+              className="mt-6 w-full rounded-lg bg-purple-600 px-4 py-3 font-medium text-white shadow-lg hover:bg-purple-700"
+            >
+              完成
+            </button>
+          </div>
+        ) : isPendingConfirmation ? (
+          <div className="text-center py-6">
+            <div className="flex justify-center mb-4">
+              <div className="animate-spin h-12 w-12 border-4 border-purple-500 rounded-full border-t-transparent"></div>
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">交易确认中...</h3>
+            <p className="text-gray-400 mb-4">
+              请耐心等待交易被区块链确认
+            </p>
+            {transactionHash && (
+              <a
+                href={`${MONAD_EXPLORER_URL}/tx/${transactionHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-purple-400 hover:underline text-sm"
+              >
+                查看交易详情
+              </a>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="mb-6">
+              <div className="mb-4 h-40 w-full overflow-hidden rounded-lg bg-gray-800 flex items-center justify-center">
+                {info.imgUrl ? (
+                  <img src={info.imgUrl} alt={info.title} className="h-full w-full object-contain" />
+                ) : (
+                  <div className="text-gray-600">成就图片</div>
+                )}
+              </div>
+              <p className="text-gray-300 mt-2">{info.description}</p>
+            </div>
+
+            {error && (
+              <div className="mb-4 rounded-lg bg-red-900 bg-opacity-30 p-3 text-red-300 text-sm">
+                {error}
+              </div>
+            )}
+
+            <div className="flex flex-col space-y-3">
+              <button
+                onClick={handleMint}
+                disabled={isMinting}
+                className={`rounded-lg px-4 py-3 font-medium text-white shadow-lg ${
+                  isMinting
+                    ? "bg-gray-700"
+                    : "bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900"
+                }`}
+              >
+                {isMinting ? "铸造中..." : "铸造成就"}
+              </button>
+              <button
+                onClick={onClose}
+                disabled={isMinting}
+                className="rounded-lg border border-gray-700 bg-transparent px-4 py-3 font-medium text-white hover:bg-gray-800"
+              >
+                取消
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+} 
