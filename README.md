@@ -174,7 +174,7 @@ CastChain Narratives使用Monad区块链存储用户成就NFT/SBT。我们提供
    # 区块链配置
    PRIVATE_KEY=your_wallet_private_key_here  # 部署合约的钱包私钥
    MONAD_RPC_URL=https://rpc.monad.xyz/monad  # Monad主网RPC
-   MONAD_TESTNET_RPC_URL=https://rpc.monad.xyz/testnet  # Monad测试网RPC
+   MONAD_TESTNET_RPC_URL=https://testnet-rpc.monad.xyz  # Monad测试网RPC
    ```
 
 ### 合约一键部署
