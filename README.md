@@ -158,22 +158,35 @@ CastChain Narratives采用Netlify实现前后端一体化部署，Next.js前端�
 
 ## 区块链集成
 
-CastChain Narratives使用Monad区块链存储用户成就NFT/SBT。我们提供了专门的合约部署目录，方便您快速部署智能合约。
+CastChain Narratives使用Monad区块链存储用户成就NFT/SBT。我们提供了完全独立的合约部署目录，方便您快速部署智能合约。
 
 ### 合约部署方法
 
-由于Next.js项目使用ESM模块系统，而Hardhat使用CommonJS，我们提供了一个独立的部署目录：
+由于Next.js项目使用ESM模块系统，而Hardhat依赖CommonJS，我们提供了一个完全独立的部署目录：
 
 ```bash
 cd contracts-deploy
 yarn install  # 或 npm install
 ```
 
-然后按照`contracts-deploy/README.md`中的说明进行操作：
+然后按照以下步骤进行操作：
 
-1. 创建`.env`文件，添加您的钱包私钥和RPC URL
-2. 编译合约：`yarn compile`
-3. 部署合约：`yarn deploy:testnet`
+1. 创建`.env`文件，添加以下环境变量：
+   ```
+   PRIVATE_KEY=your_wallet_private_key_here
+   MONAD_RPC_URL=https://rpc.monad.xyz/monad
+   MONAD_TESTNET_RPC_URL=https://rpc.monad.xyz/testnet
+   ```
+
+2. 编译合约：
+   ```bash
+   yarn compile  # 或 npm run compile
+   ```
+
+3. 部署合约到测试网：
+   ```bash
+   yarn deploy:testnet  # 或 npm run deploy:testnet
+   ```
 
 部署成功后，合约地址将保存在`contract-address.json`文件中，您需要手动将地址更新到`lib/constants.ts`文件中：
 

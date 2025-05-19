@@ -1,6 +1,6 @@
-# CastChain Achievement 合约部署指南
+# CastChain Achievement 合约部署
 
-本目录包含了部署CastChain Achievement智能合约所需的所有文件。
+本目录是一个完全独立的合约部署工具，可以编译和部署CastChain Achievement智能合约。
 
 ## 部署准备
 
@@ -45,4 +45,8 @@
 ```typescript
 // lib/constants.ts
 export const ACHIEVEMENT_CONTRACT_ADDRESS = "0x..."; // 替换为您部署的合约地址
-``` 
+```
+
+## 说明
+
+此合约部署目录使用CommonJS模块系统，与主项目的ESM模块系统完全分离，避免了兼容性问题。它是一个完全独立的项目，可以单独运行，不受父项目配置的影响。 

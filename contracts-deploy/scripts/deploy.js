@@ -33,7 +33,7 @@ async function main() {
     const signer = wallet.connect(provider);
 
     // 获取合约工厂
-    const contractPath = path.join(__dirname, "artifacts/contracts/Achievement.sol/CastChainAchievement.json");
+    const contractPath = path.join(__dirname, "../artifacts/contracts/Achievement.sol/CastChainAchievement.json");
     if (!fs.existsSync(contractPath)) {
       console.error("错误: 合约编译文件不存在。请先运行 `yarn compile`");
       process.exit(1);
@@ -55,7 +55,7 @@ async function main() {
     
     // 保存合约地址到文件
     fs.writeFileSync(
-      path.join(__dirname, "contract-address.json"),
+      path.join(__dirname, "../contract-address.json"),
       JSON.stringify({ address: deployedContract.address }, null, 2)
     );
     console.log("合约地址已保存到 contract-address.json 文件");
