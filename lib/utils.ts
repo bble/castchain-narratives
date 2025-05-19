@@ -151,7 +151,7 @@ export function objectToQueryString(params: Record<string, any>): string {
  * @param source 源对象
  * @returns 合并后的对象
  */
-export function deepMerge<T>(target: T, source: Partial<T>): T {
+export function deepMerge<T extends object>(target: T, source: Partial<T>): T {
   const output = { ...target };
   
   if (isObject(target) && isObject(source)) {
