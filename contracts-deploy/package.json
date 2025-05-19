@@ -4,8 +4,8 @@
   "description": "智能合约部署工具",
   "private": true,
   "scripts": {
-    "compile": "hardhat compile",
-    "deploy:testnet": "hardhat run deploy.js --network monadTestnet"
+    "compile": "hardhat compile --config hardhat.config.cjs",
+    "deploy:testnet": "hardhat run deploy.js --network monadTestnet --config hardhat.config.cjs"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.3.0",
