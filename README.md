@@ -46,13 +46,15 @@ CastChain Narratives是一个基于Farcaster的MiniApp，使用户能够创建�
 
 ## 技术栈
 
-- Next.js 14
-- TypeScript
-- TailwindCSS
-- Farcaster Frame SDK
-- Monad & Farcaster集成
+- Next.js 14 (前端框架)
+- TypeScript (类型安全的JavaScript)
+- TailwindCSS (样式)
+- Netlify Functions (无服务器后端API)
+- FaunaDB (数据库)
+- Farcaster Frame SDK (Farcaster集成)
+- Monad区块链 (成就SBT/NFT)
 
-## 安装指南
+## 本地开发指南
 
 1. 克隆仓库
 
@@ -75,8 +77,7 @@ yarn install
 
 ```
 NEXT_PUBLIC_URL=http://localhost:3000
-NEXT_PUBLIC_API_URL=https://你的API服务地址或http://localhost:8000
-NEXT_PUBLIC_MONAD_RPC_URL=https://rpc.monad.xyz/monad
+FAUNA_SECRET_KEY=你的FaunaDB密钥
 ```
 
 4. 启动开发服务器
@@ -89,87 +90,123 @@ npm run dev
 
 5. 在浏览器中访问 `http://localhost:3000`
 
-## 部署指南
+## 部署指南 (Netlify一体化前后端部署)
 
-### Vercel部署（推荐）
+CastChain Narratives采用Netlify实现前后端一体化部署，Next.js前端与Netlify Functions后端在同一平台部署，无需分开管理。
+
+### 部署准备
+
+1. 创建[Netlify](https://netlify.com)和[FaunaDB](https://fauna.com)账户
+2. 在FaunaDB中创建一个新数据库并获取密钥：
+   - 登录FaunaDB控制台
+   - 创建新数据库
+   - 前往"Security"，创建服务器密钥并复制
+
+### 仓库设置
 
 1. Fork或克隆本仓库到你的GitHub账户
 
-2. 在Vercel中导入项目
-   - 登录Vercel并选择"New Project"
+2. 确保仓库中包含以下关键配置文件：
+   - `netlify.toml` - Netlify配置(已包含Next.js和Functions设置)
+   - `types/` - TypeScript类型声明
+   - `netlify/functions/` - 后端API函数
+
+### Netlify部署流程
+
+1. 登录Netlify并创建新站点：
+   - 点击"New site from Git"
    - 选择你的GitHub仓库
-   - 配置部署设置
+   - 保留默认构建设置(自动检测Next.js项目)
 
-3. 配置环境变量
-   在Vercel项目设置中添加以下环境变量：
-   ```
-   NEXT_PUBLIC_URL=https://你的域名
-   NEXT_PUBLIC_API_URL=https://你的API服务地址
-   NEXT_PUBLIC_MONAD_RPC_URL=https://rpc.monad.xyz/monad
-   ```
+2. 配置环境变量：
+   - 站点部署后，前往"Site settings" > "Build & deploy" > "Environment variables"
+   - 添加以下变量：
+     - `FAUNA_SECRET_KEY`: 你的FaunaDB密钥
+     - `NEXT_PUBLIC_URL`: 你的Netlify应用URL(例如：https://castchain-narratives.netlify.app)
 
-4. 部署
-   点击"Deploy"按钮
+3. 重新部署应用：
+   - 前往"Deploys"标签
+   - 点击"Trigger deploy" > "Deploy site"
 
-### 自托管部署
+### 验证部署
 
-1. 构建项目
+部署完成后，你可以验证：
 
-```bash
-yarn build
-# 或
-npm run build
-```
+1. **前端**：访问你的Netlify域名(如`https://your-site.netlify.app`)
+2. **后端API**：尝试访问API端点(如`https://your-site.netlify.app/.netlify/functions/narratives`)
+3. **数据库**：检查FaunaDB控制台中是否有数据写入
 
-2. 启动生产服务器
+### 常见部署问题
 
-```bash
-yarn start
-# 或
-npm start
-```
+- **类型错误**：确保类型声明文件放在`types/`目录中，不要放在`netlify/functions/`中
+- **依赖问题**：检查`package.json`确保包含所有前后端依赖，如`faunadb`
+- **环境变量**：验证环境变量是否正确设置，尤其是`FAUNA_SECRET_KEY`
 
-## 后端API服务
+## API端点
 
-本项目包含基于Netlify Functions的完整后端API实现，使用FaunaDB作为数据库。
+项目包含以下API端点，所有端点均通过Netlify Functions提供：
 
-### Netlify部署后端
-
-1. 在Netlify控制台中，导航到你的项目的"Site settings" > "Build & deploy" > "Environment variables"
-2. 添加以下环境变量：
-   - `FAUNA_SECRET_KEY`: 你的FaunaDB密钥（在FaunaDB控制台中创建）
-   - `NEXT_PUBLIC_URL`: 你的Netlify应用完整URL（例如：https://castchain-narratives.netlify.app）
-
-3. 数据库设置
-   - 创建一个FaunaDB账户（https://fauna.com）
-   - 创建一个新数据库
-   - 在"Security"中创建一个新的服务器密钥
-   - 复制密钥并添加到Netlify环境变量
-
-4. 重新部署应用，Netlify会自动识别并部署Functions
-
-### API端点
-
-项目包含以下API端点：
-
-- `/narratives` - 获取叙事列表和创建新叙事
-- `/narratives/:id` - 获取单个叙事
-- `/narratives/:id/contributions` - 获取叙事贡献和添加新贡献
-- `/narratives/:id/branches` - 获取叙事分支
-- `/narratives/:id/contributions/:id/like` - 点赞贡献
-- `/users/:id/achievements` - 获取用户成就
-- `/users/:id/notifications` - 获取用户通知
-- `/notifications/:id/read` - 标记通知为已读
-- `/achievements/mint` - 铸造成就
-
-所有API都已配置，可以直接与前端集成使用。
+- `/.netlify/functions/narratives` - 获取叙事列表和创建新叙事
+- `/.netlify/functions/narrative-by-id` - 获取单个叙事
+- `/.netlify/functions/narrative-contributions` - 获取叙事贡献和添加新贡献
+- `/.netlify/functions/narrative-branches` - 获取叙事分支
+- `/.netlify/functions/contribution-like` - 点赞贡献
+- `/.netlify/functions/user-achievements` - 获取用户成就
+- `/.netlify/functions/user-notifications` - 获取用户通知
+- `/.netlify/functions/notification-read` - 标记通知为已读
+- `/.netlify/functions/achievement-mint` - 铸造成就
 
 ## 区块链集成
 
-要完整使用链上成就功能，你需要：
+CastChain Narratives使用Monad区块链存储用户成就NFT/SBT。我们提供了一键部署脚本，方便您快速部署智能合约。
 
-1. 部署成就合约到Monad网络（参考文档中的智能合约定义）
-2. 更新`lib/constants.ts`中的`ACHIEVEMENT_CONTRACT_ADDRESS`常量
+### 合约部署准备
+
+1. 安装依赖
+   ```bash
+   yarn install
+   # 或
+   npm install
+   ```
+
+2. 创建`.env`文件，添加以下内容：
+   ```
+   # 区块链配置
+   PRIVATE_KEY=your_wallet_private_key_here  # 部署合约的钱包私钥
+   MONAD_RPC_URL=https://rpc.monad.xyz/monad  # Monad主网RPC
+   MONAD_TESTNET_RPC_URL=https://rpc.monad.xyz/testnet  # Monad测试网RPC
+   ```
+
+### 合约一键部署
+
+1. 编译智能合约
+   ```bash
+   yarn compile-contract
+   # 或
+   npm run compile-contract
+   ```
+
+2. 部署到Monad网络
+   ```bash
+   # 部署到主网
+   yarn deploy-contract
+   # 或
+   npm run deploy-contract
+   
+   # 部署到测试网
+   yarn deploy-contract:testnet
+   # 或
+   npm run deploy-contract:testnet
+   ```
+
+3. 部署成功后，合约地址会自动更新到`lib/constants.ts`文件中
+
+### 合约功能说明
+
+CastChainAchievement合约支持以下成就类型：
+- **分支开创者SBT**：创建受欢迎的故事分支（不可转让）
+- **章节完成NFT**：参与完成叙事章节（可收藏和交易）
+- **织梦者徽章**：优质创作贡献（不可转让）
 
 ## 在Farcaster中使用
 
@@ -178,8 +215,8 @@ npm start
 ### 部署到Farcaster生态系统
 
 1. **部署应用**
-   - 将应用部署到公开可访问的URL（如通过Vercel）
-   - 确保设置了正确的环境变量，特别是`NEXT_PUBLIC_URL`
+   - 将应用部署到Netlify后获得公开URL
+   - 确保已设置环境变量，特别是`NEXT_PUBLIC_URL`
 
 2. **验证Frame配置**
    ```bash
@@ -205,159 +242,11 @@ npm start
    - 点击按钮会触发对应的操作（如浏览故事、创建叙事等）
    - 所有交互都在Warpcast内部完成，无需离开应用
 
-3. **分享应用**
-   - 用户可以通过"分享"按钮将你的应用分享给其他人
-   - 这将创建一个新的Cast，其中包含应用链接
-
 ### 常见问题
 
 - **应用未渲染为Frame**: 确认`app/.well-known/farcaster.json/route.ts`和`app/page.tsx`中的Frame元数据配置正确
 - **按钮不工作**: 检查按钮配置是否符合Frame规范，确保action类型正确
 - **图片不显示**: 确保图片URL是公开可访问的，并正确设置了NEXT_PUBLIC_URL
-
-## 使用方法
-
-### 创建新叙事
-
-1. 登录Farcaster账号
-2. 点击"创建叙事"按钮
-3. 填写标题、开篇内容、标签等信息
-4. 提交后，系统会创建第一个叙事节点
-
-### 贡献故事
-
-1. 浏览现有叙事
-2. 点击一个叙事进入详情页
-3. 选择一个故事节点
-4. 点击"延续此分支"或"创建新分支"
-5. 编写你的贡献内容并提交
-
-### 获取成就
-
-1. 在成就页面查看可获取的成就
-2. 根据成就要求参与相应活动
-3. 达到要求后点击"铸造成就"获取链上凭证
-
-## 配置选项
-
-以下是主要的配置选项和它们的位置：
-
-- **环境变量**：`.env.local`文件（本地开发）或部署平台的环境变量设置
-- **API地址**：`lib/constants.ts`中的`API_BASE_URL`
-- **Monad网络设置**：`lib/constants.ts`中的相关常量
-- **智能合约地址**：`lib/constants.ts`中的`ACHIEVEMENT_CONTRACT_ADDRESS`
-- **Farcaster配置**：`app/.well-known/farcaster.json/route.ts`
-
-## 示例实现与参考代码
-
-以下是一些关键功能的参考实现代码，可以帮助您理解如何扩展或定制项目功能。
-
-### Frame配置测试
-
-您可以使用以下命令测试您的Frame配置：
-
-```bash
-# 使用curl测试frame配置
-curl -X GET https://你的域名/.well-known/farcaster.json
-
-# 预览Frame在Feed中的显示
-npx @farcaster/frame-preview https://你的域名
-```
-
-### 智能合约部署
-
-您需要设置Hardhat环境来部署智能合约：
-
-```bash
-# 安装Hardhat
-npm install --save-dev hardhat
-
-# 初始化Hardhat项目
-npx hardhat init
-
-# 部署到Monad网络
-npx hardhat run scripts/deploy.js --network monad
-```
-
-### SBT查询功能实现示例
-
-以下是查询用户SBT的示例代码：
-
-```typescript
-// 查询用户拥有的所有SBT
-const getUserSBTs = async (contractAddress: string, userAddress: string) => {
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
-  const contract = new ethers.Contract(contractAddress, SBT_ABI, provider);
-  
-  // 获取用户SBT数量
-  const balance = await contract.balanceOf(userAddress);
-  
-  // 获取用户所有SBT的tokenId
-  const sbtIds = [];
-  for (let i = 0; i < balance; i++) {
-    const tokenId = await contract.tokenOfOwnerByIndex(userAddress, i);
-    sbtIds.push(tokenId.toString());
-  }
-  
-  // 获取每个SBT的元数据URI
-  const sbtDetails = await Promise.all(
-    sbtIds.map(async (tokenId) => {
-      const uri = await contract.tokenURI(tokenId);
-      // 处理ipfs://开头的URI
-      const metadataUrl = uri.replace("ipfs://", "https://ipfs.io/ipfs/");
-      
-      // 获取元数据内容
-      const response = await fetch(metadataUrl);
-      const metadata = await response.json();
-      
-      return {
-        tokenId,
-        metadata,
-        uri
-      };
-    })
-  );
-  
-  return sbtDetails;
-};
-```
-
-### Frame元数据生成示例
-
-以下是生成Frame元数据的示例：
-
-```typescript
-export async function generateMetadata(): Promise<Metadata> {
-  const frame = {
-    version: "next",
-    image: `${APP_URL}/images/feed.png`,
-    title: "CastChain Narratives",
-    buttons: [
-      {
-        label: "浏览故事",
-        action: "post_redirect"
-      },
-      {
-        label: "创建故事",
-        action: "post"
-      }
-    ],
-  };
-
-  return {
-    title: "CastChain Narratives",
-    description: "协作式故事创作平台，记录在链上",
-    openGraph: {
-      title: "CastChain Narratives",
-      description: "协作式故事创作平台，记录在链上",
-      images: [`${APP_URL}/images/og.png`],
-    },
-    other: {
-      "fc:frame": JSON.stringify(frame),
-    },
-  };
-}
-```
 
 ## 贡献指南
 
