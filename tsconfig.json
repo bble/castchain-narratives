@@ -24,6 +24,14 @@
     },
     "typeRoots": ["./node_modules/@types", "./netlify"]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "netlify/functions/**/*.ts", "netlify/functions/index.d.ts"],
+  "include": [
+    "next-env.d.ts", 
+    "**/*.ts", 
+    "**/*.tsx", 
+    ".next/types/**/*.ts", 
+    "netlify/functions/**/*.ts", 
+    "netlify/functions/index.d.ts",
+    "netlify/functions/types/*.d.ts"
+  ],
   "exclude": ["node_modules"]
 }

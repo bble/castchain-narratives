@@ -92,7 +92,7 @@ export default function AchievementMinter({
       console.error("确认铸造完成失败:", error);
       // 此处不阻止用户继续，仅记录错误
     }
-  }, [achievementType, userFid, transactionHash, onMintSuccess, info.title, info.description, narrativeId, contributionId]);
+  }, [achievementType, userFid, transactionHash, onMintSuccess, info.title, info.description, info.imgUrl, narrativeId, contributionId]);
 
   // 监听交易状态
   useEffect(() => {
