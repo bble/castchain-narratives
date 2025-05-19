@@ -131,12 +131,37 @@ npm start
 
 ## 后端API服务
 
-本项目前端与后端API进行交互。你需要：
+本项目包含基于Netlify Functions的完整后端API实现，使用FaunaDB作为数据库。
 
-1. 部署后端API服务（参考项目中的API接口定义）
-2. 在`.env.local`或部署环境中设置`NEXT_PUBLIC_API_URL`指向你的API服务
+### Netlify部署后端
 
-或者，你可以修改`lib/api.ts`，使用模拟数据进行测试和演示。
+1. 在Netlify控制台中，导航到你的项目的"Site settings" > "Build & deploy" > "Environment variables"
+2. 添加以下环境变量：
+   - `FAUNA_SECRET_KEY`: 你的FaunaDB密钥（在FaunaDB控制台中创建）
+
+3. 数据库设置
+   - 创建一个FaunaDB账户（https://fauna.com）
+   - 创建一个新数据库
+   - 在"Security"中创建一个新的服务器密钥
+   - 复制密钥并添加到Netlify环境变量
+
+4. 重新部署应用，Netlify会自动识别并部署Functions
+
+### API端点
+
+项目包含以下API端点：
+
+- `/narratives` - 获取叙事列表和创建新叙事
+- `/narratives/:id` - 获取单个叙事
+- `/narratives/:id/contributions` - 获取叙事贡献和添加新贡献
+- `/narratives/:id/branches` - 获取叙事分支
+- `/narratives/:id/contributions/:id/like` - 点赞贡献
+- `/users/:id/achievements` - 获取用户成就
+- `/users/:id/notifications` - 获取用户通知
+- `/notifications/:id/read` - 标记通知为已读
+- `/achievements/mint` - 铸造成就
+
+所有API都已配置，可以直接与前端集成使用。
 
 ## 区块链集成
 
