@@ -165,7 +165,9 @@ CastChain Narratives使用Monad区块链存储用户成就NFT/SBT。我们提供
 由于Next.js项目使用ESM模块系统，而Hardhat依赖CommonJS，我们提供了一个完全独立的部署目录：
 
 ```bash
-cd contracts-deploy
+# 将contract-deployment目录复制到项目外的任何位置
+cp -r contract-deployment ~/castchain-contract-deployment
+cd ~/castchain-contract-deployment
 yarn install  # 或 npm install
 ```
 
@@ -194,6 +196,8 @@ yarn install  # 或 npm install
 // lib/constants.ts
 export const ACHIEVEMENT_CONTRACT_ADDRESS = "0x..."; // 更新为您部署的合约地址
 ```
+
+> **重要提示**：为了避免ESM/CommonJS模块兼容性问题，建议将合约部署目录复制到完全独立的位置，然后在那里执行编译和部署操作。
 
 ### 合约功能说明
 
