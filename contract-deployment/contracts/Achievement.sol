@@ -42,7 +42,7 @@ contract CastChainAchievement is ERC721Enumerable, Ownable {
         uint256 narrativeId
     );
     
-    constructor() ERC721("CastChain Achievement", "CCA") Ownable(msg.sender) {
+    constructor() ERC721("CastChain Achievement", "CCA") {
         authorizedMinters[msg.sender] = true;
     }
     
