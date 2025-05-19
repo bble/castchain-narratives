@@ -40,6 +40,9 @@ declare module '@netlify/functions' {
     body: string;
     isBase64Encoded?: boolean;
   }
+  
+  // 添加HandlerResponse类型别名，与Response保持一致
+  export type HandlerResponse = Response;
 
   export type Handler = (event: Event, context: Context) => Promise<Response> | Response;
 } 
