@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "智能合约部署工具",
   "private": true,
+  "type": "commonjs",
   "scripts": {
     "compile": "hardhat compile --config hardhat.config.cjs",
     "deploy:testnet": "hardhat run deploy.js --network monadTestnet --config hardhat.config.cjs"
