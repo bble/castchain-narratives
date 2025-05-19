@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useMiniAppContext } from "@/hooks/use-miniapp-context";
 import { AchievementType, UserAchievement } from "@/types/narrative";
 import { api } from "@/lib/api";
@@ -58,8 +58,8 @@ export default function AchievementMinter({
   
   const info = achievementInfo[achievementType];
 
-  // 向后端确认铸造完成
-  const confirmMintToBackend = async (newTokenId: string) => {
+  // 向后端确认铸造完成 - 使用useCallback包装以避免不必要的重新创建
+  const confirmMintToBackend = useCallback(async (newTokenId: string) => {
     try {
       // 这里假设我们有一个achievementId
       const achievementId = `${achievementType}-${userFid}-${Date.now()}`;
@@ -92,7 +92,7 @@ export default function AchievementMinter({
       console.error("确认铸造完成失败:", error);
       // 此处不阻止用户继续，仅记录错误
     }
-  };
+  }, [achievementType, userFid, transactionHash, onMintSuccess, info.title, info.description, narrativeId, contributionId]);
 
   // 监听交易状态
   useEffect(() => {
