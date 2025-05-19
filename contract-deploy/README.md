@@ -8,8 +8,8 @@
 
 ```bash
 # 例如，复制到您的主目录
-cp -r contract-deployment ~/castchain-contract-deployment
-cd ~/castchain-contract-deployment
+cp -r contract-deploy ~/castchain-contract-deploy
+cd ~/castchain-contract-deploy
 ```
 
 ## 部署准备
