@@ -19,7 +19,7 @@ export const MONAD_CHAIN_ID = 1024;
 export const MONAD_EXPLORER_URL = "https://explorer.monad.xyz";
 
 // 成就合约地址
-export const ACHIEVEMENT_CONTRACT_ADDRESS = "0x1234567890abcdef1234567890abcdef12345678";
+export const ACHIEVEMENT_CONTRACT_ADDRESS = "0xC94F53281Ef92Cb9651b57C805eA5D283754d455";
 
 // 标签列表
 export const NARRATIVE_TAGS = [
