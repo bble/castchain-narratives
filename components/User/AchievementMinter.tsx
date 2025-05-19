@@ -58,6 +58,42 @@ export default function AchievementMinter({
   
   const info = achievementInfo[achievementType];
 
+  // 向后端确认铸造完成
+  const confirmMintToBackend = async (newTokenId: string) => {
+    try {
+      // 这里假设我们有一个achievementId
+      const achievementId = `${achievementType}-${userFid}-${Date.now()}`;
+      
+      await api.confirmAchievementMint(
+        achievementId,
+        transactionHash!,
+        newTokenId
+      );
+      
+      // 如果有回调，传递成就信息
+      if (onMintSuccess) {
+        const newAchievement: UserAchievement = {
+          achievementId,
+          type: achievementType,
+          title: info.title,
+          description: info.description,
+          imageUrl: info.imgUrl || "https://picsum.photos/300/300",
+          awardedAt: new Date().toISOString(),
+          ownerFid: userFid,
+          narrativeId: narrativeId,
+          contributionId: contributionId,
+          tokenId: newTokenId,
+          transactionHash: transactionHash!,
+        };
+        
+        onMintSuccess(newAchievement);
+      }
+    } catch (error) {
+      console.error("确认铸造完成失败:", error);
+      // 此处不阻止用户继续，仅记录错误
+    }
+  };
+
   // 监听交易状态
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -113,11 +149,11 @@ export default function AchievementMinter({
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [transactionHash, isPendingConfirmation]);
+  }, [transactionHash, isPendingConfirmation, confirmMintToBackend]);
   
   // 准备成就元数据
   const prepareMetadata = () => {
-    // 基于设计文档9.5部分的元数据结构
+    // 元数据结构
     const metadata = {
       name: info.title,
       description: info.description,
@@ -158,42 +194,6 @@ export default function AchievementMinter({
         return "Chapter Completion NFT";
       default:
         return "Achievement";
-    }
-  };
-
-  // 向后端确认铸造完成
-  const confirmMintToBackend = async (newTokenId: string) => {
-    try {
-      // 这里假设我们有一个achievementId
-      const achievementId = `${achievementType}-${userFid}-${Date.now()}`;
-      
-      await api.confirmAchievementMint(
-        achievementId,
-        transactionHash!,
-        newTokenId
-      );
-      
-      // 如果有回调，传递成就信息
-      if (onMintSuccess) {
-        const newAchievement: UserAchievement = {
-          achievementId,
-          type: achievementType,
-          title: info.title,
-          description: info.description,
-          imageUrl: info.imgUrl || "https://picsum.photos/300/300",
-          awardedAt: new Date().toISOString(),
-          ownerFid: userFid,
-          narrativeId: narrativeId,
-          contributionId: contributionId,
-          tokenId: newTokenId,
-          transactionHash: transactionHash!,
-        };
-        
-        onMintSuccess(newAchievement);
-      }
-    } catch (error) {
-      console.error("确认铸造完成失败:", error);
-      // 此处不阻止用户继续，仅记录错误
     }
   };
 
