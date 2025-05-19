@@ -138,6 +138,7 @@ npm start
 1. 在Netlify控制台中，导航到你的项目的"Site settings" > "Build & deploy" > "Environment variables"
 2. 添加以下环境变量：
    - `FAUNA_SECRET_KEY`: 你的FaunaDB密钥（在FaunaDB控制台中创建）
+   - `NEXT_PUBLIC_URL`: 你的Netlify应用完整URL（例如：https://castchain-narratives.netlify.app）
 
 3. 数据库设置
    - 创建一个FaunaDB账户（https://fauna.com）
