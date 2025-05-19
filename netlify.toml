@@ -10,6 +10,12 @@
   publish = ".next"
   functions = "netlify/functions"
 
+# 为.well-known路径添加专门处理
+[[redirects]]
+  from = "/.well-known/*"
+  to = "/.well-known/:splat"
+  status = 200
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
