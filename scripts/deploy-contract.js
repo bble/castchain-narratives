@@ -14,21 +14,28 @@ async function main() {
   }
 
   // 检查RPC URL是否存在
-  if (!process.env.MONAD_RPC_URL) {
-    console.error("错误: 请在.env文件中设置MONAD_RPC_URL环境变量");
+  const networkName = process.env.HARDHAT_NETWORK || "monadTestnet";
+  const rpcUrlKey = networkName === "monad" ? "MONAD_RPC_URL" : "MONAD_TESTNET_RPC_URL";
+  const rpcUrl = process.env[rpcUrlKey];
+  
+  if (!rpcUrl) {
+    console.error(`错误: 请在.env文件中设置${rpcUrlKey}环境变量`);
     process.exit(1);
   }
 
   try {
+    console.log(`使用网络: ${networkName}`);
+    console.log(`RPC URL: ${rpcUrl}`);
+    
     // 连接到Monad网络
-    const provider = new ethers.providers.JsonRpcProvider(process.env.MONAD_RPC_URL);
+    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
     const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
     const signer = wallet.connect(provider);
 
     // 获取合约工厂
     const contractPath = path.join(__dirname, "../artifacts/contracts/Achievement.sol/CastChainAchievement.json");
     if (!fs.existsSync(contractPath)) {
-      console.error("错误: 合约编译文件不存在。请先运行 `npx hardhat compile`");
+      console.error("错误: 合约编译文件不存在。请先运行 `yarn compile-contract`");
       process.exit(1);
     }
 
