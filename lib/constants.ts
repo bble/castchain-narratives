@@ -5,7 +5,9 @@ if (!APP_URL) {
 }
 
 // API相关常量
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.castchain-narratives.com";
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
+
+// 在Netlify上API请求会被重定向到/.netlify/functions/
 
 // Monad网络相关常量
 export const MONAD_RPC_URL = "https://rpc.monad.xyz/monad";
