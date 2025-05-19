@@ -18,7 +18,7 @@
 # 处理SPA路由
 [[redirects]]
   from = "/*"
-  to = "/index.html"
+  to = "/"
   status = 200
   
 [[plugins]]
