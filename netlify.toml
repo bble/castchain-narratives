@@ -39,7 +39,7 @@
 # 函数配置
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["faunadb"]
+  external_node_modules = ["faunadb", "fauna"]
 
 [[headers]]
   for = "/.well-known/*"
