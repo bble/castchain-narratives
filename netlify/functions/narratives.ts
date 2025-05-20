@@ -12,17 +12,17 @@ export const handler: Handler = async (event, context) => {
     queryParams: event.queryStringParameters
   });
 
-  // 确保初始化数据库
-  try {
-    await db.setupDatabase();
-    console.log('数据库初始化成功');
-  } catch (err: any) {
-    console.error('数据库初始化失败:', err);
-    return error(`数据库初始化失败: ${err.message || JSON.stringify(err)}`);
-  }
-
   if (event.httpMethod === 'GET') {
     try {
+      // 确保初始化数据库
+      try {
+        await db.setupDatabase();
+        console.log('数据库初始化成功');
+      } catch (err: any) {
+        console.error('数据库初始化失败:', err);
+        return error(`数据库初始化失败: ${err.message || JSON.stringify(err)}`);
+      }
+
       // 解析查询参数
       const queryParams = event.queryStringParameters || {};
       const page = parseInt(queryParams.page || '1', 10);
@@ -37,69 +37,92 @@ export const handler: Handler = async (event, context) => {
       const type = queryParams.type;
       const userFid = queryParams.userFid ? parseInt(queryParams.userFid, 10) : undefined;
 
-      let narratives;
+      try {
+        let narratives;
 
-      // 根据排序方式选择索引
-      const indexName = sortBy === 'popular' 
-        ? db.indexes.narrativesByPopularity 
-        : db.indexes.narrativesByTimestamp;
-      
-      if (creatorFid) {
-        // 按创建者查询
-        narratives = await db.query(db.indexes.narrativesByCreator, creatorFid, { limit });
-      } else if (tags && tags.length > 0) {
-        // 按标签查询
-        const results = [];
-        for (const tag of tags) {
-          const tagNarratives = await db.query(db.indexes.narrativesByTag, tag, { limit });
-          results.push(...tagNarratives);
-        }
-        // 合并结果并去重
-        const uniqueIds = new Set();
-        narratives = results.filter(n => {
-          if (uniqueIds.has(n.id)) return false;
-          uniqueIds.add(n.id);
-          return true;
-        });
+        // 根据排序方式选择索引
+        const indexName = sortBy === 'popular' 
+          ? db.indexes.narrativesByPopularity 
+          : db.indexes.narrativesByTimestamp;
         
-        // 按选择的方式排序
-        if (sortBy === 'popular') {
-          narratives.sort((a, b) => b.contributionCount - a.contributionCount);
-        } else {
-          narratives.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-        }
-      } else if (type === 'my' && userFid) {
-        // 获取用户创建的叙事
-        narratives = await db.query(db.indexes.narrativesByCreator, userFid, { limit });
-      } else if (type === 'following' && userFid) {
-        // 获取用户关注的叙事
-        const followedNarratives = await db.query(db.indexes.followersByUser, userFid, { limit });
-        const narrativeIds = followedNarratives.map(f => f.narrativeId);
+        console.log('使用索引查询:', indexName);
         
-        if (narrativeIds.length === 0) {
-          narratives = [];
-        } else {
-          // 获取每个关注的叙事详情
-          narratives = await Promise.all(
-            narrativeIds.map(id => db.get(db.collections.narratives, id))
+        try {
+          if (creatorFid) {
+            // 按创建者查询
+            console.log('按创建者查询:', creatorFid);
+            narratives = await db.query(db.indexes.narrativesByCreator, [creatorFid], { limit });
+          } else if (tags && tags.length > 0) {
+            // 按标签查询
+            console.log('按标签查询:', tags);
+            const results = [];
+            for (const tag of tags) {
+              const tagNarratives = await db.query(db.indexes.narrativesByTag, [tag], { limit });
+              results.push(...tagNarratives);
+            }
+            // 合并结果并去重
+            const uniqueIds = new Set();
+            narratives = results.filter(n => {
+              if (uniqueIds.has(n.id)) return false;
+              uniqueIds.add(n.id);
+              return true;
+            });
+            
+            // 按选择的方式排序
+            if (sortBy === 'popular') {
+              narratives.sort((a, b) => b.contributionCount - a.contributionCount);
+            } else {
+              narratives.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+            }
+          } else if (type === 'my' && userFid) {
+            // 获取用户创建的叙事
+            console.log('获取用户创建的叙事:', userFid);
+            narratives = await db.query(db.indexes.narrativesByCreator, [userFid], { limit });
+          } else if (type === 'following' && userFid) {
+            // 获取用户关注的叙事
+            console.log('获取用户关注的叙事:', userFid);
+            const followedNarratives = await db.query(db.indexes.followersByUser, [userFid], { limit });
+            const narrativeIds = followedNarratives.map((f: any) => f.narrativeId);
+            
+            if (narrativeIds.length === 0) {
+              narratives = [];
+            } else {
+              // 获取每个关注的叙事详情
+              narratives = await Promise.all(
+                narrativeIds.map((id: string) => db.get(db.collections.narratives, id))
+              );
+              narratives = narratives.filter(Boolean); // 过滤掉可能不存在的叙事
+            }
+          } else {
+            // 默认获取所有叙事并排序
+            console.log('默认查询所有叙事，使用索引:', indexName);
+            narratives = await db.query(indexName, [], { limit });
+          }
+        } catch (innerErr: any) {
+          console.error('数据库查询内部错误:', JSON.stringify(innerErr));
+          throw new Error(`数据库查询失败: ${innerErr.message || JSON.stringify(innerErr)}`);
+        }
+        
+        // 如果有搜索词，进行过滤
+        if (searchTerm) {
+          const lowercaseSearch = searchTerm.toLowerCase();
+          narratives = narratives.filter((n: any) => 
+            n.title.toLowerCase().includes(lowercaseSearch) ||
+            n.description.toLowerCase().includes(lowercaseSearch)
           );
-          narratives = narratives.filter(Boolean); // 过滤掉可能不存在的叙事
         }
-      } else {
-        // 默认获取所有叙事并排序
-        narratives = await db.query(indexName, [], { limit });
-      }
-      
-      // 如果有搜索词，进行过滤
-      if (searchTerm) {
-        const lowercaseSearch = searchTerm.toLowerCase();
-        narratives = narratives.filter(n => 
-          n.title.toLowerCase().includes(lowercaseSearch) ||
-          n.description.toLowerCase().includes(lowercaseSearch)
-        );
-      }
 
-      return success(narratives);
+        // 如果数据库返回了空数据，返回空数组
+        if (!narratives || narratives.length === 0) {
+          console.log('数据库返回为空，返回空数组');
+          return success([]);
+        }
+
+        return success(narratives);
+      } catch (dbErr: any) {
+        console.error('数据库查询失败:', JSON.stringify(dbErr));
+        return error(`数据库查询失败: ${dbErr.message || JSON.stringify(dbErr)}`);
+      }
     } catch (err: any) {
       console.error('获取叙事列表失败:', err);
       return error(`获取叙事列表失败: ${err.message || JSON.stringify(err)}`);
@@ -140,52 +163,61 @@ export const handler: Handler = async (event, context) => {
         featuredImageUrl: data.featuredImageUrl
       };
       
-      // 创建叙事记录
-      const createdNarrative = await db.create(db.collections.narratives, narrative);
-      
-      // 创建第一个贡献
-      const contributionId = generateId();
-      const contribution = {
-        contributionId,
-        narrativeId,
-        contributorFid: data.creatorFid,
-        contributorUsername: data.creatorUsername,
-        contributorDisplayName: data.creatorDisplayName,
-        contributorPfp: data.creatorPfp,
-        parentContributionId: null, // 首个贡献没有父节点
-        branchId: null, // 稍后创建分支后更新
-        textContent: data.description, // 初始内容
-        castHash: data.castHash,
-        createdAt: now,
-        upvotes: 0,
-        isBranchStart: true
-      };
-      
-      await db.create(db.collections.contributions, contribution);
-      
-      // 创建主分支
-      const branchId = generateId();
-      const branch = {
-        branchId,
-        narrativeId,
-        name: 'Main Branch', // 主分支
-        description: 'The main storyline',
-        creatorFid: data.creatorFid,
-        createdAt: now,
-        rootContributionId: contributionId,
-        parentBranchId: null, // 主分支没有父分支
-        contributionCount: 1
-      };
-      
-      await db.create(db.collections.branches, branch);
-      
-      // 更新贡献，添加分支ID
-      await db.update(db.collections.contributions, contributionId, {
-        ...contribution,
-        branchId
-      });
-      
-      return success(createdNarrative, 201);
+      try {
+        // 确保初始化数据库
+        await db.setupDatabase();
+        console.log('数据库初始化成功');
+        
+        // 创建叙事记录
+        const createdNarrative = await db.create(db.collections.narratives, narrative);
+        
+        // 创建第一个贡献
+        const contributionId = generateId();
+        const contribution = {
+          contributionId,
+          narrativeId,
+          contributorFid: data.creatorFid,
+          contributorUsername: data.creatorUsername,
+          contributorDisplayName: data.creatorDisplayName,
+          contributorPfp: data.creatorPfp,
+          parentContributionId: null, // 首个贡献没有父节点
+          branchId: null, // 稍后创建分支后更新
+          textContent: data.description, // 初始内容
+          castHash: data.castHash,
+          createdAt: now,
+          upvotes: 0,
+          isBranchStart: true
+        };
+        
+        await db.create(db.collections.contributions, contribution);
+        
+        // 创建主分支
+        const branchId = generateId();
+        const branch = {
+          branchId,
+          narrativeId,
+          name: 'Main Branch', // 主分支
+          description: 'The main storyline',
+          creatorFid: data.creatorFid,
+          createdAt: now,
+          rootContributionId: contributionId,
+          parentBranchId: null, // 主分支没有父分支
+          contributionCount: 1
+        };
+        
+        await db.create(db.collections.branches, branch);
+        
+        // 更新贡献，添加分支ID
+        await db.update(db.collections.contributions, contributionId, {
+          ...contribution,
+          branchId
+        });
+        
+        return success(createdNarrative, 201);
+      } catch (dbErr: any) {
+        console.error('数据库操作失败:', dbErr);
+        return error(`数据库操作失败: ${dbErr.message || JSON.stringify(dbErr)}`, 500);
+      }
     } catch (err: any) {
       console.error('创建叙事失败:', err);
       return error(`创建叙事失败: ${err.message || JSON.stringify(err)}`);
