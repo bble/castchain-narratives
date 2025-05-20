@@ -4,6 +4,11 @@
       "path": "/api/frame",
       "function": "frame",
       "generator": "@netlify/edge-functions"
+    },
+    {
+      "path": "/.netlify/functions/narratives",
+      "function": "narratives",
+      "generator": "@netlify/edge-functions"
     }
   ],
   "version": 1

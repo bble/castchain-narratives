@@ -1,17 +1,23 @@
 [build]
   command = "npm run build"
   publish = ".next"
+  functions = "netlify/functions"
 
 [dev]
   command = "npm run dev"
   port = 8888
   targetPort = 3000
   publish = ".next"
+  functions = "netlify/functions"
 
-# 简化的Edge Functions配置
+# 配置Edge Functions
 [[edge_functions]]
   path = "/api/frame"
   function = "frame"
+
+[[edge_functions]]
+  path = "/.netlify/functions/narratives"
+  function = "narratives"
 
 # 为.well-known路径添加专门处理
 [[redirects]]
@@ -19,7 +25,13 @@
   to = "/.well-known/:splat"
   status = 200
 
-# 使用原始Frame端点（不使用重定向）
+# 处理API路由
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# 处理SPA路由
 [[redirects]]
   from = "/*"
   to = "/"
@@ -27,6 +39,11 @@
   
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# 函数配置
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["faunadb"]
 
 [[headers]]
   for = "/.well-known/*"

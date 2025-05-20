@@ -4,6 +4,7 @@
   "description": "Netlify Functions for CastChain Narratives",
   "main": "index.js",
   "dependencies": {
+    "faunadb": "^4.8.0",
     "node-fetch": "^2.6.7"
   }
 } 
