@@ -1,26 +1,10 @@
 // Netlify函数处理Frame请求
 exports.handler = async (event) => {
   try {
-    // 处理OPTIONS请求 (CORS预检)
-    if (event.httpMethod === 'OPTIONS') {
-      return {
-        statusCode: 204,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'Content-Type',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS'
-        }
-      };
-    }
-
     // 只处理POST请求
     if (event.httpMethod !== 'POST') {
       return {
         statusCode: 405,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify({ error: '仅支持POST请求' })
       };
     }
@@ -57,7 +41,6 @@ exports.handler = async (event) => {
     return {
       statusCode: 200,
       headers: {
-        'Access-Control-Allow-Origin': '*',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(response)
@@ -69,7 +52,6 @@ exports.handler = async (event) => {
     return {
       statusCode: 200, // 即使有错误也返回200
       headers: {
-        'Access-Control-Allow-Origin': '*',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({

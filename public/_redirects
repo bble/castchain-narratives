@@ -1,4 +1,4 @@
 /.well-known/* /.well-known/:splat 200
-/api/frame /.netlify/functions/frame 200
+/api/frame /.netlify/functions/api/frame 200
 /api/* /.netlify/functions/:splat 200
 /* / 200 

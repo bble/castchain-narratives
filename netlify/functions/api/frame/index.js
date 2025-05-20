@@ -1,26 +1,10 @@
 // Netlify函数处理Frame请求
 exports.handler = async (event) => {
   try {
-    // 处理OPTIONS请求 (CORS预检)
-    if (event.httpMethod === 'OPTIONS') {
-      return {
-        statusCode: 204,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'Content-Type',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS'
-        }
-      };
-    }
-
     // 只处理POST请求
     if (event.httpMethod !== 'POST') {
       return {
         statusCode: 405,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify({ error: '仅支持POST请求' })
       };
     }
@@ -36,7 +20,7 @@ exports.handler = async (event) => {
       }
     }
 
-    // 构建Frame响应 - 严格遵循Farcaster vNext格式
+    // 构建Frame响应 - 严格遵循Farcaster Frame规范
     const response = {
       version: "vNext",
       image: "https://castchain-narratives.netlify.app/images/feed.png",
@@ -51,14 +35,17 @@ exports.handler = async (event) => {
           action: "post_redirect",
           target: "https://castchain-narratives.netlify.app/narratives/create"
         }
-      ]
+      ],
+      // 允许Warpcast中嵌入和显示
+      accepts: ["iframe.warpcast.com"]
     };
 
     return {
       statusCode: 200,
       headers: {
+        'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json'
+        'Access-Control-Allow-Headers': 'Content-Type'
       },
       body: JSON.stringify(response)
     };
@@ -69,8 +56,9 @@ exports.handler = async (event) => {
     return {
       statusCode: 200, // 即使有错误也返回200
       headers: {
+        'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json'
+        'Access-Control-Allow-Headers': 'Content-Type'
       },
       body: JSON.stringify({
         version: "vNext",
