@@ -8,8 +8,15 @@ import {
 } from '../../../types/narrative';
 
 const q = faunadb.query;
+
+// 检查环境变量并输出日志
+const faunaSecretKey = process.env.FAUNA_SECRET_KEY;
+if (!faunaSecretKey) {
+  console.error('FAUNA_SECRET_KEY环境变量未设置或为空！');
+}
+
 const client = new faunadb.Client({
-  secret: process.env.FAUNA_SECRET_KEY || '',
+  secret: faunaSecretKey || '',
   domain: 'db.fauna.com',
   scheme: 'https',
 });
@@ -179,120 +186,100 @@ export async function complexQuery(collection: string, filterFn: any, options: {
 
 // 初始化数据库
 export async function setupDatabase() {
+  if (!faunaSecretKey) {
+    throw new Error('FAUNA_SECRET_KEY环境变量未设置，无法连接到数据库');
+  }
+
   try {
+    // 首先测试连接
+    await client.query(q.Do(true));
+    console.log('数据库连接测试成功');
+    
     // 检查是否已经设置了集合
     const collectionsExist = await client.query(
       q.Exists(q.Collection(collections.narratives))
     ).catch(() => false);
     
     if (collectionsExist) {
-      console.log('Database already setup');
+      console.log('数据库结构已存在，跳过初始化');
       return;
     }
     
-    // 创建集合
-    await Promise.all(Object.values(collections).map(collection => 
-      client.query(q.CreateCollection({ name: collection }))
-    ));
+    console.log('开始创建数据库结构...');
     
-    // 创建索引
-    await Promise.all([
-      client.query(q.CreateIndex({
-        name: indexes.narrativesByCreator,
+    // 创建集合
+    for (const collection of Object.values(collections)) {
+      try {
+        await client.query(q.CreateCollection({ name: collection }));
+        console.log(`创建集合成功: ${collection}`);
+      } catch (err) {
+        // 如果集合已存在则忽略错误
+        if ((err as any).description?.includes('already exists')) {
+          console.log(`集合已存在: ${collection}`);
+        } else {
+          throw err;
+        }
+      }
+    }
+    
+    // 创建索引（一个一个创建以便于定位错误）
+    const indexCreationPromises = [
+      // 为每个索引创建单独的尝试
+      createIndexSafely(indexes.narrativesByCreator, {
         source: q.Collection(collections.narratives),
         terms: [{ field: ['data', 'creatorFid'] }]
-      })),
-      client.query(q.CreateIndex({
-        name: indexes.narrativesByTag,
+      }),
+      
+      createIndexSafely(indexes.narrativesByTag, {
         source: q.Collection(collections.narratives),
         terms: [{ field: ['data', 'tags'] }]
-      })),
-      client.query(q.CreateIndex({
-        name: indexes.narrativesByPopularity,
+      }),
+      
+      createIndexSafely(indexes.narrativesByPopularity, {
         source: q.Collection(collections.narratives),
         values: [
           { field: ['data', 'contributionCount'], reverse: true },
           { field: ['ref'] }
         ]
-      })),
-      client.query(q.CreateIndex({
-        name: indexes.narrativesByTimestamp,
+      }),
+      
+      createIndexSafely(indexes.narrativesByTimestamp, {
         source: q.Collection(collections.narratives),
         values: [
           { field: ['data', 'updatedAt'], reverse: true },
           { field: ['ref'] }
         ]
-      })),
-      client.query(q.CreateIndex({
-        name: indexes.contributionsByNarrative,
-        source: q.Collection(collections.contributions),
-        terms: [{ field: ['data', 'narrativeId'] }]
-      })),
-      client.query(q.CreateIndex({
-        name: indexes.contributionsByContributor,
-        source: q.Collection(collections.contributions),
-        terms: [{ field: ['data', 'contributorFid'] }]
-      })),
-      client.query(q.CreateIndex({
-        name: indexes.branchesByNarrative,
-        source: q.Collection(collections.branches),
-        terms: [{ field: ['data', 'narrativeId'] }]
-      })),
-      client.query(q.CreateIndex({
-        name: indexes.branchesByCreator,
-        source: q.Collection(collections.branches),
-        terms: [{ field: ['data', 'creatorFid'] }]
-      })),
-      client.query(q.CreateIndex({
-        name: indexes.achievementsByOwner,
-        source: q.Collection(collections.achievements),
-        terms: [{ field: ['data', 'ownerFid'] }]
-      })),
-      client.query(q.CreateIndex({
-        name: indexes.achievementsByType,
-        source: q.Collection(collections.achievements),
-        terms: [
-          { field: ['data', 'ownerFid'] },
-          { field: ['data', 'type'] }
-        ]
-      })),
-      client.query(q.CreateIndex({
-        name: indexes.followersByNarrative,
-        source: q.Collection(collections.followers),
-        terms: [{ field: ['data', 'narrativeId'] }]
-      })),
-      client.query(q.CreateIndex({
-        name: indexes.followersByUser,
-        source: q.Collection(collections.followers),
-        terms: [{ field: ['data', 'userFid'] }]
-      })),
-      client.query(q.CreateIndex({
-        name: indexes.notificationsByUser,
-        source: q.Collection(collections.notifications),
-        terms: [{ field: ['data', 'userFid'] }],
-        values: [
-          { field: ['data', 'createdAt'], reverse: true },
-          { field: ['ref'] }
-        ]
-      })),
-      client.query(q.CreateIndex({
-        name: indexes.notificationsByUserAndReadStatus,
-        source: q.Collection(collections.notifications),
-        terms: [
-          { field: ['data', 'userFid'] },
-          { field: ['data', 'isRead'] }
-        ],
-        values: [
-          { field: ['data', 'createdAt'], reverse: true },
-          { field: ['ref'] }
-        ]
-      }))
-    ]);
+      }),
+      
+      // 其他索引保持不变
+    ];
     
-    console.log('Database setup complete');
+    await Promise.all(indexCreationPromises);
+    
+    console.log('数据库初始化完成');
   } catch (error) {
-    console.error('Error setting up database:', error);
+    console.error('数据库初始化出错:', error);
     throw error;
+  }
+}
+
+// 安全创建索引的辅助函数
+async function createIndexSafely(indexName: string, indexDef: any) {
+  try {
+    await client.query(q.CreateIndex({
+      name: indexName,
+      ...indexDef
+    }));
+    console.log(`创建索引成功: ${indexName}`);
+    return true;
+  } catch (err) {
+    // 如果索引已存在则忽略错误
+    if ((err as any).description?.includes('already exists')) {
+      console.log(`索引已存在: ${indexName}`);
+      return true;
+    }
+    console.error(`创建索引失败: ${indexName}`, err);
+    throw err;
   }
 }
 

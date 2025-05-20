@@ -5,8 +5,19 @@ import { NarrativeStatus, CollaborationRules } from '../../types/narrative';
 import { generateId } from '../../lib/utils';
 
 export const handler: Handler = async (event, context) => {
+  console.log('请求narratives函数，环境变量状态:', {
+    haveFaunaKey: !!process.env.FAUNA_SECRET_KEY,
+    nodeEnv: process.env.NODE_ENV
+  });
+
   // 确保初始化数据库
-  await db.setupDatabase().catch((err) => console.error('DB setup error:', err));
+  try {
+    await db.setupDatabase();
+    console.log('数据库初始化成功');
+  } catch (err: any) {
+    console.error('数据库初始化失败:', err);
+    return error(`数据库初始化失败: ${err.message || JSON.stringify(err)}`);
+  }
 
   if (event.httpMethod === 'GET') {
     try {
