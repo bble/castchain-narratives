@@ -36,16 +36,20 @@ export const handler: Handler = async (event, context) => {
       let achievements;
       
       if (achievementType) {
-        // 查询特定类型的成就
-        achievements = await db.query(
-          db.indexes.achievementsByType, 
-          [userFid, achievementType]
+        // 查询特定类型的成就 - 使用已有的achievementsByUser索引
+        // 由于索引不支持按类型过滤，这里获取所有用户成就后在内存中过滤
+        const allAchievements = await db.query(
+          db.indexes.achievementsByUser, 
+          [userFid]
         );
+        
+        // 在内存中过滤指定类型的成就
+        achievements = allAchievements.filter(a => a.achievementType === achievementType);
       } else {
         // 查询所有成就
         achievements = await db.query(
-          db.indexes.achievementsByOwner, 
-          userFid
+          db.indexes.achievementsByUser, 
+          [userFid]
         );
       }
       
