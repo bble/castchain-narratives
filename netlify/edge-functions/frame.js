@@ -1,19 +1,20 @@
 // 极简版Frame处理Edge Function
 export default async () => {
-  // 基本的Frame响应
+  // 基本的Frame响应，确保URL格式正确
+  const baseUrl = "https://castchain-narratives.netlify.app";
   const frameData = {
     version: "vNext",
-    image: "https://castchain-narratives.netlify.app/images/feed.png",
+    image: `${baseUrl}/images/feed.png`,
     buttons: [
       {
         label: "浏览故事",
         action: "post_redirect", 
-        target: "https://castchain-narratives.netlify.app/narratives"
+        target: `${baseUrl}/narratives`
       },
       {
         label: "创建新叙事",
         action: "post_redirect",
-        target: "https://castchain-narratives.netlify.app/narratives/create"
+        target: `${baseUrl}/narratives/create`
       }
     ]
   };

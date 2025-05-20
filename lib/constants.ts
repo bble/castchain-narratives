@@ -1,12 +1,17 @@
 export const MESSAGE_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30; // 30 day
 
-// 默认使用相对URL，在生产环境中会被Netlify的部署URL覆盖
-export const APP_URL = (process.env.NEXT_PUBLIC_URL || 
-  (typeof window !== 'undefined' ? window.location.origin : 'https://castchain-narratives.netlify.app')).replace(/\/\/$/, '/');
-// 不再抛出错误，而是使用默认值
-// if (!APP_URL) {
-//   throw new Error("NEXT_PUBLIC_URL is not set");
-// }
+// 修复URL格式问题，确保没有双斜杠
+const getBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_URL) {
+    return process.env.NEXT_PUBLIC_URL.replace(/\/+$/, '');
+  }
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  return 'https://castchain-narratives.netlify.app';
+};
+
+export const APP_URL = getBaseUrl();
 
 // API相关常量
 export const API_BASE_URL = process.env.NODE_ENV === 'production' 
