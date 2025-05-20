@@ -1,4 +1,4 @@
-// Netlify函数处理Frame请求
+// Netlify函数处理Frame请求 - 轻量级版本
 exports.handler = async (event) => {
   try {
     // 只处理POST请求
@@ -9,18 +9,7 @@ exports.handler = async (event) => {
       };
     }
 
-    // 分析请求数据
-    let requestData = {};
-    if (event.body) {
-      try {
-        requestData = JSON.parse(event.body);
-        console.log('Frame请求数据:', requestData);
-      } catch (e) {
-        console.error('解析请求数据失败:', e);
-      }
-    }
-
-    // 构建Frame响应 - 严格遵循Farcaster Frame规范
+    // 构建最小的Frame响应
     const response = {
       version: "vNext",
       image: "https://castchain-narratives.netlify.app/images/feed.png",
@@ -36,7 +25,6 @@ exports.handler = async (event) => {
           target: "https://castchain-narratives.netlify.app/narratives/create"
         }
       ],
-      // 允许Warpcast中嵌入和显示
       accepts: ["iframe.warpcast.com"]
     };
 
@@ -52,9 +40,8 @@ exports.handler = async (event) => {
   } catch (error) {
     console.error('Frame处理出错:', error);
     
-    // 返回错误Frame - 同样严格遵循规范
     return {
-      statusCode: 200, // 即使有错误也返回200
+      statusCode: 200,
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',

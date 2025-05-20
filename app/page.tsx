@@ -20,7 +20,7 @@ export function generateMetadata(): Metadata {
       "fc:frame:button:2": "创建新叙事",
       "fc:frame:button:2:action": "post_redirect",
       "fc:frame:button:2:target": `${APP_URL}/narratives/create`,
-      "fc:frame:post_url": `${APP_URL}/.netlify/functions/api/frame`,
+      "fc:frame:post_url": `${APP_URL}/.netlify/functions/frame`,
       "og:image": `${APP_URL}/images/feed.png`
     },
   };

@@ -16,10 +16,10 @@
   to = "/.well-known/:splat"
   status = 200
 
-# Frame API路由处理
+# 使用简化的Frame处理函数
 [[redirects]]
   from = "/api/frame"
-  to = "/.netlify/functions/api/frame"
+  to = "/.netlify/functions/frame"
   status = 200
   force = true
 
@@ -31,7 +31,7 @@
 # 处理SPA路由
 [[redirects]]
   from = "/*"
-  to = "/index.html"
+  to = "/"
   status = 200
   
 [[plugins]]
@@ -39,9 +39,19 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["next"]
+  external_node_modules = ["next", "react", "react-dom", "@apollo/client", "graphql"]
+  
+# 单独为frame函数指定配置
+[functions.frame]
+  included_files = []
+  external_node_modules = []
 
 [[headers]]
   for = "/.well-known/*"
   [headers.values]
-    Access-Control-Allow-Origin = "*" 
+    Access-Control-Allow-Origin = "*"
+
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable" 
