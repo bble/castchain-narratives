@@ -19,7 +19,7 @@
 # Frame API路由处理
 [[redirects]]
   from = "/api/frame"
-  to = "/.netlify/functions/api/frame"
+  to = "/.netlify/functions/frame"
   status = 200
   force = true
 
@@ -39,4 +39,12 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["faunadb"] 
+  external_node_modules = ["faunadb"]
+
+# 添加CORS支持
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Headers = "Content-Type"
+    Access-Control-Allow-Methods = "GET, POST, OPTIONS" 
