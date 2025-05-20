@@ -98,9 +98,9 @@ export const handler: Handler = async (event, context) => {
       }
 
       return success(narratives);
-    } catch (err) {
-      console.error('Error fetching narratives:', err);
-      return error('Error fetching narratives');
+    } catch (err: any) {
+      console.error('获取叙事列表失败:', err);
+      return error(`获取叙事列表失败: ${err.message || JSON.stringify(err)}`);
     }
   } else if (event.httpMethod === 'POST') {
     try {
@@ -184,9 +184,9 @@ export const handler: Handler = async (event, context) => {
       });
       
       return success(createdNarrative, 201);
-    } catch (err) {
-      console.error('Error creating narrative:', err);
-      return error('Error creating narrative');
+    } catch (err: any) {
+      console.error('创建叙事失败:', err);
+      return error(`创建叙事失败: ${err.message || JSON.stringify(err)}`);
     }
   } else if (event.httpMethod === 'OPTIONS') {
     // 处理CORS预检请求

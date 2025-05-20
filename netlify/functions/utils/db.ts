@@ -251,7 +251,70 @@ export async function setupDatabase() {
         ]
       }),
       
-      // 其他索引保持不变
+      // 添加回其余索引
+      createIndexSafely(indexes.contributionsByNarrative, {
+        source: q.Collection(collections.contributions),
+        terms: [{ field: ['data', 'narrativeId'] }]
+      }),
+      
+      createIndexSafely(indexes.contributionsByContributor, {
+        source: q.Collection(collections.contributions),
+        terms: [{ field: ['data', 'contributorFid'] }]
+      }),
+      
+      createIndexSafely(indexes.branchesByNarrative, {
+        source: q.Collection(collections.branches),
+        terms: [{ field: ['data', 'narrativeId'] }]
+      }),
+      
+      createIndexSafely(indexes.branchesByCreator, {
+        source: q.Collection(collections.branches),
+        terms: [{ field: ['data', 'creatorFid'] }]
+      }),
+      
+      createIndexSafely(indexes.achievementsByOwner, {
+        source: q.Collection(collections.achievements),
+        terms: [{ field: ['data', 'ownerFid'] }]
+      }),
+      
+      createIndexSafely(indexes.achievementsByType, {
+        source: q.Collection(collections.achievements),
+        terms: [
+          { field: ['data', 'ownerFid'] },
+          { field: ['data', 'type'] }
+        ]
+      }),
+      
+      createIndexSafely(indexes.followersByNarrative, {
+        source: q.Collection(collections.followers),
+        terms: [{ field: ['data', 'narrativeId'] }]
+      }),
+      
+      createIndexSafely(indexes.followersByUser, {
+        source: q.Collection(collections.followers),
+        terms: [{ field: ['data', 'userFid'] }]
+      }),
+      
+      createIndexSafely(indexes.notificationsByUser, {
+        source: q.Collection(collections.notifications),
+        terms: [{ field: ['data', 'userFid'] }],
+        values: [
+          { field: ['data', 'createdAt'], reverse: true },
+          { field: ['ref'] }
+        ]
+      }),
+      
+      createIndexSafely(indexes.notificationsByUserAndReadStatus, {
+        source: q.Collection(collections.notifications),
+        terms: [
+          { field: ['data', 'userFid'] },
+          { field: ['data', 'isRead'] }
+        ],
+        values: [
+          { field: ['data', 'createdAt'], reverse: true },
+          { field: ['ref'] }
+        ]
+      })
     ];
     
     await Promise.all(indexCreationPromises);
