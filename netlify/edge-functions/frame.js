@@ -1,7 +1,7 @@
-// 独立的轻量级Frame处理函数
-exports.handler = async (event) => {
-  // 简单的Frame响应
-  const response = {
+// Netlify Edge Function - 处理Frame请求
+export default async (request, context) => {
+  // 无需任何依赖的简单Frame响应
+  const frameData = {
     version: "vNext",
     image: "https://castchain-narratives.netlify.app/images/feed.png",
     buttons: [
@@ -19,13 +19,12 @@ exports.handler = async (event) => {
     accepts: ["iframe.warpcast.com"]
   };
 
-  return {
-    statusCode: 200,
+  // 创建响应
+  return new Response(JSON.stringify(frameData), {
     headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    },
-    body: JSON.stringify(response)
-  };
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "Content-Type"
+    }
+  });
 }; 

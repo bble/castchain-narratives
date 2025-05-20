@@ -1,14 +1,17 @@
 [build]
   command = "npm run build"
   publish = ".next"
-  functions = "netlify/functions"
 
 [dev]
   command = "npm run dev"
   port = 8888
   targetPort = 3000
   publish = ".next"
-  functions = "netlify/functions"
+
+# 使用边缘函数来处理Frame请求
+[[edge_functions]]
+  function = "frame"
+  path = "/api/frame"
 
 # 为.well-known路径添加专门处理
 [[redirects]]
@@ -16,17 +19,12 @@
   to = "/.well-known/:splat"
   status = 200
 
-# 使用简化的Frame处理函数
+# 使用Edge Function处理Frame请求
 [[redirects]]
   from = "/api/frame"
-  to = "/.netlify/functions/frame"
+  to = "/.netlify/edge-functions/frame"
   status = 200
   force = true
-
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
 
 # 处理SPA路由
 [[redirects]]
@@ -36,15 +34,6 @@
   
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
-[functions]
-  node_bundler = "esbuild"
-  external_node_modules = ["next", "react", "react-dom", "@apollo/client", "graphql"]
-  
-# 单独为frame函数指定配置
-[functions.frame]
-  included_files = []
-  external_node_modules = []
 
 [[headers]]
   for = "/.well-known/*"
