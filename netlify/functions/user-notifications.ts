@@ -39,17 +39,22 @@ export const handler: Handler = async (event, context) => {
       let notifications;
       
       if (onlyUnread) {
-        // 获取未读通知
-        notifications = await db.query(
-          db.indexes.notificationsByUserAndReadStatus, 
-          [userFid, false], 
-          { limit }
+        // 获取所有通知然后过滤未读通知（因为没有专门的索引）
+        const allNotifications = await db.query(
+          db.indexes.notificationsByUser, 
+          [userFid], 
+          { limit: limit * 2 } // 获取更多记录以确保过滤后有足够的结果
         );
+        
+        // 在内存中过滤未读通知
+        notifications = allNotifications
+          .filter(n => n.isRead === false)
+          .slice(0, limit);
       } else {
         // 获取所有通知
         notifications = await db.query(
           db.indexes.notificationsByUser, 
-          userFid,
+          [userFid],
           { limit }
         );
       }
@@ -75,11 +80,14 @@ export const handler: Handler = async (event, context) => {
         return error('Unauthorized to mark notifications as read for another user', 403);
       }
       
-      // 获取用户的所有未读通知
-      const unreadNotifications = await db.query(
-        db.indexes.notificationsByUserAndReadStatus, 
-        [userFid, false]
+      // 获取用户的所有通知
+      const allNotifications = await db.query(
+        db.indexes.notificationsByUser, 
+        [userFid]
       );
+      
+      // 在内存中过滤未读通知
+      const unreadNotifications = allNotifications.filter(n => n.isRead === false);
       
       // 更新每个通知为已读
       await Promise.all(unreadNotifications.map(notification => 
