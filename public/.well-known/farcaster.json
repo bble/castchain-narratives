@@ -1,13 +1,8 @@
 {
-  "frames": {
-    "version": "vNext",
-    "image": "https://castchain-narratives.netlify.app/images/logo.png",
-    "buttons": [
-      {
-        "label": "探索叙事",
-        "action": "post"
-      }
-    ],
-    "post_url": "https://castchain-narratives.netlify.app/.netlify/functions/api/frame"
-  }
+  "fc:frame": "vNext",
+  "fc:frame:image": "https://castchain-narratives.netlify.app/images/logo.png",
+  "fc:frame:button:1": "探索叙事",
+  "fc:frame:button:1:action": "post",
+  "fc:frame:post_url": "https://castchain-narratives.netlify.app/.netlify/functions/api/frame",
+  "og:image": "https://castchain-narratives.netlify.app/images/logo.png"
 } 

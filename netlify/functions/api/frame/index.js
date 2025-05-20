@@ -20,14 +20,14 @@ exports.handler = async (event) => {
       }
     }
 
-    // 构建Frame响应
+    // 构建Frame响应 - 严格遵循Farcaster vNext格式
     const response = {
       version: "vNext",
       image: "https://castchain-narratives.netlify.app/images/feed.png",
       buttons: [
         {
           label: "浏览故事",
-          action: "post_redirect",
+          action: "post_redirect", 
           target: "https://castchain-narratives.netlify.app/narratives"
         },
         {
@@ -48,7 +48,7 @@ exports.handler = async (event) => {
   } catch (error) {
     console.error('Frame处理出错:', error);
     
-    // 返回错误Frame
+    // 返回错误Frame - 同样严格遵循规范
     return {
       statusCode: 200, // 即使有错误也返回200
       headers: {

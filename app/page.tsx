@@ -3,17 +3,6 @@ import { APP_URL } from "@/lib/constants";
 import Home from "@/components/Home";
 
 export function generateMetadata(): Metadata {
-  const frame = {
-    image: `${APP_URL}/images/feed.png`,
-    buttons: [
-      {
-        label: "浏览故事",
-        action: "post"
-      }
-    ],
-    post_url: `${APP_URL}/.netlify/functions/api/frame`
-  };
-
   return {
     title: "CastChain Narratives",
     description: "协作式故事创作平台，记录在链上",
@@ -27,7 +16,8 @@ export function generateMetadata(): Metadata {
       "fc:frame:image": `${APP_URL}/images/feed.png`,
       "fc:frame:post_url": `${APP_URL}/.netlify/functions/api/frame`,
       "fc:frame:button:1": "浏览故事",
-      "fc:frame:button:1:action": "post"
+      "fc:frame:button:1:action": "post",
+      "og:image": `${APP_URL}/images/feed.png`
     },
   };
 }
