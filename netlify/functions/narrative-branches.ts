@@ -31,7 +31,7 @@ export const handler: Handler = async (event, context) => {
       // 查询该叙事的所有分支
       const branches = await db.query(
         db.indexes.branchesByNarrative, 
-        narrativeId
+        [narrativeId] // 包装成数组，适配db.query的类型约束
       );
       
       return success(branches);

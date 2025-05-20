@@ -34,7 +34,7 @@ export const handler: Handler = async (event, context) => {
       // 查询该叙事的所有贡献
       const contributions = await db.query(
         db.indexes.contributionsByNarrative, 
-        narrativeId
+        [narrativeId] // 包装成数组，适配db.query的类型约束
       );
       
       return success(contributions);
@@ -134,7 +134,7 @@ export const handler: Handler = async (event, context) => {
       // 检查这是否是新贡献者
       const contributorContributions = await db.query(
         db.indexes.contributionsByContributor,
-        data.contributorFid
+        [data.contributorFid] // 包装成数组，适配db.query的类型约束
       );
       
       let isNewContributor = contributorContributions.length <= 1;
