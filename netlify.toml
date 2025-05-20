@@ -10,10 +10,10 @@
   publish = ".next"
   functions = "netlify/functions"
 
-# 配置Edge Functions
+# Edge Functions配置
 [[edge_functions]]
-  path = "/api/frame"
   function = "frame"
+  path = "/api/frame"
 
 # 为.well-known路径添加专门处理
 [[redirects]]

@@ -5,7 +5,13 @@ import { AchievementType } from '../../types/narrative';
 
 export const handler: Handler = async (event, context) => {
   // 确保初始化数据库
-  await db.setupDatabase().catch((err) => console.error('DB setup error:', err));
+  try {
+    await db.setupDatabase();
+    console.log('数据库初始化成功');
+  } catch (err: any) {
+    console.error('数据库初始化失败:', err);
+    return error(`数据库初始化失败: ${err.message || JSON.stringify(err)}`);
+  }
 
   // 从路径中提取用户FID
   const paths = event.path.split('/');
