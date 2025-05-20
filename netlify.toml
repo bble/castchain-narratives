@@ -15,10 +15,6 @@
   path = "/api/frame"
   function = "frame"
 
-[[edge_functions]]
-  path = "/.netlify/functions/narratives"
-  function = "narratives"
-
 # 为.well-known路径添加专门处理
 [[redirects]]
   from = "/.well-known/*"
