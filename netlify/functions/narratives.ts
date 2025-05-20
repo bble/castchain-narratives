@@ -5,10 +5,50 @@ import { NarrativeStatus, CollaborationRules } from '../../types/narrative';
 import { generateId } from '../../lib/utils';
 
 export const handler: Handler = async (event, context) => {
-  console.log('请求narratives函数，环境变量状态:', {
+  // 添加日志，记录完整的请求信息便于排查
+  console.log('narratives函数收到请求:', {
+    path: event.path,
+    httpMethod: event.httpMethod,
+    queryParams: event.queryStringParameters,
+    headers: event.headers,
     haveFaunaKey: !!process.env.FAUNA_SECRET_KEY,
+    faunaKeyLength: process.env.FAUNA_SECRET_KEY ? process.env.FAUNA_SECRET_KEY.length : 0,
     nodeEnv: process.env.NODE_ENV
   });
+
+  try {
+    // 临时解决方案：返回模拟数据
+    if (event.httpMethod === 'GET' && event.queryStringParameters) {
+      console.log('返回模拟叙事数据用于调试');
+      
+      const mockNarratives = [
+        {
+          id: "mock-narrative-1",
+          narrativeId: "mock-narrative-1",
+          title: "测试叙事 1",
+          description: "这是一个测试叙事，用于调试目的",
+          creatorFid: 1234,
+          creatorUsername: "test_user",
+          creatorDisplayName: "测试用户",
+          creatorPfp: "https://example.com/avatar.png",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          status: NarrativeStatus.ACTIVE,
+          collaborationRules: CollaborationRules.OPEN,
+          tags: ["测试", "调试"],
+          branchCount: 1,
+          contributionCount: 1,
+          contributorCount: 1
+        }
+      ];
+      
+      return success(mockNarratives);
+    }
+  } catch (err: any) {
+    console.error("临时解决方案错误:", err);
+  }
+
+  // 正常流程继续执行
 
   // 确保初始化数据库
   try {
@@ -193,5 +233,5 @@ export const handler: Handler = async (event, context) => {
     return success({});
   }
   
-  return error(`Method ${event.httpMethod} not allowed`, 405);
+  return error(`不允许使用${event.httpMethod}方法`, 405);
 }; 
