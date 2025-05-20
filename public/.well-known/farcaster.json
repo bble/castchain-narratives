@@ -7,6 +7,6 @@
   "fc:frame:button:2": "创建新叙事",
   "fc:frame:button:2:action": "post_redirect",
   "fc:frame:button:2:target": "https://castchain-narratives.netlify.app/narratives/create",
-  "fc:frame:post_url": "https://castchain-narratives.netlify.app/.netlify/edge-functions/frame",
+  "fc:frame:post_url": "https://castchain-narratives.netlify.app/api/frame",
   "og:image": "https://castchain-narratives.netlify.app/images/logo.png"
 } 

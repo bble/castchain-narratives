@@ -1,6 +1,6 @@
-// Netlify Edge Function - 处理Frame请求
-export default async (request, context) => {
-  // 无需任何依赖的简单Frame响应
+// 极简版Frame处理Edge Function
+export default async () => {
+  // 基本的Frame响应
   const frameData = {
     version: "vNext",
     image: "https://castchain-narratives.netlify.app/images/feed.png",
@@ -15,16 +15,14 @@ export default async (request, context) => {
         action: "post_redirect",
         target: "https://castchain-narratives.netlify.app/narratives/create"
       }
-    ],
-    accepts: ["iframe.warpcast.com"]
+    ]
   };
 
-  // 创建响应
+  // 返回最简单的响应
   return new Response(JSON.stringify(frameData), {
     headers: {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "Content-Type"
+      "Access-Control-Allow-Origin": "*"
     }
   });
 }; 
