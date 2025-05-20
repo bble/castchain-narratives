@@ -16,6 +16,13 @@
   to = "/.well-known/:splat"
   status = 200
 
+# Frame API路由处理
+[[redirects]]
+  from = "/api/frame"
+  to = "/.netlify/functions/api/frame"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"

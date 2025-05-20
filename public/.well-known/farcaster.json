@@ -8,6 +8,6 @@
         "action": "post"
       }
     ],
-    "post_url": "https://castchain-narratives.netlify.app/api/frame"
+    "post_url": "https://castchain-narratives.netlify.app/.netlify/functions/api/frame"
   }
 } 

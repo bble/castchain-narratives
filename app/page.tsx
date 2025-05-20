@@ -11,7 +11,7 @@ export function generateMetadata(): Metadata {
         action: "post"
       }
     ],
-    post_url: `${APP_URL}/api/frame`
+    post_url: `${APP_URL}/.netlify/functions/api/frame`
   };
 
   return {
@@ -25,7 +25,7 @@ export function generateMetadata(): Metadata {
     other: {
       "fc:frame": "vNext",
       "fc:frame:image": `${APP_URL}/images/feed.png`,
-      "fc:frame:post_url": `${APP_URL}/api/frame`,
+      "fc:frame:post_url": `${APP_URL}/.netlify/functions/api/frame`,
       "fc:frame:button:1": "浏览故事",
       "fc:frame:button:1:action": "post"
     },
