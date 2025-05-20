@@ -4,19 +4,14 @@ import Home from "@/components/Home";
 
 export function generateMetadata(): Metadata {
   const frame = {
-    version: "next",
     image: `${APP_URL}/images/feed.png`,
-    title: "CastChain Narratives",
     buttons: [
       {
         label: "浏览故事",
-        action: "post_redirect"
-      },
-      {
-        label: "创建故事",
         action: "post"
       }
     ],
+    post_url: `${APP_URL}/api/frame`
   };
 
   return {
@@ -25,10 +20,14 @@ export function generateMetadata(): Metadata {
     openGraph: {
       title: "CastChain Narratives",
       description: "协作式故事创作平台，记录在链上",
-      images: [`${APP_URL}/images/og.png`],
+      images: [`${APP_URL}/images/feed.png`],
     },
     other: {
-      "fc:frame": JSON.stringify(frame),
+      "fc:frame": "vNext",
+      "fc:frame:image": `${APP_URL}/images/feed.png`,
+      "fc:frame:post_url": `${APP_URL}/api/frame`,
+      "fc:frame:button:1": "浏览故事",
+      "fc:frame:button:1:action": "post"
     },
   };
 }
