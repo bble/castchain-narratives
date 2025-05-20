@@ -69,7 +69,7 @@ if (!faunaSecretKey) {
   logError('FAUNA_SECRET_KEY环境变量未设置或为空！');
 }
 
-// 创建新的Fauna v10客户端
+// 创建FaunaDB客户端
 const client = new Client({
   secret: faunaSecretKey || '',
 });
