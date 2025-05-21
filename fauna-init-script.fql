@@ -1,135 +1,122 @@
 // Fauna数据库初始化脚本 (FQL v10)
-// 将此脚本复制到Fauna控制台执行
-// 注意：请分段执行，每次执行几行代码
+// 重要提示：请分段复制执行，每次只执行一小部分
 
 /* 第1部分：创建集合 */
-// 创建narratives集合
 Collection.create({ name: "narratives" })
-// 创建contributions集合
 Collection.create({ name: "contributions" })
-// 创建branches集合
 Collection.create({ name: "branches" })
-// 创建achievements集合
 Collection.create({ name: "achievements" })
-// 创建followers集合
 Collection.create({ name: "followers" })
-// 创建notifications集合
 Collection.create({ name: "notifications" })
 
 /* 第2部分：创建索引 */
-// 1. 按创建者查询叙事
-{
-  let collection = Collection.byName("narratives")!
-  collection.createIndex({
-    name: "narratives_by_creator",
-    terms: [{ field: ["data", "creatorFid"] }]
-  })
-}
 
-// 2. 按标签查询叙事
-{
-  let collection = Collection.byName("narratives")!
-  collection.createIndex({
-    name: "narratives_by_tag",
-    terms: [{ field: ["data", "tags"] }]
-  })
-}
+// narratives集合的索引
+Collection.byName("narratives")!.update({
+  indexes: {
+    narratives_by_creator: {
+      terms: [{ field: ".creatorFid" }]
+    }
+  }
+})
 
-// 3. 按人气排序叙事
-{
-  let collection = Collection.byName("narratives")!
-  collection.createIndex({
-    name: "narratives_by_popularity",
-    values: [
-      { field: ["data", "contributionCount"], reverse: true },
-      { field: ["ref"] }
-    ]
-  })
-}
+Collection.byName("narratives")!.update({
+  indexes: {
+    narratives_by_tag: {
+      terms: [{ field: ".tags" }]
+    }
+  }
+})
 
-// 4. 按时间戳排序叙事
-{
-  let collection = Collection.byName("narratives")!
-  collection.createIndex({
-    name: "narratives_by_timestamp",
-    values: [
-      { field: ["data", "updatedAt"], reverse: true },
-      { field: ["ref"] }
-    ]
-  })
-}
+Collection.byName("narratives")!.update({
+  indexes: {
+    narratives_by_popularity: {
+      values: [
+        { field: ".contributionCount", order: "desc" },
+        { field: ".id" }
+      ]
+    }
+  }
+})
 
-// 5. 按叙事ID查询贡献
-{
-  let collection = Collection.byName("contributions")!
-  collection.createIndex({
-    name: "contributions_by_narrative",
-    terms: [{ field: ["data", "narrativeId"] }]
-  })
-}
+Collection.byName("narratives")!.update({
+  indexes: {
+    narratives_by_timestamp: {
+      values: [
+        { field: ".updatedAt", order: "desc" },
+        { field: ".id" }
+      ]
+    }
+  }
+})
 
-// 6. 按贡献者查询贡献
-{
-  let collection = Collection.byName("contributions")!
-  collection.createIndex({
-    name: "contributions_by_contributor",
-    terms: [{ field: ["data", "contributorFid"] }]
-  })
-}
+// contributions集合的索引
+Collection.byName("contributions")!.update({
+  indexes: {
+    contributions_by_narrative: {
+      terms: [{ field: ".narrativeId" }]
+    }
+  }
+})
 
-// 7. 按叙事ID查询分支
-{
-  let collection = Collection.byName("branches")!
-  collection.createIndex({
-    name: "branches_by_narrative",
-    terms: [{ field: ["data", "narrativeId"] }]
-  })
-}
+Collection.byName("contributions")!.update({
+  indexes: {
+    contributions_by_contributor: {
+      terms: [{ field: ".contributorFid" }]
+    }
+  }
+})
 
-// 8. 按父分支ID查询分支
-{
-  let collection = Collection.byName("branches")!
-  collection.createIndex({
-    name: "branches_by_branch_parent",
-    terms: [{ field: ["data", "parentBranchId"] }]
-  })
-}
+// branches集合的索引
+Collection.byName("branches")!.update({
+  indexes: {
+    branches_by_narrative: {
+      terms: [{ field: ".narrativeId" }]
+    }
+  }
+})
 
-// 9. 按用户查询成就
-{
-  let collection = Collection.byName("achievements")!
-  collection.createIndex({
-    name: "achievements_by_user",
-    terms: [{ field: ["data", "userFid"] }]
-  })
-}
+Collection.byName("branches")!.update({
+  indexes: {
+    branches_by_branch_parent: {
+      terms: [{ field: ".parentBranchId" }]
+    }
+  }
+})
 
-// 10. 按叙事ID查询关注者
-{
-  let collection = Collection.byName("followers")!
-  collection.createIndex({
-    name: "followers_by_narrative",
-    terms: [{ field: ["data", "narrativeId"] }]
-  })
-}
+// achievements集合的索引
+Collection.byName("achievements")!.update({
+  indexes: {
+    achievements_by_user: {
+      terms: [{ field: ".userFid" }]
+    }
+  }
+})
 
-// 11. 按用户查询关注的叙事
-{
-  let collection = Collection.byName("followers")!
-  collection.createIndex({
-    name: "followers_by_user",
-    terms: [{ field: ["data", "userFid"] }]
-  })
-}
+// followers集合的索引
+Collection.byName("followers")!.update({
+  indexes: {
+    followers_by_narrative: {
+      terms: [{ field: ".narrativeId" }]
+    }
+  }
+})
 
-// 12. 按用户查询通知
-{
-  let collection = Collection.byName("notifications")!
-  collection.createIndex({
-    name: "notifications_by_user",
-    terms: [{ field: ["data", "userFid"] }]
-  })
-}
+Collection.byName("followers")!.update({
+  indexes: {
+    followers_by_user: {
+      terms: [{ field: ".userFid" }]
+    }
+  }
+})
 
-// 完成
-"数据库初始化完成！✅" 
+// notifications集合的索引
+Collection.byName("notifications")!.update({
+  indexes: {
+    notifications_by_user: {
+      terms: [{ field: ".userFid" }]
+    }
+  }
+})
+
+// 脚本执行结束 
