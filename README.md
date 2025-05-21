@@ -102,6 +102,14 @@ CastChain Narratives采用Netlify实现前后端一体化部署，Next.js前端�
    - 创建新数据库
    - 前往"Security"，创建服务器密钥并复制
 
+3. 初始化FaunaDB数据库结构：
+   - 登录FaunaDB控制台并选择你创建的数据库
+   - 点击"Shell"标签页，打开FaunaDB Shell
+   - 打开项目中的`fauna-init-script.fql`文件
+   - 将脚本内容复制到FaunaDB Shell中**分段执行**（重要：每次只执行一小部分）
+   - 先执行集合创建部分，再执行索引创建部分
+   - 确认所有集合和索引都成功创建
+
 ### 仓库设置
 
 1. Fork或克隆本仓库到你的GitHub账户
@@ -141,6 +149,7 @@ CastChain Narratives采用Netlify实现前后端一体化部署，Next.js前端�
 - **类型错误**：确保类型声明文件放在`types/`目录中，不要放在`netlify/functions/`中
 - **依赖问题**：检查`package.json`确保包含所有前后端依赖，如`faunadb`
 - **环境变量**：验证环境变量是否正确设置，尤其是`FAUNA_SECRET_KEY`
+- **数据库初始化错误**：确保已正确执行`fauna-init-script.fql`脚本，并且所有集合和索引都已成功创建。如果API返回502或400错误，很可能是数据库结构未正确初始化。
 
 ## API端点
 
