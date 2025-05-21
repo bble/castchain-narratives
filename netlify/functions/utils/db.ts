@@ -187,7 +187,7 @@ export async function create(collection: string, data: any): Promise<any> {
   return retry(async () => {
     try {
       const result = await client.query(
-        fql`Collection(${collection}).create(${data})`
+        fql`Collection.byName(${collection}).create(${data})`
       );
       
       // 构建返回数据
@@ -227,7 +227,7 @@ export async function get(collection: string, id: string): Promise<any> {
   return retry(async () => {
     try {
       const result = await client.query(
-        fql`Collection(${collection}).byId(${id})`
+        fql`Collection.byName(${collection}).byId(${id})`
       );
       
       if (!result.data) {
@@ -259,7 +259,7 @@ export async function update(collection: string, id: string, data: any): Promise
   return retry(async () => {
     try {
       const result = await client.query(
-        fql`Collection(${collection}).byId(${id})!.update(${data})`
+        fql`Collection.byName(${collection}).byId(${id})!.update(${data})`
       );
       
       // 构建返回数据
@@ -292,7 +292,7 @@ export async function remove(collection: string, id: string): Promise<boolean> {
   return retry(async () => {
     try {
       await client.query(
-        fql`Collection(${collection}).byId(${id})!.delete()`
+        fql`Collection.byName(${collection}).byId(${id})!.delete()`
       );
       
       // 从缓存中移除
