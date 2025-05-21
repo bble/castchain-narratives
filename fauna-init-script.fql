@@ -1,0 +1,186 @@
+// Fauna数据库初始化脚本
+// 将此脚本复制到Fauna控制台执行
+
+/* 第1步：创建集合 */
+// 创建narratives集合
+if (Collection.byName("narratives") == null) {
+  Collection.create({ name: "narratives" })
+} else {
+  "集合narratives已存在"
+}
+
+// 创建contributions集合
+if (Collection.byName("contributions") == null) {
+  Collection.create({ name: "contributions" })
+} else {
+  "集合contributions已存在"
+}
+
+// 创建branches集合
+if (Collection.byName("branches") == null) {
+  Collection.create({ name: "branches" })
+} else {
+  "集合branches已存在"
+}
+
+// 创建achievements集合
+if (Collection.byName("achievements") == null) {
+  Collection.create({ name: "achievements" })
+} else {
+  "集合achievements已存在"
+}
+
+// 创建followers集合
+if (Collection.byName("followers") == null) {
+  Collection.create({ name: "followers" })
+} else {
+  "集合followers已存在"
+}
+
+// 创建notifications集合
+if (Collection.byName("notifications") == null) {
+  Collection.create({ name: "notifications" })
+} else {
+  "集合notifications已存在"
+}
+
+/* 第2步：创建索引 */
+// narratives集合的索引
+
+// 按创建者查询叙事
+if (Index.byName("narratives_by_creator") == null) {
+  Collection.byName("narratives").createIndex({
+    name: "narratives_by_creator",
+    terms: [{ field: "creatorFid" }]
+  })
+} else {
+  "索引narratives_by_creator已存在"
+}
+
+// 按标签查询叙事
+if (Index.byName("narratives_by_tag") == null) {
+  Collection.byName("narratives").createIndex({
+    name: "narratives_by_tag",
+    terms: [{ field: "tags" }]
+  })
+} else {
+  "索引narratives_by_tag已存在"
+}
+
+// 按人气排序叙事
+if (Index.byName("narratives_by_popularity") == null) {
+  Collection.byName("narratives").createIndex({
+    name: "narratives_by_popularity",
+    values: [
+      { field: "contributionCount", reverse: true },
+      { field: "id" }
+    ]
+  })
+} else {
+  "索引narratives_by_popularity已存在"
+}
+
+// 按时间戳排序叙事
+if (Index.byName("narratives_by_timestamp") == null) {
+  Collection.byName("narratives").createIndex({
+    name: "narratives_by_timestamp",
+    values: [
+      { field: "updatedAt", reverse: true },
+      { field: "id" }
+    ]
+  })
+} else {
+  "索引narratives_by_timestamp已存在"
+}
+
+// contributions集合的索引
+
+// 按叙事ID查询贡献
+if (Index.byName("contributions_by_narrative") == null) {
+  Collection.byName("contributions").createIndex({
+    name: "contributions_by_narrative",
+    terms: [{ field: "narrativeId" }]
+  })
+} else {
+  "索引contributions_by_narrative已存在"
+}
+
+// 按贡献者查询贡献
+if (Index.byName("contributions_by_contributor") == null) {
+  Collection.byName("contributions").createIndex({
+    name: "contributions_by_contributor",
+    terms: [{ field: "contributorFid" }]
+  })
+} else {
+  "索引contributions_by_contributor已存在"
+}
+
+// branches集合的索引
+
+// 按叙事ID查询分支
+if (Index.byName("branches_by_narrative") == null) {
+  Collection.byName("branches").createIndex({
+    name: "branches_by_narrative",
+    terms: [{ field: "narrativeId" }]
+  })
+} else {
+  "索引branches_by_narrative已存在"
+}
+
+// 按父分支ID查询分支
+if (Index.byName("branches_by_branch_parent") == null) {
+  Collection.byName("branches").createIndex({
+    name: "branches_by_branch_parent",
+    terms: [{ field: "parentBranchId" }]
+  })
+} else {
+  "索引branches_by_branch_parent已存在"
+}
+
+// achievements集合的索引
+
+// 按用户查询成就
+if (Index.byName("achievements_by_user") == null) {
+  Collection.byName("achievements").createIndex({
+    name: "achievements_by_user",
+    terms: [{ field: "userFid" }]
+  })
+} else {
+  "索引achievements_by_user已存在"
+}
+
+// followers集合的索引
+
+// 按叙事ID查询关注者
+if (Index.byName("followers_by_narrative") == null) {
+  Collection.byName("followers").createIndex({
+    name: "followers_by_narrative",
+    terms: [{ field: "narrativeId" }]
+  })
+} else {
+  "索引followers_by_narrative已存在"
+}
+
+// 按用户查询关注的叙事
+if (Index.byName("followers_by_user") == null) {
+  Collection.byName("followers").createIndex({
+    name: "followers_by_user",
+    terms: [{ field: "userFid" }]
+  })
+} else {
+  "索引followers_by_user已存在"
+}
+
+// notifications集合的索引
+
+// 按用户查询通知
+if (Index.byName("notifications_by_user") == null) {
+  Collection.byName("notifications").createIndex({
+    name: "notifications_by_user",
+    terms: [{ field: "userFid" }]
+  })
+} else {
+  "索引notifications_by_user已存在"
+}
+
+"数据库初始化完成！✅" 
