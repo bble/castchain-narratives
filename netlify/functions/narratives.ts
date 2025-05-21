@@ -41,9 +41,8 @@ export const handler: Handler = async (event, context) => {
         console.log('数据库初始化成功');
       } catch (err: any) {
         console.error('数据库初始化失败:', err);
-        // 即使数据库初始化失败，也返回空数组，而不是直接返回错误
-        console.log('数据库初始化失败，返回空数组');
-        return success([]);
+        // 记录错误但继续执行，尝试执行查询操作
+        console.log('数据库初始化失败，但会尝试继续执行查询');
       }
 
       // 解析查询参数

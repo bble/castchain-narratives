@@ -473,171 +473,165 @@ export async function setupDatabase() {
         }
       }
       
-      // 创建必要的索引
+      // 定义要创建的索引列表
       try {
-        // 叙事按创建者索引
-        await client.query(fql`
-          if (Index.byName("narratives_by_creator") == null) {
-            Collection("narratives").createIndex({
-              name: "narratives_by_creator",
-              terms: [{ field: "creatorFid" }]
-            })
-          } else {
-            null
+        // 为每个集合定义索引
+        const indexesToCreate = [
+          // 基本索引 - 不需要任何terms或values
+          {
+            collection: 'narratives',
+            name: 'narratives_simple_index',
+            hasTerms: false,
+            hasValues: false
+          },
+          // 带terms的索引
+          {
+            collection: 'narratives',
+            name: 'narratives_by_creator',
+            field: 'creatorFid',
+            hasTerms: true,
+            hasValues: false
+          },
+          {
+            collection: 'narratives',
+            name: 'narratives_by_tag',
+            field: 'tags',
+            hasTerms: true,
+            hasValues: false
+          },
+          // 带values的索引
+          {
+            collection: 'narratives',
+            name: 'narratives_by_popularity',
+            hasTerms: false,
+            hasValues: true,
+            valueFields: [
+              { field: 'contributionCount', reverse: true },
+              { field: 'id' }
+            ]
+          },
+          {
+            collection: 'narratives',
+            name: 'narratives_by_timestamp',
+            hasTerms: false, 
+            hasValues: true,
+            valueFields: [
+              { field: 'updatedAt', reverse: true },
+              { field: 'id' }
+            ]
+          },
+          // 其他集合的索引
+          {
+            collection: 'contributions',
+            name: 'contributions_by_narrative',
+            field: 'narrativeId',
+            hasTerms: true,
+            hasValues: false
+          },
+          {
+            collection: 'contributions',
+            name: 'contributions_by_contributor',
+            field: 'contributorFid',
+            hasTerms: true,
+            hasValues: false
+          },
+          {
+            collection: 'branches',
+            name: 'branches_by_narrative',
+            field: 'narrativeId',
+            hasTerms: true,
+            hasValues: false
+          },
+          {
+            collection: 'branches',
+            name: 'branches_by_branch_parent',
+            field: 'parentBranchId',
+            hasTerms: true,
+            hasValues: false
+          },
+          {
+            collection: 'achievements',
+            name: 'achievements_by_user',
+            field: 'userFid',
+            hasTerms: true,
+            hasValues: false
+          },
+          {
+            collection: 'followers',
+            name: 'followers_by_narrative',
+            field: 'narrativeId',
+            hasTerms: true,
+            hasValues: false
+          },
+          {
+            collection: 'followers',
+            name: 'followers_by_user',
+            field: 'userFid',
+            hasTerms: true,
+            hasValues: false
+          },
+          {
+            collection: 'notifications',
+            name: 'notifications_by_user',
+            field: 'userFid',
+            hasTerms: true,
+            hasValues: false
           }
-        `);
-        logInfo('确保索引存在: narratives_by_creator');
+        ];
         
-        // 叙事按标签索引
-        await client.query(fql`
-          if (Index.byName("narratives_by_tag") == null) {
-            Collection("narratives").createIndex({
-              name: "narratives_by_tag",
-              terms: [{ field: "tags" }]
-            })
-          } else {
-            null
+        // 逐个创建索引，并在出错时继续创建其他索引
+        for (const indexDef of indexesToCreate) {
+          try {
+            logInfo(`尝试创建/检查索引: ${indexDef.name}`);
+            
+            // 检查索引是否存在
+            const indexExists = await client.query(
+              fql`Index.byName(${indexDef.name}) != null`
+            );
+            
+            if (!indexExists.data) {
+              // 索引不存在，根据类型创建
+              if (!indexDef.hasTerms && !indexDef.hasValues) {
+                // 最简单的索引
+                await client.query(
+                  fql`
+                    Collection.byName(${indexDef.collection}).createIndex({
+                      name: ${indexDef.name}
+                    })
+                  `
+                );
+              } else if (indexDef.hasTerms && !indexDef.hasValues) {
+                // 带terms的索引
+                await client.query(
+                  fql`
+                    Collection.byName(${indexDef.collection}).createIndex({
+                      name: ${indexDef.name},
+                      terms: [{ field: ${indexDef.field} }]
+                    })
+                  `
+                );
+              } else if (!indexDef.hasTerms && indexDef.hasValues) {
+                // 带values的索引
+                await client.query(
+                  fql`
+                    Collection.byName(${indexDef.collection}).createIndex({
+                      name: ${indexDef.name},
+                      values: ${indexDef.valueFields}
+                    })
+                  `
+                );
+              }
+              logInfo(`索引创建成功: ${indexDef.name}`);
+            } else {
+              logInfo(`索引已存在: ${indexDef.name}`);
+            }
+          } catch (indexErr) {
+            // 记录错误但继续创建其他索引
+            logError(`创建索引失败: ${indexDef.name}`, indexErr);
           }
-        `);
-        logInfo('确保索引存在: narratives_by_tag');
+        }
         
-        // 叙事按流行度索引
-        await client.query(fql`
-          if (Index.byName("narratives_by_popularity") == null) {
-            Collection("narratives").createIndex({
-              name: "narratives_by_popularity",
-              values: [
-                { field: "contributionCount", reverse: true },
-                { field: "id" }
-              ]
-            })
-          } else {
-            null
-          }
-        `);
-        logInfo('确保索引存在: narratives_by_popularity');
-        
-        // 叙事按时间戳索引
-        await client.query(fql`
-          if (Index.byName("narratives_by_timestamp") == null) {
-            Collection("narratives").createIndex({
-              name: "narratives_by_timestamp",
-              values: [
-                { field: "updatedAt", reverse: true },
-                { field: "id" }
-              ]
-            })
-          } else {
-            null
-          }
-        `);
-        logInfo('确保索引存在: narratives_by_timestamp');
-        
-        // 贡献按叙事ID索引
-        await client.query(fql`
-          if (Index.byName("contributions_by_narrative") == null) {
-            Collection("contributions").createIndex({
-              name: "contributions_by_narrative",
-              terms: [{ field: "narrativeId" }]
-            })
-          } else {
-            null
-          }
-        `);
-        logInfo('确保索引存在: contributions_by_narrative');
-        
-        // 贡献按贡献者索引
-        await client.query(fql`
-          if (Index.byName("contributions_by_contributor") == null) {
-            Collection("contributions").createIndex({
-              name: "contributions_by_contributor",
-              terms: [{ field: "contributorFid" }]
-            })
-          } else {
-            null
-          }
-        `);
-        logInfo('确保索引存在: contributions_by_contributor');
-        
-        // 分支按叙事索引
-        await client.query(fql`
-          if (Index.byName("branches_by_narrative") == null) {
-            Collection("branches").createIndex({
-              name: "branches_by_narrative",
-              terms: [{ field: "narrativeId" }]
-            })
-          } else {
-            null
-          }
-        `);
-        logInfo('确保索引存在: branches_by_narrative');
-        
-        // 分支按父分支索引
-        await client.query(fql`
-          if (Index.byName("branches_by_branch_parent") == null) {
-            Collection("branches").createIndex({
-              name: "branches_by_branch_parent",
-              terms: [{ field: "parentBranchId" }]
-            })
-          } else {
-            null
-          }
-        `);
-        logInfo('确保索引存在: branches_by_branch_parent');
-        
-        // 成就按用户索引
-        await client.query(fql`
-          if (Index.byName("achievements_by_user") == null) {
-            Collection("achievements").createIndex({
-              name: "achievements_by_user",
-              terms: [{ field: "userFid" }]
-            })
-          } else {
-            null
-          }
-        `);
-        logInfo('确保索引存在: achievements_by_user');
-        
-        // 关注者按叙事索引
-        await client.query(fql`
-          if (Index.byName("followers_by_narrative") == null) {
-            Collection("followers").createIndex({
-              name: "followers_by_narrative",
-              terms: [{ field: "narrativeId" }]
-            })
-          } else {
-            null
-          }
-        `);
-        logInfo('确保索引存在: followers_by_narrative');
-        
-        // 关注者按用户索引
-        await client.query(fql`
-          if (Index.byName("followers_by_user") == null) {
-            Collection("followers").createIndex({
-              name: "followers_by_user",
-              terms: [{ field: "userFid" }]
-            })
-          } else {
-            null
-          }
-        `);
-        logInfo('确保索引存在: followers_by_user');
-        
-        // 通知按用户索引
-        await client.query(fql`
-          if (Index.byName("notifications_by_user") == null) {
-            Collection("notifications").createIndex({
-              name: "notifications_by_user",
-              terms: [{ field: "userFid" }]
-            })
-          } else {
-            null
-          }
-        `);
-        logInfo('确保索引存在: notifications_by_user');
-        
-        logInfo('数据库初始化完成');
+        logInfo('数据库索引初始化完成');
         return true;
       } catch (err) {
         logError('创建索引失败:', err);

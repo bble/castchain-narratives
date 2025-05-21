@@ -2,7 +2,15 @@ import { Handler } from '@netlify/functions';
 import { Client, fql } from 'fauna';
 import { success, error } from './utils/response';
 
-// 手动创建集合和索引的函数
+// 定义索引类型接口
+interface IndexDefinition {
+  collection: string;
+  name: string;
+  terms?: Array<{ field: string }>;
+  values?: Array<{ field: string, reverse?: boolean }>;
+}
+
+// 数据库初始化函数：创建所有需要的集合和索引
 export const handler: Handler = async (event, context) => {
   const faunaSecret = process.env.FAUNA_SECRET_KEY || '';
   
@@ -19,7 +27,7 @@ export const handler: Handler = async (event, context) => {
 
   if (event.httpMethod === 'GET') {
     try {
-      // 尝试连接FaunaDB
+      // 初始化Fauna客户端
       console.log('🔄 正在初始化Fauna客户端...');
       const client = new Client({
         secret: faunaSecret
@@ -65,153 +73,216 @@ export const handler: Handler = async (event, context) => {
           console.log(`✅ 集合 ${collection} 检查/创建成功`);
         } catch (collErr: any) {
           console.error(`❌ 创建集合 ${collection} 失败:`, collErr);
-          return error(`创建集合 ${collection} 失败: ${collErr.message || JSON.stringify(collErr)}`);
+          collectionsResult.push({
+            name: collection,
+            error: collErr.message || JSON.stringify(collErr)
+          });
+          // 继续创建其他集合，不中断
         }
       }
       
-      // 索引列表
-      const indexes = [
+      // 定义要创建的索引列表
+      const indexesToCreate: IndexDefinition[] = [
+        // narratives集合的索引
         {
+          collection: 'narratives',
           name: 'narratives_by_creator',
-          collection: 'narratives',
-          terms: [{ field: ['data', 'creatorFid'] }]
+          terms: [{ field: 'creatorFid' }]
         },
         {
+          collection: 'narratives',
           name: 'narratives_by_tag',
-          collection: 'narratives',
-          terms: [{ field: ['data', 'tags'] }]
+          terms: [{ field: 'tags' }]
         },
         {
+          collection: 'narratives',
           name: 'narratives_by_popularity',
-          collection: 'narratives',
           values: [
-            { field: ['data', 'contributionCount'], reverse: true },
-            { field: ['ref'] }
+            { field: 'contributionCount', reverse: true },
+            { field: 'id' }
           ]
         },
         {
+          collection: 'narratives',
           name: 'narratives_by_timestamp',
-          collection: 'narratives',
           values: [
-            { field: ['data', 'updatedAt'], reverse: true },
-            { field: ['ref'] }
+            { field: 'updatedAt', reverse: true },
+            { field: 'id' }
           ]
         },
+        
+        // contributions集合的索引
         {
+          collection: 'contributions',
           name: 'contributions_by_narrative',
-          collection: 'contributions',
-          terms: [{ field: ['data', 'narrativeId'] }]
+          terms: [{ field: 'narrativeId' }]
         },
         {
+          collection: 'contributions',
           name: 'contributions_by_contributor',
-          collection: 'contributions',
-          terms: [{ field: ['data', 'contributorFid'] }]
+          terms: [{ field: 'contributorFid' }]
         },
+        
+        // branches集合的索引
         {
+          collection: 'branches',
           name: 'branches_by_narrative',
-          collection: 'branches',
-          terms: [{ field: ['data', 'narrativeId'] }]
+          terms: [{ field: 'narrativeId' }]
         },
         {
+          collection: 'branches',
           name: 'branches_by_branch_parent',
-          collection: 'branches',
-          terms: [{ field: ['data', 'parentBranchId'] }]
+          terms: [{ field: 'parentBranchId' }]
         },
+        
+        // achievements集合的索引
         {
-          name: 'achievements_by_user',
           collection: 'achievements',
-          terms: [{ field: ['data', 'userFid'] }]
+          name: 'achievements_by_user',
+          terms: [{ field: 'userFid' }]
         },
+        
+        // followers集合的索引
         {
+          collection: 'followers',
           name: 'followers_by_narrative',
-          collection: 'followers',
-          terms: [{ field: ['data', 'narrativeId'] }]
+          terms: [{ field: 'narrativeId' }]
         },
         {
+          collection: 'followers',
           name: 'followers_by_user',
-          collection: 'followers',
-          terms: [{ field: ['data', 'userFid'] }]
+          terms: [{ field: 'userFid' }]
         },
+        
+        // notifications集合的索引
         {
-          name: 'notifications_by_user',
           collection: 'notifications',
-          terms: [{ field: ['data', 'userFid'] }]
+          name: 'notifications_by_user',
+          terms: [{ field: 'userFid' }]
         }
       ];
       
       // 创建所有索引
-      const indexesResult = [];
-      for (const index of indexes) {
+      const indexResults = [];
+      for (const indexDef of indexesToCreate) {
         try {
-          console.log(`🔄 正在检查索引: ${index.name}`);
+          console.log(`🔄 正在创建/检查索引: ${indexDef.name}`);
           
-          // 查询索引是否存在
-          const exists = await client.query(
-            fql`
-              Index.byName(${index.name}) != null
-            `
+          // 检查索引是否存在
+          const indexExists = await client.query(
+            fql`Index.byName(${indexDef.name}) != null`
           );
           
-          if (!exists.data) {
-            // 索引不存在，创建它
-            console.log(`🔄 正在创建索引: ${index.name}`);
-            let createResult;
-            
-            try {
-              // 为不同类型的索引创建不同的查询
-              if (index.terms) {
-                createResult = await client.query(
-                  fql`
-                    Index.create({
-                      name: ${index.name},
-                      source: Collection.byName(${index.collection}),
-                      terms: ${index.terms}
-                    })
-                  `
-                );
-              } else if (index.values) {
-                createResult = await client.query(
-                  fql`
-                    Index.create({
-                      name: ${index.name},
-                      source: Collection.byName(${index.collection}),
-                      values: ${index.values}
-                    })
-                  `
-                );
-              } else {
-                // 兜底处理，防止createResult未定义
-                createResult = { data: { name: index.name, status: 'unknown type' } as any };
-              }
-              console.log(`✅ 索引 ${index.name} 创建成功`);
-              indexesResult.push({
-                name: index.name,
-                result: createResult.data,
-                status: 'created'
-              });
-            } catch (createErr) {
-              console.error(`❌ 创建索引失败 ${index.name}:`, createErr);
-              throw createErr;
+          if (!indexExists.data) {
+            // 索引不存在，创建新索引
+            let result;
+            if (indexDef.terms && !indexDef.values) {
+              // 只有terms的索引
+              result = await client.query(
+                fql`
+                  Collection.byName(${indexDef.collection}).createIndex({
+                    name: ${indexDef.name},
+                    terms: ${indexDef.terms}
+                  })
+                `
+              );
+            } else if (!indexDef.terms && indexDef.values) {
+              // 只有values的索引
+              result = await client.query(
+                fql`
+                  Collection.byName(${indexDef.collection}).createIndex({
+                    name: ${indexDef.name},
+                    values: ${indexDef.values}
+                  })
+                `
+              );
+            } else if (indexDef.terms && indexDef.values) {
+              // 同时有terms和values的索引
+              result = await client.query(
+                fql`
+                  Collection.byName(${indexDef.collection}).createIndex({
+                    name: ${indexDef.name},
+                    terms: ${indexDef.terms},
+                    values: ${indexDef.values}
+                  })
+                `
+              );
+            } else {
+              // 最简单的索引
+              result = await client.query(
+                fql`
+                  Collection.byName(${indexDef.collection}).createIndex({
+                    name: ${indexDef.name}
+                  })
+                `
+              );
             }
-          } else {
-            // 索引已存在
-            console.log(`✅ 索引 ${index.name} 已存在`);
-            indexesResult.push({
-              name: index.name,
-              status: 'exists'
+            
+            indexResults.push({
+              name: indexDef.name,
+              collection: indexDef.collection,
+              success: true,
+              result: result.data
             });
+            console.log(`✅ 索引 ${indexDef.name} 创建成功`);
+          } else {
+            indexResults.push({
+              name: indexDef.name,
+              collection: indexDef.collection,
+              success: true,
+              result: "索引已存在"
+            });
+            console.log(`✅ 索引 ${indexDef.name} 已存在`);
           }
         } catch (indexErr: any) {
-          console.error(`❌ 索引操作失败 ${index.name}:`, indexErr);
-          return error(`创建索引 ${index.name} 失败: ${indexErr.message || JSON.stringify(indexErr)}`);
+          console.error(`❌ 创建索引 ${indexDef.name} 失败:`, indexErr);
+          indexResults.push({
+            name: indexDef.name,
+            collection: indexDef.collection,
+            success: false,
+            error: indexErr.message || JSON.stringify(indexErr)
+          });
+          // 继续创建其他索引，不中断
         }
       }
       
+      // 创建FQL脚本供用户直接在FaunaDB控制台运行
+      const fqlScript = `
+// 创建集合
+${collections.map(c => `Collection.create({ name: "${c}" })`).join('\n')}
+
+// 创建索引
+${indexesToCreate.map(idx => {
+  if (idx.terms && !idx.values) {
+    return `Collection.byName("${idx.collection}").createIndex({
+  name: "${idx.name}",
+  terms: ${JSON.stringify(idx.terms)}
+})`;
+  } else if (!idx.terms && idx.values) {
+    return `Collection.byName("${idx.collection}").createIndex({
+  name: "${idx.name}",
+  values: ${JSON.stringify(idx.values)}
+})`;
+  } else if (idx.terms && idx.values) {
+    return `Collection.byName("${idx.collection}").createIndex({
+  name: "${idx.name}",
+  terms: ${JSON.stringify(idx.terms)},
+  values: ${JSON.stringify(idx.values)}
+})`;
+  } else {
+    return `Collection.byName("${idx.collection}").createIndex({
+  name: "${idx.name}"
+})`;
+  }
+}).join('\n\n')}
+      `;
+      
       return success({
-        message: '数据库初始化成功',
+        message: '数据库初始化完成',
         environmentInfo,
         collections: collectionsResult,
-        indexes: indexesResult
+        indexes: indexResults,
+        manualFQLScript: fqlScript
       });
     } catch (err: any) {
       console.error('❌ 数据库初始化失败:', err);
