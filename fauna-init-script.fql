@@ -1,246 +1,135 @@
 // Fauna数据库初始化脚本 (FQL v10)
 // 将此脚本复制到Fauna控制台执行
+// 注意：请分段执行，每次执行几行代码
 
-/* 第1步：创建集合 */
+/* 第1部分：创建集合 */
 // 创建narratives集合
-if (Collection.byName("narratives") == null) {
-  Collection.create({ name: "narratives" })
-} else {
-  "集合narratives已存在"
-}
-
+Collection.create({ name: "narratives" })
 // 创建contributions集合
-if (Collection.byName("contributions") == null) {
-  Collection.create({ name: "contributions" })
-} else {
-  "集合contributions已存在"
-}
-
+Collection.create({ name: "contributions" })
 // 创建branches集合
-if (Collection.byName("branches") == null) {
-  Collection.create({ name: "branches" })
-} else {
-  "集合branches已存在"
-}
-
+Collection.create({ name: "branches" })
 // 创建achievements集合
-if (Collection.byName("achievements") == null) {
-  Collection.create({ name: "achievements" })
-} else {
-  "集合achievements已存在"
-}
-
+Collection.create({ name: "achievements" })
 // 创建followers集合
-if (Collection.byName("followers") == null) {
-  Collection.create({ name: "followers" })
-} else {
-  "集合followers已存在"
-}
-
+Collection.create({ name: "followers" })
 // 创建notifications集合
-if (Collection.byName("notifications") == null) {
-  Collection.create({ name: "notifications" })
-} else {
-  "集合notifications已存在"
-}
+Collection.create({ name: "notifications" })
 
-/* 第2步：创建索引 */
-// 按创建者查询叙事
+/* 第2部分：创建索引 */
+// 1. 按创建者查询叙事
 {
-  let indexName = "narratives_by_creator"
-  let indexExists = Index.byName(indexName) != null
-  
-  if (!indexExists) {
-    Index.create({
-      name: indexName,
-      source: Collection.byName("narratives")!,
-      terms: [{ field: ["data", "creatorFid"] }]
-    })
-  } else {
-    "索引" + indexName + "已存在"
-  }
+  let collection = Collection.byName("narratives")!
+  collection.createIndex({
+    name: "narratives_by_creator",
+    terms: [{ field: ["data", "creatorFid"] }]
+  })
 }
 
-// 按标签查询叙事
+// 2. 按标签查询叙事
 {
-  let indexName = "narratives_by_tag"
-  let indexExists = Index.byName(indexName) != null
-  
-  if (!indexExists) {
-    Index.create({
-      name: indexName,
-      source: Collection.byName("narratives")!,
-      terms: [{ field: ["data", "tags"] }]
-    })
-  } else {
-    "索引" + indexName + "已存在"
-  }
+  let collection = Collection.byName("narratives")!
+  collection.createIndex({
+    name: "narratives_by_tag",
+    terms: [{ field: ["data", "tags"] }]
+  })
 }
 
-// 按人气排序叙事
+// 3. 按人气排序叙事
 {
-  let indexName = "narratives_by_popularity"
-  let indexExists = Index.byName(indexName) != null
-  
-  if (!indexExists) {
-    Index.create({
-      name: indexName,
-      source: Collection.byName("narratives")!,
-      values: [
-        { field: ["data", "contributionCount"], reverse: true },
-        { field: ["ref"] }
-      ]
-    })
-  } else {
-    "索引" + indexName + "已存在"
-  }
+  let collection = Collection.byName("narratives")!
+  collection.createIndex({
+    name: "narratives_by_popularity",
+    values: [
+      { field: ["data", "contributionCount"], reverse: true },
+      { field: ["ref"] }
+    ]
+  })
 }
 
-// 按时间戳排序叙事
+// 4. 按时间戳排序叙事
 {
-  let indexName = "narratives_by_timestamp"
-  let indexExists = Index.byName(indexName) != null
-  
-  if (!indexExists) {
-    Index.create({
-      name: indexName,
-      source: Collection.byName("narratives")!,
-      values: [
-        { field: ["data", "updatedAt"], reverse: true },
-        { field: ["ref"] }
-      ]
-    })
-  } else {
-    "索引" + indexName + "已存在"
-  }
+  let collection = Collection.byName("narratives")!
+  collection.createIndex({
+    name: "narratives_by_timestamp",
+    values: [
+      { field: ["data", "updatedAt"], reverse: true },
+      { field: ["ref"] }
+    ]
+  })
 }
 
-// 按叙事ID查询贡献
+// 5. 按叙事ID查询贡献
 {
-  let indexName = "contributions_by_narrative"
-  let indexExists = Index.byName(indexName) != null
-  
-  if (!indexExists) {
-    Index.create({
-      name: indexName,
-      source: Collection.byName("contributions")!,
-      terms: [{ field: ["data", "narrativeId"] }]
-    })
-  } else {
-    "索引" + indexName + "已存在"
-  }
+  let collection = Collection.byName("contributions")!
+  collection.createIndex({
+    name: "contributions_by_narrative",
+    terms: [{ field: ["data", "narrativeId"] }]
+  })
 }
 
-// 按贡献者查询贡献
+// 6. 按贡献者查询贡献
 {
-  let indexName = "contributions_by_contributor"
-  let indexExists = Index.byName(indexName) != null
-  
-  if (!indexExists) {
-    Index.create({
-      name: indexName,
-      source: Collection.byName("contributions")!,
-      terms: [{ field: ["data", "contributorFid"] }]
-    })
-  } else {
-    "索引" + indexName + "已存在"
-  }
+  let collection = Collection.byName("contributions")!
+  collection.createIndex({
+    name: "contributions_by_contributor",
+    terms: [{ field: ["data", "contributorFid"] }]
+  })
 }
 
-// 按叙事ID查询分支
+// 7. 按叙事ID查询分支
 {
-  let indexName = "branches_by_narrative"
-  let indexExists = Index.byName(indexName) != null
-  
-  if (!indexExists) {
-    Index.create({
-      name: indexName,
-      source: Collection.byName("branches")!,
-      terms: [{ field: ["data", "narrativeId"] }]
-    })
-  } else {
-    "索引" + indexName + "已存在"
-  }
+  let collection = Collection.byName("branches")!
+  collection.createIndex({
+    name: "branches_by_narrative",
+    terms: [{ field: ["data", "narrativeId"] }]
+  })
 }
 
-// 按父分支ID查询分支
+// 8. 按父分支ID查询分支
 {
-  let indexName = "branches_by_branch_parent"
-  let indexExists = Index.byName(indexName) != null
-  
-  if (!indexExists) {
-    Index.create({
-      name: indexName,
-      source: Collection.byName("branches")!,
-      terms: [{ field: ["data", "parentBranchId"] }]
-    })
-  } else {
-    "索引" + indexName + "已存在"
-  }
+  let collection = Collection.byName("branches")!
+  collection.createIndex({
+    name: "branches_by_branch_parent",
+    terms: [{ field: ["data", "parentBranchId"] }]
+  })
 }
 
-// 按用户查询成就
+// 9. 按用户查询成就
 {
-  let indexName = "achievements_by_user"
-  let indexExists = Index.byName(indexName) != null
-  
-  if (!indexExists) {
-    Index.create({
-      name: indexName,
-      source: Collection.byName("achievements")!,
-      terms: [{ field: ["data", "userFid"] }]
-    })
-  } else {
-    "索引" + indexName + "已存在"
-  }
+  let collection = Collection.byName("achievements")!
+  collection.createIndex({
+    name: "achievements_by_user",
+    terms: [{ field: ["data", "userFid"] }]
+  })
 }
 
-// 按叙事ID查询关注者
+// 10. 按叙事ID查询关注者
 {
-  let indexName = "followers_by_narrative"
-  let indexExists = Index.byName(indexName) != null
-  
-  if (!indexExists) {
-    Index.create({
-      name: indexName,
-      source: Collection.byName("followers")!,
-      terms: [{ field: ["data", "narrativeId"] }]
-    })
-  } else {
-    "索引" + indexName + "已存在"
-  }
+  let collection = Collection.byName("followers")!
+  collection.createIndex({
+    name: "followers_by_narrative",
+    terms: [{ field: ["data", "narrativeId"] }]
+  })
 }
 
-// 按用户查询关注的叙事
+// 11. 按用户查询关注的叙事
 {
-  let indexName = "followers_by_user"
-  let indexExists = Index.byName(indexName) != null
-  
-  if (!indexExists) {
-    Index.create({
-      name: indexName,
-      source: Collection.byName("followers")!,
-      terms: [{ field: ["data", "userFid"] }]
-    })
-  } else {
-    "索引" + indexName + "已存在"
-  }
+  let collection = Collection.byName("followers")!
+  collection.createIndex({
+    name: "followers_by_user",
+    terms: [{ field: ["data", "userFid"] }]
+  })
 }
 
-// 按用户查询通知
+// 12. 按用户查询通知
 {
-  let indexName = "notifications_by_user"
-  let indexExists = Index.byName(indexName) != null
-  
-  if (!indexExists) {
-    Index.create({
-      name: indexName,
-      source: Collection.byName("notifications")!,
-      terms: [{ field: ["data", "userFid"] }]
-    })
-  } else {
-    "索引" + indexName + "已存在"
-  }
+  let collection = Collection.byName("notifications")!
+  collection.createIndex({
+    name: "notifications_by_user",
+    terms: [{ field: ["data", "userFid"] }]
+  })
 }
 
+// 完成
 "数据库初始化完成！✅" 
