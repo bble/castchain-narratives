@@ -8,7 +8,7 @@ export async function GET() {
     "Content-Type": "application/json"
   };
 
-  // 简化的Frame验证配置
+  // 修改Frame验证配置，使用Netlify函数URL
   return NextResponse.json({
     name: "CastChain Narratives",
     description: "去中心化、可分支的协作式故事创作平台",
@@ -17,7 +17,7 @@ export async function GET() {
     frames: {
       version: "vNext",
       image: `${APP_URL}/images/feed.png`,
-      post_url: `${APP_URL}/api/frame`,
+      post_url: `${APP_URL}/.netlify/functions/frame`,
       buttons: [
         {
           label: "浏览故事",

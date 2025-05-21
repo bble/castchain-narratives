@@ -13,7 +13,14 @@
 # Edge Functions配置
 [[edge_functions]]
   function = "frame"
-  path = "/api/frame"
+  path = "/api/frame-edge"
+
+# 修改Frame接口重定向，优先使用Netlify函数
+[[redirects]]
+  from = "/api/frame"
+  to = "/.netlify/functions/frame"
+  status = 200
+  force = true
 
 # 为.well-known路径添加专门处理
 [[redirects]]
@@ -45,6 +52,13 @@
   for = "/.well-known/*"
   [headers.values]
     Access-Control-Allow-Origin = "*"
+
+[[headers]]
+  for = "/api/frame"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
 
 [[headers]]
   for = "/_next/static/*"
