@@ -49,18 +49,18 @@ exports.handler = async (event, context) => {
     
     console.log(`处理按钮点击, 索引: ${buttonIndex}`);
     
-    // 站点URL
-    const APP_URL = process.env.NEXT_PUBLIC_URL || 'https://castchain-narratives.netlify.app';
+    // 站点URL - 确保没有尾部斜杠
+    const APP_URL = (process.env.NEXT_PUBLIC_URL || 'https://castchain-narratives.netlify.app').replace(/\/+$/, '');
     console.log(`使用APP_URL: ${APP_URL}`);
     
     // 根据按钮索引返回不同的响应
     if (buttonIndex === 1) {
-      // 浏览故事 - 使用post.redirect代替link
+      // 浏览故事 - 使用redirect_url代替redirect
       const response = {
         version: "vNext",
         image: `${APP_URL}/images/feed.png`,
         post_url: null,
-        redirect: `${APP_URL}/narratives`
+        redirect_url: `${APP_URL}/narratives`
       };
       console.log("响应内容:", JSON.stringify(response, null, 2));
       return {
@@ -69,12 +69,12 @@ exports.handler = async (event, context) => {
         body: JSON.stringify(response)
       };
     } else if (buttonIndex === 2) {
-      // 创建新叙事 - 使用post.redirect代替link
+      // 创建新叙事 - 使用redirect_url代替redirect
       const response = {
         version: "vNext",
         image: `${APP_URL}/images/feed.png`,
         post_url: null,
-        redirect: `${APP_URL}/narratives/create`
+        redirect_url: `${APP_URL}/narratives/create`
       };
       console.log("响应内容:", JSON.stringify(response, null, 2));
       return {
@@ -88,8 +88,8 @@ exports.handler = async (event, context) => {
         version: "vNext",
         image: `${APP_URL}/images/feed.png`,
         buttons: [
-          { label: "浏览故事", action: "post" },
-          { label: "创建新叙事", action: "post" }
+          { label: "浏览故事", action: "post_redirect" },
+          { label: "创建新叙事", action: "post_redirect" }
         ]
       };
       console.log("响应内容:", JSON.stringify(response, null, 2));
@@ -102,8 +102,8 @@ exports.handler = async (event, context) => {
   } catch (error) {
     console.error("Frame处理错误:", error);
     
-    // 站点URL
-    const APP_URL = process.env.NEXT_PUBLIC_URL || 'https://castchain-narratives.netlify.app';
+    // 站点URL - 确保没有尾部斜杠
+    const APP_URL = (process.env.NEXT_PUBLIC_URL || 'https://castchain-narratives.netlify.app').replace(/\/+$/, '');
     
     // 错误响应
     const errorResponse = {

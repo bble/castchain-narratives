@@ -21,11 +21,11 @@ export async function GET() {
       buttons: [
         {
           label: "浏览故事",
-          action: "post"
+          action: "post_redirect"
         },
         {
           label: "创建新叙事", 
-          action: "post"
+          action: "post_redirect"
         }
       ]
     }
