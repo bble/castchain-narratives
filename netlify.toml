@@ -10,84 +10,58 @@
   publish = "public"
   functions = "netlify/functions"
 
-# Edge Functions配置
-[[edge_functions]]
-  function = "frame"
-  path = "/api/frame-edge"
+# 函数配置
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["faunadb", "fauna"]
 
-# 修改Frame接口重定向，优先使用Netlify函数
+# Frame API路由
 [[redirects]]
   from = "/api/frame"
   to = "/.netlify/functions/frame"
   status = 200
   force = true
 
-# 处理API路由
+# Well-known endpoints
+[[redirects]]
+  from = "/.well-known/*"
+  to = "/.well-known/:splat"
+  status = 200
+  force = true
+
+# Next.js API routes
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
-
-# 优先处理frame.html
-[[redirects]]
-  from = "/frame.html"
-  to = "/frame.html"
-  status = 200
   force = true
 
-# 处理静态文件
-[[redirects]]
-  from = "/farcaster.json"
-  to = "/farcaster.json"
-  status = 200
-  force = true
-
-# 处理Next.js应用路由
-[[redirects]]
-  from = "/_next/*"
-  to = "/_next/:splat"
-  status = 200
-
-# 确保index.html可访问
-[[redirects]]
-  from = "/"
-  to = "/index.html"
-  status = 200
-  force = true
-
-# 处理SPA路由
+# SPA fallback
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
   force = true
 
-# 函数配置
-[functions]
-  node_bundler = "esbuild"
-  external_node_modules = ["faunadb", "fauna"]
-
-[[headers]]
-  for = "/.well-known/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
-
+# Frame API响应头
 [[headers]]
   for = "/api/frame"
   [headers.values]
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "GET, POST, OPTIONS"
-    Access-Control-Allow-Headers = "Content-Type, Authorization"
+    Access-Control-Allow-Headers = "Content-Type"
+    Content-Type = "application/json"
+    Access-Control-Allow-Credentials = "true"
+    Cache-Control = "no-store, no-cache"
 
-[[headers]]
-  for = "/frame.html"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
-    Cache-Control = "no-cache, no-store, must-revalidate"
-    Pragma = "no-cache"
-    Expires = "0"
-
+# 静态资源缓存
 [[headers]]
   for = "/_next/static/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable" 
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Frame图片缓存
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600" 

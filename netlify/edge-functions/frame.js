@@ -8,12 +8,12 @@ export default async () => {
     buttons: [
       {
         label: "浏览故事",
-        action: "post_redirect", 
+        action: "link", 
         target: `${baseUrl}/narratives`
       },
       {
         label: "创建新叙事",
-        action: "post_redirect",
+        action: "link",
         target: `${baseUrl}/narratives/create`
       }
     ]
@@ -23,7 +23,10 @@ export default async () => {
   return new Response(JSON.stringify(frameData), {
     headers: {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*"
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Credentials": "true"
     }
   });
 }; 

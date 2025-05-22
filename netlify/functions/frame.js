@@ -14,14 +14,32 @@ exports.handler = async (event, context) => {
         const buttonIndex = parseInt(data.untrustedData.buttonIndex);
         console.log(`🔢 按钮索引: ${buttonIndex}`);
 
-        // 返回302重定向响应
+        // 返回新的Frame响应
         return {
-          statusCode: 302,
+          statusCode: 200,
           headers: {
-            'Location': buttonIndex === 1 
-              ? `${APP_URL}/narratives`
-              : `${APP_URL}/narratives/create`
-          }
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Credentials': 'true'
+          },
+          body: JSON.stringify({
+            version: 'vNext',
+            image: `${APP_URL}/images/feed.png`,
+            buttons: [
+              {
+                label: '浏览故事',
+                action: 'link',
+                target: `${APP_URL}/narratives`
+              },
+              {
+                label: '创建新叙事',
+                action: 'link',
+                target: `${APP_URL}/narratives/create`
+              }
+            ]
+          })
         };
       }
     }
@@ -30,7 +48,11 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 200,
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Credentials': 'true'
       },
       body: JSON.stringify({
         version: 'vNext',
@@ -38,11 +60,13 @@ exports.handler = async (event, context) => {
         buttons: [
           {
             label: '浏览故事',
-            action: 'post_redirect'
+            action: 'link',
+            target: `${APP_URL}/narratives`
           },
           {
             label: '创建新叙事',
-            action: 'post_redirect'
+            action: 'link',
+            target: `${APP_URL}/narratives/create`
           }
         ]
       })
@@ -54,15 +78,20 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 200,
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Credentials': 'true'
       },
       body: JSON.stringify({
         version: 'vNext',
-        image: `${APP_URL}/images/feed.png`,
+        image: `${APP_URL}/images/error.png`,
         buttons: [
           {
             label: '重试',
-            action: 'post'
+            action: 'link',
+            target: `${APP_URL}`
           }
         ]
       })

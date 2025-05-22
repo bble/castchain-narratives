@@ -2,83 +2,33 @@ import { NextResponse } from "next/server";
 import { APP_URL } from "../../../../lib/constants";
 
 export async function GET() {
+  // 添加CORS头
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Content-Type": "application/json"
+  };
+
+  // 确保URL没有尾部斜杠
+  const baseUrl = APP_URL.replace(/\/+$/, '');
+
+  // 使用简化格式
   return NextResponse.json({
     name: "CastChain Narratives",
     description: "去中心化、可分支的协作式故事创作平台",
-    image: `${APP_URL}/images/logo.png`,
-    external_url: APP_URL,
-    success_url: `${APP_URL}/onboarding`,
+    image: `${baseUrl}/images/logo.png`,
+    external_url: baseUrl,
     frames: {
-      version: "1",
-      external_url: APP_URL,
-      content: {
-        frames_url: APP_URL,
-        post_url: `${APP_URL}/api/frame`,
-        frames: [
-          {
-            id: "landing",
-            frame: {
               version: "vNext",
-              image: `${APP_URL}/images/feed.png`,
-              title: "开始你的链上叙事之旅",
+      image: `${baseUrl}/images/feed.png`,
+      post_url: `${baseUrl}/.netlify/functions/frame`,
               buttons: [
                 {
-                  label: "探索故事",
-                  action: "post_redirect"
+          label: "浏览故事"
                 },
                 {
-                  label: "创建叙事",
-                  action: "post"
+          label: "创建新叙事"
                 }
               ]
-            },
-            state: {}
-          },
-          {
-            id: "narrative_detail",
-            frame: {
-              version: "vNext",
-              image: `${APP_URL}/images/narrative_preview.png`,
-              title: "查看叙事详情",
-              buttons: [
-                {
-                  label: "阅读故事",
-                  action: "post_redirect"
-                },
-                {
-                  label: "贡献新章节",
-                  action: "post"
-                },
-                {
-                  label: "分享",
-                  action: "link",
-                  target: `${APP_URL}/share`
-                }
-              ]
-            },
-            state: {}
-          },
-          {
-            id: "mint_achievement",
-            frame: {
-              version: "vNext",
-              image: `${APP_URL}/images/achievement.png`,
-              title: "铸造成就",
-              buttons: [
-                {
-                  label: "铸造",
-                  action: "post"
-                },
-                {
-                  label: "取消",
-                  action: "post"
-                }
-              ]
-            },
-            state: {}
-          }
-        ]
-      }
     }
-  });
+  }, { headers });
 } 

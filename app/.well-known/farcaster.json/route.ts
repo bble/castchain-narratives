@@ -11,7 +11,7 @@ export async function GET() {
   // 确保URL没有尾部斜杠
   const baseUrl = APP_URL.replace(/\/+$/, '');
 
-  // 修改Frame验证配置，使用Netlify函数URL
+  // 使用简化的Frame验证格式指向Netlify函数
   return NextResponse.json({
     name: "CastChain Narratives",
     description: "去中心化、可分支的协作式故事创作平台",
@@ -23,12 +23,10 @@ export async function GET() {
       post_url: `${baseUrl}/.netlify/functions/frame`,
       buttons: [
         {
-          label: "浏览故事",
-          action: "post"
+          label: "浏览故事"
         },
         {
-          label: "创建新叙事", 
-          action: "post"
+          label: "创建新叙事"
         }
       ]
     }

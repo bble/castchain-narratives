@@ -6,6 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Credentials": "true",
   "Content-Type": "application/json"
 };
 
@@ -16,60 +17,42 @@ export async function OPTIONS() {
 
 export async function POST(req: NextRequest) {
   try {
-    // 解析请求体获取Frame数据
+    // 确保URL没有尾部斜杠
+    const baseUrl = APP_URL.replace(/\/+$/, '');
+    
+    // 重定向到Netlify函数
+    const netlifyFunctionUrl = `${baseUrl}/.netlify/functions/frame`;
+    
+    // 将请求转发到Netlify函数
     const requestData = await req.json();
-    console.log("Frame请求数据详情:", JSON.stringify(requestData, null, 2));
-
-    // 提取按钮索引 - 适配不同版本的Frame有效负载格式
-    let buttonIndex = 0;
-    if (requestData?.untrustedData?.buttonIndex) {
-      buttonIndex = parseInt(requestData.untrustedData.buttonIndex);
-    } else if (requestData?.buttonIndex) {
-      buttonIndex = parseInt(requestData.buttonIndex);
-    }
+    const response = await fetch(netlifyFunctionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestData)
+    });
     
-    console.log(`处理按钮点击，索引: ${buttonIndex}`);
+    // 获取Netlify函数的响应
+    const responseData = await response.json();
     
-    // 简化响应格式 - 只使用必要的字段
-    let response;
-    
-    if (buttonIndex === 1) {
-      // 浏览故事
-      response = {
-        version: "vNext",
-        image: `${APP_URL}/images/feed.png`,
-        action: "link",
-        target: `${APP_URL}/narratives`
-      };
-    } else if (buttonIndex === 2) {
-      // 创建新叙事
-      response = {
-        version: "vNext",
-        image: `${APP_URL}/images/feed.png`,
-        action: "link",
-        target: `${APP_URL}/narratives/create`
-      };
-    } else {
-      // 初始状态或未识别的按钮
-      response = {
-        version: "vNext",
-        image: `${APP_URL}/images/feed.png`,
-        buttons: [
-          { label: "浏览故事", action: "post" },
-          { label: "创建新叙事", action: "post" }
-        ]
-      };
-    }
-
-    console.log("Frame响应:", JSON.stringify(response, null, 2));
-    return NextResponse.json(response, { headers: corsHeaders, status: 200 });
+    return NextResponse.json(responseData, { headers: corsHeaders });
   } catch (error) {
     console.error("Frame处理错误:", error);
-    // 出错时的简化响应
+    
+    // 确保URL没有尾部斜杠
+    const baseUrl = APP_URL.replace(/\/+$/, '');
+    
+    // 出错时的响应
     return NextResponse.json({
       version: "vNext",
-      image: `${APP_URL}/images/feed.png`,
-      text: "处理请求时出错，请重试"
-    }, { headers: corsHeaders, status: 200 });
+      image: `${baseUrl}/images/error.png`,
+      buttons: [
+        { 
+          label: "重试",
+          action: "post"
+        }
+      ]
+    }, { headers: corsHeaders });
   }
 } 

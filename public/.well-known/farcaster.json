@@ -10,11 +10,13 @@
     "buttons": [
       {
         "label": "浏览故事",
-        "action": "post"
+        "action": "link",
+        "target": "https://castchain-narratives.netlify.app/narratives"
       },
       {
         "label": "创建新叙事",
-        "action": "post"
+        "action": "link",
+        "target": "https://castchain-narratives.netlify.app/narratives/create"
       }
     ]
   }
