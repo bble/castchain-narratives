@@ -77,8 +77,9 @@ exports.handler = async (event, context) => {
         const currentState = data.untrustedData.state || 'initial';
         console.log(`🔄 当前状态: ${currentState}`);
 
-        // 如果是返回按钮，返回初始状态
+        // 如果当前不是初始状态且点击了返回按钮
         if (currentState !== 'initial' && buttonIndex === 1) {
+          console.log('⬅️ 返回到初始状态');
           return {
             statusCode: 200,
             headers,
@@ -86,34 +87,45 @@ exports.handler = async (event, context) => {
           };
         }
 
-        // 根据按钮索引返回不同的响应
-        if (buttonIndex === 1) {
-          return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify(createFrameResponse('narrative_preview.png', [
-              {
-                label: '返回',
-                action: 'post'
-              }
-            ], 'preview'))
-          };
-        } else if (buttonIndex === 2) {
-          return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify(createFrameResponse('achievement.png', [
-              {
-                label: '返回',
-                action: 'post'
-              }
-            ], 'create'))
-          };
+        // 根据当前状态和按钮索引返回不同的响应
+        if (currentState === 'initial') {
+          if (buttonIndex === 1) {
+            console.log('📖 进入浏览故事状态');
+            return {
+              statusCode: 200,
+              headers,
+              body: JSON.stringify(createFrameResponse('narrative_preview.png', [
+                {
+                  label: '返回',
+                  action: 'post'
+                }
+              ], 'preview'))
+            };
+          } else if (buttonIndex === 2) {
+            console.log('✍️ 进入创建新叙事状态');
+            return {
+              statusCode: 200,
+              headers,
+              body: JSON.stringify(createFrameResponse('achievement.png', [
+                {
+                  label: '返回',
+                  action: 'post'
+                }
+              ], 'create'))
+            };
+          }
+        } else if (currentState === 'preview') {
+          console.log('🔍 处理浏览故事状态的按钮点击');
+          // 在这里添加浏览故事状态的特定逻辑
+        } else if (currentState === 'create') {
+          console.log('📝 处理创建新叙事状态的按钮点击');
+          // 在这里添加创建新叙事状态的特定逻辑
         }
       }
     }
 
     // 返回初始Frame
+    console.log('🏠 返回初始状态');
     return {
       statusCode: 200,
       headers,
