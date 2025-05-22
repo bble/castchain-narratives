@@ -1,7 +1,11 @@
 [build]
-  command = "echo \"跳过构建，使用静态文件\""
+  command = "echo '跳过构建，使用静态文件'"
   publish = "public"
-  functions = "netlify/functions"
+  edge_functions = "netlify/edge-functions"
+  [build.environment]
+  FAUNA_SECRET_KEY = ""
+  NEXT_PUBLIC_MONAD_RPC_URL = ""
+  NEXT_PUBLIC_URL = ""
 
 [dev]
   command = "npm run dev"
@@ -12,8 +16,8 @@
 
 # 函数配置
 [functions]
-  node_bundler = "esbuild"
   external_node_modules = ["faunadb", "fauna"]
+  node_bundler = "esbuild"
 
 # Frame API路由
 [[redirects]]
