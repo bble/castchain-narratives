@@ -4,6 +4,16 @@ exports.handler = async (event, context) => {
   
   const APP_URL = 'https://castchain-narratives.netlify.app';
   
+  // 通用响应头
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Credentials': 'true',
+    'Cache-Control': 'no-store, no-cache'
+  };
+
   try {
     // 处理POST请求（按钮点击）
     if (event.httpMethod === 'POST' && event.body) {
@@ -18,13 +28,7 @@ exports.handler = async (event, context) => {
         if (buttonIndex === 1) {
           return {
             statusCode: 200,
-            headers: {
-              'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': '*',
-              'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-              'Access-Control-Allow-Headers': 'Content-Type',
-              'Access-Control-Allow-Credentials': 'true'
-            },
+            headers,
             body: JSON.stringify({
               version: 'vNext',
               image: `${APP_URL}/images/narratives.png`,
@@ -32,25 +36,15 @@ exports.handler = async (event, context) => {
                 {
                   label: '返回',
                   action: 'post'
-                },
-                {
-                  label: '在浏览器中打开',
-                  action: 'link',
-                  target: `${APP_URL}/narratives`
                 }
-              ]
+              ],
+              postUrl: `${APP_URL}/.netlify/functions/frame`
             })
           };
         } else if (buttonIndex === 2) {
           return {
             statusCode: 200,
-            headers: {
-              'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': '*',
-              'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-              'Access-Control-Allow-Headers': 'Content-Type',
-              'Access-Control-Allow-Credentials': 'true'
-            },
+            headers,
             body: JSON.stringify({
               version: 'vNext',
               image: `${APP_URL}/images/create.png`,
@@ -58,13 +52,9 @@ exports.handler = async (event, context) => {
                 {
                   label: '返回',
                   action: 'post'
-                },
-                {
-                  label: '在浏览器中创建',
-                  action: 'link',
-                  target: `${APP_URL}/narratives/create`
                 }
-              ]
+              ],
+              postUrl: `${APP_URL}/.netlify/functions/frame`
             })
           };
         }
@@ -74,13 +64,7 @@ exports.handler = async (event, context) => {
     // 返回初始Frame
     return {
       statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Credentials': 'true'
-      },
+      headers,
       body: JSON.stringify({
         version: 'vNext',
         image: `${APP_URL}/images/feed.png`,
@@ -93,7 +77,8 @@ exports.handler = async (event, context) => {
             label: '创建新叙事',
             action: 'post'
           }
-        ]
+        ],
+        postUrl: `${APP_URL}/.netlify/functions/frame`
       })
     };
   } catch (error) {
@@ -102,13 +87,7 @@ exports.handler = async (event, context) => {
     // 错误时返回基础Frame
     return {
       statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Credentials': 'true'
-      },
+      headers,
       body: JSON.stringify({
         version: 'vNext',
         image: `${APP_URL}/images/error.png`,
@@ -117,7 +96,8 @@ exports.handler = async (event, context) => {
             label: '重试',
             action: 'post'
           }
-        ]
+        ],
+        postUrl: `${APP_URL}/.netlify/functions/frame`
       })
     };
   }
