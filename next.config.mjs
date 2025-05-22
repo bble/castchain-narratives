@@ -4,11 +4,11 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: '/.well-known/:path*',
-        destination: '/api/.well-known/:path*',
+        source: "/.well-known/farcaster.json",
+        destination: "/api/.well-known/farcaster.json",
       },
     ];
-  }
+  },
 };
 
 export default nextConfig;

@@ -1,9 +1,9 @@
-// Netlify函数 - Frame处理器
+// Netlify函数 - Frame处理器 - 极简版本
 const { Handler } = require('@netlify/functions');
 
 // Frame处理函数
 exports.handler = async (event, context) => {
-  console.log("Netlify函数执行: frame.js");
+  console.log("Frame函数已调用 - 极简版本");
   console.log(`请求方法: ${event.httpMethod}`);
   console.log(`请求路径: ${event.path}`);
   
@@ -15,7 +15,7 @@ exports.handler = async (event, context) => {
     'Content-Type': 'application/json'
   };
   
-  // 选项请求的处理
+  // 处理预检请求
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
@@ -25,96 +25,54 @@ exports.handler = async (event, context) => {
   }
   
   try {
-    // 解析请求主体
-    let requestData = {};
-    try {
-      if (event.body) {
-        requestData = JSON.parse(event.body);
-        console.log("Frame请求数据:", JSON.stringify(requestData, null, 2));
-      } else {
-        console.log("警告: 请求体为空");
-      }
-    } catch (parseError) {
-      console.error("解析请求数据错误:", parseError);
-      console.log("原始请求体:", event.body);
-    }
-    
-    // 获取按钮索引 - 兼容多种Frame格式
-    let buttonIndex = 0;
-    if (requestData.untrustedData && requestData.untrustedData.buttonIndex) {
-      buttonIndex = parseInt(requestData.untrustedData.buttonIndex);
-    } else if (requestData.buttonIndex) {
-      buttonIndex = parseInt(requestData.buttonIndex);
-    }
-    
-    console.log(`处理按钮点击, 索引: ${buttonIndex}`);
-    
-    // 站点URL - 确保没有尾部斜杠
+    // 处理APP_URL，确保没有尾部斜杠
     const APP_URL = (process.env.NEXT_PUBLIC_URL || 'https://castchain-narratives.netlify.app').replace(/\/+$/, '');
-    console.log(`使用APP_URL: ${APP_URL}`);
+    console.log(`APP_URL: ${APP_URL}`);
     
-    // 根据按钮索引返回不同的响应
-    if (buttonIndex === 1) {
-      // 浏览故事 - 使用redirect_url代替redirect
-      const response = {
-        version: "vNext",
-        image: `${APP_URL}/images/feed.png`,
-        post_url: null,
-        redirect_url: `${APP_URL}/narratives`
-      };
-      console.log("响应内容:", JSON.stringify(response, null, 2));
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(response)
-      };
-    } else if (buttonIndex === 2) {
-      // 创建新叙事 - 使用redirect_url代替redirect
-      const response = {
-        version: "vNext",
-        image: `${APP_URL}/images/feed.png`,
-        post_url: null,
-        redirect_url: `${APP_URL}/narratives/create`
-      };
-      console.log("响应内容:", JSON.stringify(response, null, 2));
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(response)
-      };
-    } else {
-      // 默认响应
-      const response = {
-        version: "vNext",
-        image: `${APP_URL}/images/feed.png`,
-        buttons: [
-          { label: "浏览故事", action: "post_redirect" },
-          { label: "创建新叙事", action: "post_redirect" }
-        ]
-      };
-      console.log("响应内容:", JSON.stringify(response, null, 2));
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(response)
-      };
-    }
-  } catch (error) {
-    console.error("Frame处理错误:", error);
+    // 函数URL
+    const FUNCTION_URL = `${APP_URL}/.netlify/functions/frame`;
     
-    // 站点URL - 确保没有尾部斜杠
-    const APP_URL = (process.env.NEXT_PUBLIC_URL || 'https://castchain-narratives.netlify.app').replace(/\/+$/, '');
-    
-    // 错误响应
-    const errorResponse = {
+    // 极简响应 - 只使用link按钮
+    const responseData = {
       version: "vNext",
       image: `${APP_URL}/images/feed.png`,
-      text: "处理请求时出错，请重试"
+      buttons: [
+        {
+          label: "进入网站",
+          action: "link",
+          target: `${APP_URL}`
+        }
+      ]
     };
-    console.log("错误响应:", JSON.stringify(errorResponse, null, 2));
+    
+    console.log("返回极简响应:", JSON.stringify(responseData, null, 2));
     
     return {
-      statusCode: 200, // 即使有错误也返回200，避免Frame显示错误
+      statusCode: 200,
+      headers,
+      body: JSON.stringify(responseData)
+    };
+  } catch (error) {
+    console.error("处理Frame请求时出错:", error);
+    
+    // 处理APP_URL，确保没有尾部斜杠
+    const APP_URL = (process.env.NEXT_PUBLIC_URL || 'https://castchain-narratives.netlify.app').replace(/\/+$/, '');
+    
+    // 返回错误响应
+    const errorResponse = {
+      version: "vNext",
+      image: `${APP_URL}/images/error.png`,
+      buttons: [
+        {
+          label: "重试",
+          action: "link",
+          target: `${APP_URL}`
+        }
+      ]
+    };
+    
+    return {
+      statusCode: 200,
       headers,
       body: JSON.stringify(errorResponse)
     };

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>CastChain Narratives - 分享到Warpcast</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #0f172a;
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    button, .button {
+      background-color: #7c3aed;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+    }
+    button:hover, .button:hover {
+      background-color: #6d28d9;
+    }
+    .link {
+      margin-top: 20px;
+      width: 100%;
+      word-break: break-all;
+      background: rgba(255,255,255,0.1);
+      padding: 10px;
+      border-radius: 4px;
+    }
+    select, input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 10px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    label {
+      margin-top: 15px;
+      display: block;
+    }
+    .options {
+      width: 100%;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>CastChain Narratives</h1>
+  <p>生成带有防缓存参数的Warpcast分享链接</p>
+  
+  <div class="options">
+    <label for="pageSelector">选择页面:</label>
+    <select id="pageSelector">
+      <option value="frame.html">标准Frame</option>
+      <option value="frame-test.html">测试Frame</option>
+    </select>
+    
+    <label for="customUrl">或输入自定义URL:</label>
+    <input type="text" id="customUrl" placeholder="https://castchain-narratives.netlify.app/your-page.html">
+  </div>
+  
+  <button id="generateBtn">生成分享链接</button>
+  <div id="linkContainer" class="link"></div>
+  
+  <div style="margin-top: 30px; width: 100%;">
+    <h3>快速测试链接:</h3>
+    <a href="https://warpcast.com/~/compose?text=https://castchain-narratives.netlify.app/frame-test.html" target="_blank" class="button">分享测试页面</a>
+  </div>
+  
+  <script>
+    document.getElementById('generateBtn').addEventListener('click', function() {
+      // 获取选择的页面或自定义URL
+      const pageSelector = document.getElementById('pageSelector');
+      const customUrl = document.getElementById('customUrl').value.trim();
+      
+      let baseUrl;
+      if (customUrl) {
+        baseUrl = customUrl;
+      } else {
+        baseUrl = 'https://castchain-narratives.netlify.app/' + pageSelector.value;
+      }
+      
+      // 生成随机防缓存参数
+      const random = Math.floor(Math.random() * 1000000);
+      const timestamp = new Date().getTime();
+      const frameUrl = `${baseUrl}?v=${timestamp}-${random}`;
+      const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(frameUrl)}`;
+      
+      // 显示链接
+      const linkContainer = document.getElementById('linkContainer');
+      linkContainer.innerHTML = `
+        <p>分享链接 (点击复制):</p>
+        <div onclick="copyToClipboard(this.textContent)" style="cursor:pointer">${warpcastUrl}</div>
+        <p><a href="${warpcastUrl}" target="_blank" style="color:#7c3aed">直接打开Warpcast</a></p>
+      `;
+    });
+    
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert('已复制到剪贴板');
+      }).catch(err => {
+        console.error('复制失败: ', err);
+      });
+    }
+  </script>
+</body>
+</html> 

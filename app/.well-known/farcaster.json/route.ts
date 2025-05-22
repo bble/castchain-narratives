@@ -8,24 +8,27 @@ export async function GET() {
     "Content-Type": "application/json"
   };
 
+  // 确保URL没有尾部斜杠
+  const baseUrl = APP_URL.replace(/\/+$/, '');
+
   // 修改Frame验证配置，使用Netlify函数URL
   return NextResponse.json({
     name: "CastChain Narratives",
     description: "去中心化、可分支的协作式故事创作平台",
-    image: `${APP_URL}/images/logo.png`,
-    external_url: APP_URL,
+    image: `${baseUrl}/images/logo.png`,
+    external_url: baseUrl,
     frames: {
       version: "vNext",
-      image: `${APP_URL}/images/feed.png`,
-      post_url: `${APP_URL}/.netlify/functions/frame`,
+      image: `${baseUrl}/images/feed.png`,
+      post_url: `${baseUrl}/.netlify/functions/frame`,
       buttons: [
         {
           label: "浏览故事",
-          action: "post_redirect"
+          action: "post"
         },
         {
           label: "创建新叙事", 
-          action: "post_redirect"
+          action: "post"
         }
       ]
     }

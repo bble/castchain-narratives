@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node scripts/build-functions.js",
+    "build": "next build && cp -r public/* .next/ && node scripts/build-functions.js",
     "build:functions": "node scripts/build-functions.js",
     "start": "next start",
     "lint": "next lint",
