@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build"
+  command = "echo \"跳过构建，使用静态文件\""
   publish = "public"
   functions = "netlify/functions"
 
@@ -61,9 +61,6 @@
   to = "/index.html"
   status = 200
   force = true
-  
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
 
 # 函数配置
 [functions]
