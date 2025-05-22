@@ -14,6 +14,42 @@ exports.handler = async (event, context) => {
     'Cache-Control': 'no-store, no-cache'
   };
 
+  // 验证响应格式
+  const validateResponse = (response) => {
+    const required = ['version', 'image', 'buttons', 'post_url'];
+    const missing = required.filter(field => !response[field]);
+    
+    if (missing.length > 0) {
+      console.error(`❌ 响应缺少必需字段: ${missing.join(', ')}`);
+      return false;
+    }
+
+    if (!response.buttons.every(button => button.label && button.action)) {
+      console.error('❌ 按钮缺少必需属性');
+      return false;
+    }
+
+    return true;
+  };
+
+  // 创建Frame响应
+  const createFrameResponse = (image, buttons) => {
+    const response = {
+      version: 'vNext',
+      image: `${APP_URL}/images/${image}`,
+      buttons,
+      post_url: `${APP_URL}/.netlify/functions/frame`
+    };
+
+    console.log('📤 发送响应:', JSON.stringify(response));
+    
+    if (!validateResponse(response)) {
+      throw new Error('Invalid frame response format');
+    }
+
+    return response;
+  };
+
   try {
     // 处理POST请求（按钮点击）
     if (event.httpMethod === 'POST' && event.body) {
@@ -29,33 +65,23 @@ exports.handler = async (event, context) => {
           return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({
-              version: 'vNext',
-              image: `${APP_URL}/images/narrative_preview.png`,
-              buttons: [
-                {
-                  label: '返回',
-                  action: 'post'
-                }
-              ],
-              post_url: `${APP_URL}/.netlify/functions/frame`
-            })
+            body: JSON.stringify(createFrameResponse('narrative_preview.png', [
+              {
+                label: '返回',
+                action: 'post'
+              }
+            ]))
           };
         } else if (buttonIndex === 2) {
           return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({
-              version: 'vNext',
-              image: `${APP_URL}/images/achievement.png`,
-              buttons: [
-                {
-                  label: '返回',
-                  action: 'post'
-                }
-              ],
-              post_url: `${APP_URL}/.netlify/functions/frame`
-            })
+            body: JSON.stringify(createFrameResponse('achievement.png', [
+              {
+                label: '返回',
+                action: 'post'
+              }
+            ]))
           };
         }
       }
@@ -65,21 +91,16 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({
-        version: 'vNext',
-        image: `${APP_URL}/images/feed.png`,
-        buttons: [
-          {
-            label: '浏览故事',
-            action: 'post'
-          },
-          {
-            label: '创建新叙事',
-            action: 'post'
-          }
-        ],
-        post_url: `${APP_URL}/.netlify/functions/frame`
-      })
+      body: JSON.stringify(createFrameResponse('feed.png', [
+        {
+          label: '浏览故事',
+          action: 'post'
+        },
+        {
+          label: '创建新叙事',
+          action: 'post'
+        }
+      ]))
     };
   } catch (error) {
     console.error("❌ 处理错误:", error);
@@ -88,17 +109,12 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({
-        version: 'vNext',
-        image: `${APP_URL}/images/error.png`,
-        buttons: [
-          {
-            label: '重试',
-            action: 'post'
-          }
-        ],
-        post_url: `${APP_URL}/.netlify/functions/frame`
-      })
+      body: JSON.stringify(createFrameResponse('error.png', [
+        {
+          label: '重试',
+          action: 'post'
+        }
+      ]))
     };
   }
 }; 
