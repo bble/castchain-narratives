@@ -1,25 +1,6 @@
 // 极简化的Netlify Frame处理函数
-const { Handler } = require('@netlify/functions');
-
 exports.handler = async (event, context) => {
   console.log("🔄 Frame函数被调用");
-  
-  // 设置CORS头
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Content-Type': 'application/json'
-  };
-  
-  // 处理OPTIONS请求
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ success: true })
-    };
-  }
   
   const APP_URL = 'https://castchain-narratives.netlify.app';
   
@@ -33,27 +14,14 @@ exports.handler = async (event, context) => {
         const buttonIndex = parseInt(data.untrustedData.buttonIndex);
         console.log(`🔢 按钮索引: ${buttonIndex}`);
 
-        // 返回Frame响应
+        // 返回302重定向响应
         return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify({
-            version: 'vNext',
-            image: `${APP_URL}/images/feed.png`,
-            post_url: `${APP_URL}/api/frame`,
-            buttons: [
-              {
-                label: '浏览故事',
-                action: 'link',
-                target: `${APP_URL}/narratives`
-              },
-              {
-                label: '创建新叙事',
-                action: 'link',
-                target: `${APP_URL}/narratives/create`
-              }
-            ]
-          })
+          statusCode: 302,
+          headers: {
+            'Location': buttonIndex === 1 
+              ? `${APP_URL}/narratives`
+              : `${APP_URL}/narratives/create`
+          }
         };
       }
     }
@@ -61,21 +29,20 @@ exports.handler = async (event, context) => {
     // 返回初始Frame
     return {
       statusCode: 200,
-      headers,
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({
         version: 'vNext',
         image: `${APP_URL}/images/feed.png`,
-        post_url: `${APP_URL}/api/frame`,
         buttons: [
           {
             label: '浏览故事',
-            action: 'link',
-            target: `${APP_URL}/narratives`
+            action: 'post_redirect'
           },
           {
             label: '创建新叙事',
-            action: 'link',
-            target: `${APP_URL}/narratives/create`
+            action: 'post_redirect'
           }
         ]
       })
@@ -86,12 +53,17 @@ exports.handler = async (event, context) => {
     // 错误时返回基础Frame
     return {
       statusCode: 200,
-      headers,
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({
         version: 'vNext',
         image: `${APP_URL}/images/feed.png`,
         buttons: [
-          { label: '重试' }
+          {
+            label: '重试',
+            action: 'post'
+          }
         ]
       })
     };
