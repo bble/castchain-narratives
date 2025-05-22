@@ -50,6 +50,18 @@ exports.handler = async (event, context) => {
     return response;
   };
 
+  // 获取初始Frame响应
+  const getInitialResponse = () => createFrameResponse('feed.png', [
+    {
+      label: '浏览故事',
+      action: 'post'
+    },
+    {
+      label: '创建新叙事',
+      action: 'post'
+    }
+  ]);
+
   try {
     // 处理POST请求（按钮点击）
     if (event.httpMethod === 'POST' && event.body) {
@@ -59,6 +71,19 @@ exports.handler = async (event, context) => {
       if (data.untrustedData?.buttonIndex) {
         const buttonIndex = parseInt(data.untrustedData.buttonIndex);
         console.log(`🔢 按钮索引: ${buttonIndex}`);
+
+        // 获取当前状态
+        const currentState = data.untrustedData.state || 'initial';
+        console.log(`🔄 当前状态: ${currentState}`);
+
+        // 如果是返回按钮，返回初始状态
+        if (currentState !== 'initial' && buttonIndex === 1) {
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify(getInitialResponse())
+          };
+        }
 
         // 根据按钮索引返回不同的响应
         if (buttonIndex === 1) {
@@ -91,16 +116,7 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify(createFrameResponse('feed.png', [
-        {
-          label: '浏览故事',
-          action: 'post'
-        },
-        {
-          label: '创建新叙事',
-          action: 'post'
-        }
-      ]))
+      body: JSON.stringify(getInitialResponse())
     };
   } catch (error) {
     console.error("❌ 处理错误:", error);
