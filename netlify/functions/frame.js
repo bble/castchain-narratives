@@ -33,12 +33,13 @@ exports.handler = async (event, context) => {
   };
 
   // 创建Frame响应
-  const createFrameResponse = (image, buttons) => {
+  const createFrameResponse = (image, buttons, state = 'initial') => {
     const response = {
       version: 'vNext',
       image: `${APP_URL}/images/${image}`,
       buttons,
-      post_url: `${APP_URL}/.netlify/functions/frame`
+      post_url: `${APP_URL}/.netlify/functions/frame`,
+      state
     };
 
     console.log('📤 发送响应:', JSON.stringify(response));
@@ -60,7 +61,7 @@ exports.handler = async (event, context) => {
       label: '创建新叙事',
       action: 'post'
     }
-  ]);
+  ], 'initial');
 
   try {
     // 处理POST请求（按钮点击）
@@ -95,7 +96,7 @@ exports.handler = async (event, context) => {
                 label: '返回',
                 action: 'post'
               }
-            ]))
+            ], 'preview'))
           };
         } else if (buttonIndex === 2) {
           return {
@@ -106,7 +107,7 @@ exports.handler = async (event, context) => {
                 label: '返回',
                 action: 'post'
               }
-            ]))
+            ], 'create'))
           };
         }
       }
@@ -130,7 +131,7 @@ exports.handler = async (event, context) => {
           label: '重试',
           action: 'post'
         }
-      ]))
+      ], 'error'))
     };
   }
 }; 
