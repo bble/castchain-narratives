@@ -21,86 +21,57 @@ exports.handler = async (event, context) => {
     };
   }
   
+  const APP_URL = 'https://castchain-narratives.netlify.app';
+  
   try {
-    const APP_URL = 'https://castchain-narratives.netlify.app';
-    let buttonIndex = 0;
-    
-    // 检测是否已有state数据
-    if (event.body) {
-      try {
-        const data = JSON.parse(event.body);
-        console.log("📥 请求数据:", JSON.stringify(data));
-        
-        // 从数据中提取信息
-        if (data.untrustedData && data.untrustedData.buttonIndex) {
-          buttonIndex = parseInt(data.untrustedData.buttonIndex);
-        }
-    
+    // 处理POST请求（按钮点击）
+    if (event.httpMethod === 'POST' && event.body) {
+      const data = JSON.parse(event.body);
+      console.log("📥 请求数据:", JSON.stringify(data));
+
+      if (data.untrustedData?.buttonIndex) {
+        const buttonIndex = parseInt(data.untrustedData.buttonIndex);
         console.log(`🔢 按钮索引: ${buttonIndex}`);
 
-        // 根据按钮索引返回Frame响应
-        if (buttonIndex === 1) {
-          const redirectUrl = `${APP_URL}/narratives`;
-          console.log("📤 重定向到:", redirectUrl);
-          return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({
-              version: 'vNext',
-              action: 'post_redirect',
-              redirect: redirectUrl
-            })
-          };
-        } else if (buttonIndex === 2) {
-          const redirectUrl = `${APP_URL}/narratives/create`;
-          console.log("📤 重定向到:", redirectUrl);
-          return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({
-              version: 'vNext',
-              action: 'post_redirect',
-              redirect: redirectUrl
-            })
-          };
-        }
-      } catch (err) {
-        console.error("⚠️ 解析请求失败:", err);
+        // 返回302重定向响应
+        return {
+          statusCode: 302,
+          headers: {
+            ...headers,
+            'Location': buttonIndex === 1 
+              ? `${APP_URL}/narratives`
+              : `${APP_URL}/narratives/create`
+          }
+        };
       }
     }
-    
-    // 如果没有按钮点击，返回初始Frame
+
+    // 返回初始Frame
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         version: 'vNext',
         image: `${APP_URL}/images/feed.png`,
-        imageAspectRatio: '1.91:1',
         buttons: [
-          {
-            label: '浏览故事',
-            action: 'post'
-          },
-          {
-            label: '创建新叙事',
-            action: 'post'
-          }
+          { label: '浏览故事' },
+          { label: '创建新叙事' }
         ]
       })
     };
   } catch (error) {
     console.error("❌ 处理错误:", error);
     
-    // 错误响应
+    // 错误时返回基础Frame
     return {
-      statusCode: 500,
+      statusCode: 200,
       headers,
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         version: 'vNext',
-        image: `${APP_URL}/images/error.png`,
-        imageAspectRatio: '1.91:1',
-        buttons: []
+        image: `${APP_URL}/images/feed.png`,
+        buttons: [
+          { label: '重试' }
+        ]
       })
     };
   }
