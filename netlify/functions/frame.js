@@ -31,14 +31,14 @@ exports.handler = async (event, context) => {
             headers,
             body: JSON.stringify({
               version: 'vNext',
-              image: `${APP_URL}/images/narratives.png`,
+              image: `${APP_URL}/images/narrative_preview.png`,
               buttons: [
                 {
                   label: '返回',
                   action: 'post'
                 }
               ],
-              postUrl: `${APP_URL}/.netlify/functions/frame`
+              post_url: `${APP_URL}/.netlify/functions/frame`
             })
           };
         } else if (buttonIndex === 2) {
@@ -47,14 +47,14 @@ exports.handler = async (event, context) => {
             headers,
             body: JSON.stringify({
               version: 'vNext',
-              image: `${APP_URL}/images/create.png`,
+              image: `${APP_URL}/images/achievement.png`,
               buttons: [
                 {
                   label: '返回',
                   action: 'post'
                 }
               ],
-              postUrl: `${APP_URL}/.netlify/functions/frame`
+              post_url: `${APP_URL}/.netlify/functions/frame`
             })
           };
         }
@@ -78,7 +78,7 @@ exports.handler = async (event, context) => {
             action: 'post'
           }
         ],
-        postUrl: `${APP_URL}/.netlify/functions/frame`
+        post_url: `${APP_URL}/.netlify/functions/frame`
       })
     };
   } catch (error) {
@@ -97,7 +97,7 @@ exports.handler = async (event, context) => {
             action: 'post'
           }
         ],
-        postUrl: `${APP_URL}/.netlify/functions/frame`
+        post_url: `${APP_URL}/.netlify/functions/frame`
       })
     };
   }
