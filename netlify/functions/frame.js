@@ -74,11 +74,11 @@ exports.handler = async (event, context) => {
         console.log(`🔢 按钮索引: ${buttonIndex}`);
 
         // 获取当前状态
-        const currentState = data.untrustedData.state || 'initial';
-        console.log(`🔄 当前状态: ${currentState}`);
+        const currentState = data.untrustedData.state;
+        console.log(`🔄 当前状态: ${currentState || 'initial'}`);
 
         // 如果当前不是初始状态且点击了返回按钮
-        if (currentState !== 'initial' && buttonIndex === 1) {
+        if (currentState && currentState !== 'initial' && buttonIndex === 1) {
           console.log('⬅️ 返回到初始状态');
           return {
             statusCode: 200,
@@ -88,7 +88,7 @@ exports.handler = async (event, context) => {
         }
 
         // 根据当前状态和按钮索引返回不同的响应
-        if (currentState === 'initial') {
+        if (!currentState || currentState === 'initial') {
           if (buttonIndex === 1) {
             console.log('📖 进入浏览故事状态');
             return {
@@ -116,10 +116,18 @@ exports.handler = async (event, context) => {
           }
         } else if (currentState === 'preview') {
           console.log('🔍 处理浏览故事状态的按钮点击');
-          // 在这里添加浏览故事状态的特定逻辑
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify(getInitialResponse())
+          };
         } else if (currentState === 'create') {
           console.log('📝 处理创建新叙事状态的按钮点击');
-          // 在这里添加创建新叙事状态的特定逻辑
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify(getInitialResponse())
+          };
         }
       }
     }
