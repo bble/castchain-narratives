@@ -1,11 +1,5 @@
-# Frame API
-/api/frame /.netlify/functions/frame 200
-
 # Well-known endpoints
 /.well-known/* /.well-known/:splat 200
 
 # Next.js API routes
 /api/* /.netlify/functions/:splat 200
-
-# SPA fallback
-/* /index.html 200 

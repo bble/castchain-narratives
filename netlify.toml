@@ -1,30 +1,24 @@
 [build]
-  command = "echo '跳过构建，使用静态文件'"
-  publish = "public"
-  edge_functions = "netlify/edge-functions"
+  command = "npm run build"
+  functions = "netlify/functions"
   [build.environment]
   FAUNA_SECRET_KEY = ""
   NEXT_PUBLIC_MONAD_RPC_URL = ""
-  NEXT_PUBLIC_URL = ""
+  NEXT_PUBLIC_URL = "https://castchain-narratives.netlify.app"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 [dev]
   command = "npm run dev"
   port = 8888
   targetPort = 3000
-  publish = "public"
   functions = "netlify/functions"
 
 # 函数配置
 [functions]
   external_node_modules = ["faunadb", "fauna"]
   node_bundler = "esbuild"
-
-# Frame API路由
-[[redirects]]
-  from = "/api/frame"
-  to = "/.netlify/functions/frame"
-  status = 200
-  force = true
 
 # Well-known endpoints
 [[redirects]]
@@ -40,23 +34,16 @@
   status = 200
   force = true
 
-# SPA fallback
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  force = true
 
-# Frame API响应头
+
+# API 响应头
 [[headers]]
-  for = "/api/frame"
+  for = "/api/*"
   [headers.values]
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "GET, POST, OPTIONS"
     Access-Control-Allow-Headers = "Content-Type"
     Content-Type = "application/json"
-    Access-Control-Allow-Credentials = "true"
-    Cache-Control = "no-store, no-cache"
 
 # 静态资源缓存
 [[headers]]
@@ -64,7 +51,7 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Frame图片缓存
+# 图片资源缓存
 [[headers]]
   for = "/images/*"
   [headers.values]
@@ -83,4 +70,4 @@
 [[headers]]
   for = "/*.js"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable" 
+    Cache-Control = "public, max-age=31536000, immutable"

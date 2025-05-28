@@ -12,6 +12,7 @@ import OnboardingGuide from "@/components/OnboardingGuide";
 import { useMiniAppContext } from "@/hooks/use-miniapp-context";
 import { api } from "@/lib/api";
 import { Notification } from "@/types/narrative";
+import { FrameProvider } from "@/components/farcaster-provider";
 
 enum Tab {
   DISCOVER = "发现",
@@ -20,14 +21,14 @@ enum Tab {
   ACHIEVEMENTS = "成就"
 }
 
-export default function Home() {
+function HomeContent() {
   const { context } = useMiniAppContext();
   const [activeTab, setActiveTab] = useState<Tab>(Tab.DISCOVER);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  
+
   // 检查未读通知和处理新用户引导
   useEffect(() => {
     if (context?.user?.fid) {
@@ -35,7 +36,7 @@ export default function Home() {
       api.getUserNotifications(context.user.fid, { onlyUnread: true })
         .then(notifications => setHasUnreadNotifications(notifications.length > 0))
         .catch(err => console.error("获取通知状态失败", err));
-      
+
       // 检查是否需要显示引导
       if (typeof window !== 'undefined') {
         const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding");
@@ -43,7 +44,7 @@ export default function Home() {
       }
     }
   }, [context?.user?.fid]);
-  
+
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
   };
@@ -72,7 +73,7 @@ export default function Home() {
         </div>
         <div className="flex items-center space-x-3">
           {context?.user?.fid && (
-            <button 
+            <button
               className="relative text-gray-400 hover:text-white"
               onClick={() => setShowNotifications(true)}
             >
@@ -121,7 +122,7 @@ export default function Home() {
                 ? "关注的叙事"
                 : "我的成就"}
             </h1>
-            
+
             {activeTab !== Tab.ACHIEVEMENTS && (
               <button
                 className="rounded-lg bg-purple-600 px-4 py-2 font-medium text-white shadow-lg hover:bg-purple-700"
@@ -154,14 +155,14 @@ export default function Home() {
 
       {/* 通知中心 */}
       {showNotifications && (
-        <NotificationCenter 
+        <NotificationCenter
           onClose={() => {
             setShowNotifications(false);
             setHasUnreadNotifications(false); // 查看后清除未读状态
-          }} 
+          }}
         />
       )}
-      
+
       {/* 新用户引导 */}
       {showOnboarding && <OnboardingGuide onComplete={handleOnboardingComplete} />}
 
@@ -177,5 +178,14 @@ export default function Home() {
         </div>
       </footer>
     </div>
+  );
+}
+
+// 主导出组件，现在统一使用 Mini App 体验
+export default function Home() {
+  return (
+    <FrameProvider>
+      <HomeContent />
+    </FrameProvider>
   );
 }

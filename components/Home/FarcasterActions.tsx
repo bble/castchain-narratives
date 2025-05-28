@@ -4,9 +4,13 @@ import { APP_URL } from "@/lib/constants";
 export function FarcasterActions() {
   const { actions } = useMiniAppContext();
 
+  // 检测是否在 Mini App 环境中
+  const isMiniApp = typeof window !== 'undefined' &&
+    (window.parent !== window || window.location !== window.parent.location);
+
   return (
     <div className="space-y-4 border border-[#333] rounded-md p-4">
-      <h2 className="text-xl font-bold text-left">sdk.actions</h2>
+      <h2 className="text-xl font-bold text-left">Farcaster 功能</h2>
       <div className="flex flex-row space-x-4 justify-start items-start">
         {actions ? (
           <div className="flex flex-col space-y-4 justify-start">
@@ -53,7 +57,27 @@ export function FarcasterActions() {
             </button>
           </div>
         ) : (
-          <p className="text-sm text-left">Actions not available</p>
+          <div className="flex flex-col space-y-2">
+            {isMiniApp ? (
+              <p className="text-sm text-left">正在加载 Farcaster 功能...</p>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-sm text-left">在 Warpcast 中打开以使用完整功能：</p>
+                <ul className="text-xs text-gray-400 space-y-1">
+                  <li>• 发布 Cast</li>
+                  <li>• 查看用户资料</li>
+                  <li>• 添加到收藏</li>
+                  <li>• 分享链接</li>
+                </ul>
+                <button
+                  className="bg-purple-600 text-white rounded-md p-2 text-sm hover:bg-purple-700"
+                  onClick={() => window.open('https://warpcast.com', '_blank')}
+                >
+                  在 Warpcast 中打开
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>
