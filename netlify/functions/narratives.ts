@@ -179,8 +179,8 @@ export const handler: Handler = async (event, context) => {
         creatorPfp: data.creatorPfp,
         createdAt: now,
         updatedAt: now,
-        status: NarrativeStatus.ACTIVE,
-        collaborationRules: data.collaborationRules || CollaborationRules.OPEN,
+        status: "active",
+        collaborationRules: data.collaborationRules || "open",
         tags: data.tags || [],
         branchCount: 1, // 主分支
         contributionCount: 1, // 初始贡献
