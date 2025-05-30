@@ -15,12 +15,21 @@ export function generateMetadata(): Metadata {
       url: APP_URL,
     },
     other: {
-      // Farcaster Mini App 配置
-      "fc:frame": "vNext",
-      "fc:frame:image": `${APP_URL}/images/feed.png`,
-      "fc:frame:button:1": "启动应用",
-      "fc:frame:button:1:action": "launch_frame",
-      "fc:frame:button:1:target": `${APP_URL}`,
+      // Farcaster Mini App 配置 - 2025年最新格式
+      "fc:frame": JSON.stringify({
+        "version": "1",
+        "imageUrl": `${APP_URL}/images/feed.png`,
+        "button": {
+          "title": "启动应用",
+          "action": {
+            "type": "launch_frame",
+            "name": "CastChain Narratives",
+            "url": APP_URL,
+            "splashImageUrl": `${APP_URL}/images/icon.png`,
+            "splashBackgroundColor": "#1A1B23"
+          }
+        }
+      })
     },
   };
 }
