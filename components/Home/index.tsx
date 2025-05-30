@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { User } from "@/components/Home/User";
-import { FarcasterActions } from "@/components/Home/FarcasterActions";
+
 import { WalletActions } from "@/components/Home/WalletActions";
 import { NarrativeExplorer } from "@/components/Narrative/NarrativeExplorer";
 import { UserAchievements } from "@/components/User/UserAchievements";
@@ -168,12 +168,9 @@ function HomeContent() {
 
       {/* 底部操作栏 */}
       <footer className="border-t border-gray-800 bg-[#1A1B23] p-4">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
+        <div className="mx-auto flex max-w-6xl items-center justify-center">
           <div>
             <WalletActions />
-          </div>
-          <div>
-            <FarcasterActions />
           </div>
         </div>
       </footer>
