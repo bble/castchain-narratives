@@ -20,12 +20,12 @@ export const handler: Handler = async (event, context) => {
         console.error('FAUNA_SECRET_KEY环境变量未设置!');
         return error('数据库配置错误: 缺少密钥');
       }
-      
+
       // 直接创建Fauna客户端
       const client = new Client({
         secret: faunaSecret
       });
-      
+
       // 检查数据库连接
       try {
         await client.query(fql`true`);
@@ -34,7 +34,7 @@ export const handler: Handler = async (event, context) => {
         console.error('Fauna数据库连接失败:', connErr);
         return error(`数据库连接失败: ${connErr.message || JSON.stringify(connErr)}`);
       }
-      
+
       // 尝试使用db工具类初始化数据库
       try {
         await db.setupDatabase();
@@ -50,9 +50,9 @@ export const handler: Handler = async (event, context) => {
       const page = parseInt(queryParams.page || '1', 10);
       const limit = parseInt(queryParams.limit || '20', 10);
       const searchTerm = queryParams.search || '';
-      const tags = queryParams.tags ? 
-        Array.isArray(queryParams.tags) ? 
-          queryParams.tags : [queryParams.tags] 
+      const tags = queryParams.tags ?
+        Array.isArray(queryParams.tags) ?
+          queryParams.tags : [queryParams.tags]
         : [];
       const creatorFid = queryParams.creatorFid ? parseInt(queryParams.creatorFid, 10) : undefined;
       const sortBy = queryParams.sortBy === 'popular' ? 'popular' : 'latest';
@@ -63,12 +63,12 @@ export const handler: Handler = async (event, context) => {
         let narratives = [];
 
         // 根据排序方式选择索引
-        const indexName = sortBy === 'popular' 
-          ? db.indexes.narrativesByPopularity 
+        const indexName = sortBy === 'popular'
+          ? db.indexes.narrativesByPopularity
           : db.indexes.narrativesByTimestamp;
-        
+
         console.log('使用索引查询:', indexName);
-        
+
         try {
           if (creatorFid) {
             // 按创建者查询
@@ -89,7 +89,7 @@ export const handler: Handler = async (event, context) => {
               uniqueIds.add(n.id);
               return true;
             });
-            
+
             // 按选择的方式排序
             if (sortBy === 'popular') {
               narratives.sort((a, b) => b.contributionCount - a.contributionCount);
@@ -105,7 +105,7 @@ export const handler: Handler = async (event, context) => {
             console.log('获取用户关注的叙事:', userFid);
             const followedNarratives = await db.query(db.indexes.followersByUser, [userFid], { limit });
             const narrativeIds = followedNarratives.map((f: any) => f.narrativeId);
-            
+
             if (narrativeIds.length === 0) {
               narratives = [];
             } else {
@@ -125,11 +125,11 @@ export const handler: Handler = async (event, context) => {
           console.log('数据库查询失败，返回空数组');
           return success([]); // 直接返回空数组，而不是抛出错误
         }
-        
+
         // 如果有搜索词，进行过滤
         if (searchTerm) {
           const lowercaseSearch = searchTerm.toLowerCase();
-          narratives = narratives.filter((n: any) => 
+          narratives = narratives.filter((n: any) =>
             n.title.toLowerCase().includes(lowercaseSearch) ||
             n.description.toLowerCase().includes(lowercaseSearch)
           );
@@ -158,17 +158,17 @@ export const handler: Handler = async (event, context) => {
       if (!event.body) {
         return error('Missing request body');
       }
-      
+
       const data = JSON.parse(event.body);
-      
+
       // 验证必要字段
       if (!data.title || !data.description || !data.creatorFid || !data.castHash) {
         return error('Missing required fields: title, description, creatorFid, castHash');
       }
-      
+
       const now = new Date().toISOString();
       const narrativeId = generateId();
-      
+
       const narrative = {
         narrativeId,
         title: data.title,
@@ -187,7 +187,7 @@ export const handler: Handler = async (event, context) => {
         contributorCount: 1, // 创建者是第一个贡献者
         featuredImageUrl: data.featuredImageUrl
       };
-      
+
       try {
         // 确保初始化数据库
         try {
@@ -195,14 +195,13 @@ export const handler: Handler = async (event, context) => {
           console.log('数据库初始化成功');
         } catch (err: any) {
           console.error('数据库初始化失败:', err);
-          // 即使数据库初始化失败，也返回空数组，而不是直接返回错误
-          console.log('数据库初始化失败，返回空数组');
-          return success([]);
+          // 记录错误但继续尝试创建，因为集合可能已经存在
+          console.log('数据库初始化失败，但继续尝试创建操作');
         }
-        
+
         // 创建叙事记录
         const createdNarrative = await db.create(db.collections.narratives, narrative);
-        
+
         // 创建第一个贡献
         const contributionId = generateId();
         const contribution = {
@@ -220,9 +219,9 @@ export const handler: Handler = async (event, context) => {
           upvotes: 0,
           isBranchStart: true
         };
-        
+
         await db.create(db.collections.contributions, contribution);
-        
+
         // 创建主分支
         const branchId = generateId();
         const branch = {
@@ -236,15 +235,15 @@ export const handler: Handler = async (event, context) => {
           parentBranchId: null, // 主分支没有父分支
           contributionCount: 1
         };
-        
+
         await db.create(db.collections.branches, branch);
-        
+
         // 更新贡献，添加分支ID
         await db.update(db.collections.contributions, contributionId, {
           ...contribution,
           branchId
         });
-        
+
         return success(createdNarrative, 201);
       } catch (dbErr: any) {
         console.error('数据库操作失败:', dbErr);
@@ -258,6 +257,6 @@ export const handler: Handler = async (event, context) => {
     // 处理CORS预检请求
     return success({});
   }
-  
+
   return error(`不允许使用${event.httpMethod}方法`, 405);
-}; 
+};
