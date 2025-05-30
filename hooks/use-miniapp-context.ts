@@ -10,7 +10,6 @@ interface FarcasterContextResult {
 }
 
 interface NoContextResult {
-  type: null;
   context: null;
   actions: null;
   isEthProviderAvailable: boolean;
@@ -38,5 +37,6 @@ export const useMiniAppContext = (): ContextResult => {
   return {
     context: null,
     actions: null,
+    isEthProviderAvailable: false,
   } as NoContextResult;
 };
