@@ -36,17 +36,17 @@ export default function OnboardingGuide({ onComplete }: OnboardingGuideProps) {
     {
       title: "欢迎来到链上叙事",
       description: "这是一个去中心化的、可分支的、协作式故事创作平台。每一段故事的延续或转折都是一个 Farcaster Cast，共同构建出一个动态的、不断演进的叙事树。",
-      image: "/images/onboarding-1.png"
+      image: "/images/feed.png"
     },
     {
       title: "共同创作，无限可能",
       description: "您可以创建原创叙事，或者参与现有故事的创作。每个贡献都将永久记录在区块链上，形成一条完整的故事线。",
-      image: "/images/onboarding-2.png"
+      image: "/images/narrative_preview.png"
     },
     {
       title: "链上成就，永久保存",
       description: "优秀的贡献将被铸造为独特的数字收藏品，永久记录在 Monad 区块链上，证明您的创作价值。",
-      image: "/images/onboarding-3.png"
+      image: "/images/achievement.png"
     }
   ];
 
@@ -70,7 +70,7 @@ export default function OnboardingGuide({ onComplete }: OnboardingGuideProps) {
 
         <div className="text-center">
           <h2 className="mb-6 text-2xl font-bold text-white">{currentSlide.title}</h2>
-          
+
           <div className="mb-6 h-48 w-full overflow-hidden rounded-lg bg-gray-800 flex items-center justify-center">
             {currentSlide.image ? (
               <img
@@ -82,7 +82,7 @@ export default function OnboardingGuide({ onComplete }: OnboardingGuideProps) {
               <div className="text-gray-600">引导图片</div>
             )}
           </div>
-          
+
           <p className="mb-8 text-gray-300">{currentSlide.description}</p>
 
           <div className="flex items-center justify-between">
@@ -96,7 +96,7 @@ export default function OnboardingGuide({ onComplete }: OnboardingGuideProps) {
             ) : (
               <div></div> // 占位
             )}
-            
+
             <button
               className="rounded-lg bg-purple-600 px-8 py-3 font-medium text-white shadow-lg hover:bg-purple-700"
               onClick={handleNext}
@@ -108,4 +108,4 @@ export default function OnboardingGuide({ onComplete }: OnboardingGuideProps) {
       </div>
     </div>
   );
-} 
+}
