@@ -1,0 +1,17 @@
+{
+  "accountAssociation": {
+    "header": "",
+    "payload": "",
+    "signature": ""
+  },
+  "frame": {
+    "version": "1",
+    "name": "CastChain Narratives",
+    "iconUrl": "https://castchain-narratives.netlify.app/images/icon.png",
+    "homeUrl": "https://castchain-narratives.netlify.app",
+    "imageUrl": "https://castchain-narratives.netlify.app/images/feed.png",
+    "buttonTitle": "启动应用",
+    "splashImageUrl": "https://castchain-narratives.netlify.app/images/feed.png",
+    "splashBackgroundColor": "#1A1B23"
+  }
+}
