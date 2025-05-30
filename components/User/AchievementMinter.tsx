@@ -123,11 +123,13 @@ export default function AchievementMinter({
               try {
                 // 简单解析tokenId (第一个topic是事件签名，第二个是tokenId)
                 const tokenIdHex = log.topics[1];
-                const newTokenId = BigInt(tokenIdHex).toString();
-                setTokenId(newTokenId);
+                if (tokenIdHex) {
+                  const newTokenId = BigInt(tokenIdHex).toString();
+                  setTokenId(newTokenId);
 
-                // 通知后端交易已确认
-                await confirmMintToBackend(newTokenId);
+                  // 通知后端交易已确认
+                  await confirmMintToBackend(newTokenId);
+                }
               } catch (error) {
                 console.error("解析日志失败:", error);
               }
