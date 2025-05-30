@@ -11,24 +11,24 @@ export async function GET() {
   // 确保URL没有尾部斜杠
   const baseUrl = APP_URL.replace(/\/+$/, '');
 
-  // 使用简化格式
-  return NextResponse.json({
-    name: "CastChain Narratives",
-    description: "去中心化、可分支的协作式故事创作平台",
-    image: `${baseUrl}/images/logo.png`,
-    external_url: baseUrl,
-    frames: {
-              version: "vNext",
-      image: `${baseUrl}/images/feed.png`,
-      post_url: `${baseUrl}/.netlify/functions/frame`,
-              buttons: [
-                {
-          label: "浏览故事"
-                },
-                {
-          label: "创建新叙事"
-                }
-              ]
+  // Farcaster Mini App Manifest
+  const farcasterConfig = {
+    accountAssociation: {
+      header: "",
+      payload: "",
+      signature: ""
+    },
+    frame: {
+      version: "1",
+      name: "CastChain Narratives",
+      iconUrl: `${baseUrl}/images/icon.png`,
+      homeUrl: baseUrl,
+      imageUrl: `${baseUrl}/images/feed.png`,
+      buttonTitle: "启动应用",
+      splashImageUrl: `${baseUrl}/images/feed.png`,
+      splashBackgroundColor: "#1A1B23"
     }
-  }, { headers });
-} 
+  };
+
+  return NextResponse.json(farcasterConfig, { headers });
+}
