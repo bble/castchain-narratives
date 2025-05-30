@@ -48,14 +48,14 @@ export default function ContributionView({ contribution }: ContributionViewProps
       // 使用Farcaster的回复功能
       actions.composeCast({
         text: `回复故事片段：\n\n"${contribution.textContent.substring(0, 50)}${contribution.textContent.length > 50 ? "..." : ""}"`,
-        embeds: [`https://warpcast.com/${contribution.contributorUsername || contribution.contributorFid}/casts/${contribution.castHash}`],
+        embeds: [`https://farcaster.xyz/${contribution.contributorUsername || contribution.contributorFid}/casts/${contribution.castHash}`],
       });
     }
   };
 
   // 处理查看原Cast点击
   const handleViewCastClick = () => {
-    window.open(`https://warpcast.com/${contribution.contributorUsername || contribution.contributorFid}/casts/${contribution.castHash}`, "_blank");
+    window.open(`https://farcaster.xyz/${contribution.contributorUsername || contribution.contributorFid}/casts/${contribution.castHash}`, "_blank");
   };
 
   return (

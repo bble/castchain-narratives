@@ -62,7 +62,7 @@ export function FarcasterActions() {
               <p className="text-sm text-left">正在加载 Farcaster 功能...</p>
             ) : (
               <div className="space-y-2">
-                <p className="text-sm text-left">在 Warpcast 中打开以使用完整功能：</p>
+                <p className="text-sm text-left">在 Farcaster 中打开以使用完整功能：</p>
                 <ul className="text-xs text-gray-400 space-y-1">
                   <li>• 发布 Cast</li>
                   <li>• 查看用户资料</li>
@@ -71,9 +71,9 @@ export function FarcasterActions() {
                 </ul>
                 <button
                   className="bg-purple-600 text-white rounded-md p-2 text-sm hover:bg-purple-700"
-                  onClick={() => window.open('https://warpcast.com', '_blank')}
+                  onClick={() => window.open('https://farcaster.xyz', '_blank')}
                 >
-                  在 Warpcast 中打开
+                  在 Farcaster 中打开
                 </button>
               </div>
             )}

@@ -217,7 +217,7 @@ CastChainAchievement合约支持以下成就类型：
 
 ## 在Farcaster中使用
 
-本项目使用Farcaster的Frames机制实现，这意味着**无需**在Warpcast开发者平台注册或审核，可以直接部署并使用。
+本项目使用Farcaster的Frames机制实现，这意味着**无需**在Farcaster开发者平台注册或审核，可以直接部署并使用。
 
 ### 部署到Farcaster生态系统
 
@@ -225,29 +225,19 @@ CastChainAchievement合约支持以下成就类型：
    - 将应用部署到Netlify后获得公开URL
    - 确保已设置环境变量，特别是`NEXT_PUBLIC_URL`
 
-2. **验证Frame配置**
-   ```bash
-   # 测试Frame配置是否正确
-   curl -X GET https://你的域名/.well-known/farcaster.json
-   
-   # 使用Frame预览工具（可选）
-   npx @farcaster/frame-preview https://你的域名
-   ```
+2. **发布Frame**
+   - 直接在Farcaster中发布一个包含你的应用URL的Cast
+   - Farcaster会自动识别URL中的Frame元数据并渲染交互界面
 
-3. **分享你的应用**
-   - 直接在Warpcast中发布一个包含你的应用URL的Cast
-   - Warpcast会自动识别URL中的Frame元数据并渲染交互界面
+### 在Farcaster中使用
 
-### 在Warpcast中使用
+1. **Frame渲染**
+   - 用户在Farcaster中看到你的Cast
+   - Farcaster会自动将URL渲染为交互式Frame
 
-1. **访问应用**
-   - 用户只需点击你的应用链接
-   - Warpcast会自动将URL渲染为交互式Frame
-
-2. **交互方式**
-   - 用户可以通过Frame的按钮与应用交互
-   - 点击按钮会触发对应的操作（如浏览故事、创建叙事等）
-   - 所有交互都在Warpcast内部完成，无需离开应用
+2. **用户交互**
+   - 用户可以直接在Frame中进行交互
+   - 所有交互都在Farcaster内部完成，无需离开应用
 
 ### 常见问题
 

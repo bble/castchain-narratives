@@ -101,7 +101,7 @@ export function CreateNarrative({ onClose }: CreateNarrativeProps) {
           alert("创建Cast失败，请重试");
         }
       } else {
-        alert("无法访问Farcaster API，请确保在Warpcast中打开");
+        alert("无法访问Farcaster API，请确保在Farcaster客户端中打开");
       }
     } catch (error) {
       console.error("创建叙事失败:", error);
