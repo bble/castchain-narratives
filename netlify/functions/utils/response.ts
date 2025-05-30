@@ -66,8 +66,6 @@ export function getUserFid(headers: Record<string, string | undefined>): number 
     return null;
   }
   
-  // 在真实环境中，这里应该验证JWT token并从中提取FID
-  // 为了演示，我们假设token就是用户的FID
   try {
     const token = authHeader.substring(7);
     return parseInt(token, 10);
