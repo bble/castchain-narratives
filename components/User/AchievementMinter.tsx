@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useMiniAppContext } from "@/hooks/use-miniapp-context";
+import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { AchievementType, UserAchievement } from "@/types/narrative";
 import { api } from "@/lib/api";
 import { ACHIEVEMENT_CONTRACT_ADDRESS, MONAD_EXPLORER_URL } from "@/lib/constants";
-import { ethers } from "ethers";
 
 interface AchievementMinterProps {
   userFid: number;
@@ -25,13 +25,16 @@ export default function AchievementMinter({
   onClose,
 }: AchievementMinterProps) {
   const { context } = useMiniAppContext();
+  const { address, isConnected } = useAccount();
+  const publicClient = usePublicClient();
+  const { data: walletClient } = useWalletClient();
   const [isMinting, setIsMinting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
   const [tokenId, setTokenId] = useState<string | null>(null);
   const [isPendingConfirmation, setIsPendingConfirmation] = useState(false);
-  
+
   // 铸造描述
   const achievementInfo = {
     [AchievementType.CREATOR]: {
@@ -55,7 +58,7 @@ export default function AchievementMinter({
       imgUrl: "/images/completed-narrative.png",
     }
   };
-  
+
   const info = achievementInfo[achievementType];
 
   // 向后端确认铸造完成 - 使用useCallback包装以避免不必要的重新创建
@@ -63,13 +66,13 @@ export default function AchievementMinter({
     try {
       // 这里假设我们有一个achievementId
       const achievementId = `${achievementType}-${userFid}-${Date.now()}`;
-      
+
       await api.confirmAchievementMint(
         achievementId,
         transactionHash!,
         newTokenId
       );
-      
+
       // 如果有回调，传递成就信息
       if (onMintSuccess) {
         const newAchievement: UserAchievement = {
@@ -85,7 +88,7 @@ export default function AchievementMinter({
           tokenId: newTokenId,
           transactionHash: transactionHash!,
         };
-        
+
         onMintSuccess(newAchievement);
       }
     } catch (error) {
@@ -97,60 +100,58 @@ export default function AchievementMinter({
   // 监听交易状态
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
-    
+
     // 如果有交易哈希，并且处于等待确认状态，则轮询交易状态
-    if (transactionHash && isPendingConfirmation) {
+    if (transactionHash && isPendingConfirmation && publicClient) {
       intervalId = setInterval(async () => {
         try {
           // 检查交易状态
-          if (window.ethereum) {
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const receipt = await provider.getTransactionReceipt(transactionHash);
-            
-            if (receipt && receipt.status === 1) {
-              // 交易成功
-              clearInterval(intervalId);
-              
-              // 从事件日志中解析出tokenId
-              const abi = ["event AchievementMinted(uint256 indexed tokenId, address indexed recipient, uint8 achievementType)"];
-              const iface = new ethers.utils.Interface(abi);
-              const log = receipt.logs.find(log => 
-                log.address.toLowerCase() === ACHIEVEMENT_CONTRACT_ADDRESS.toLowerCase()
-              );
-              
-              if (log) {
-                try {
-                  const decodedLog = iface.parseLog(log);
-                  const newTokenId = decodedLog.args.tokenId.toString();
-                  setTokenId(newTokenId);
-                  
-                  // 通知后端交易已确认
-                  await confirmMintToBackend(newTokenId);
-                } catch (error) {
-                  console.error("解析日志失败:", error);
-                }
+          const receipt = await publicClient.getTransactionReceipt({
+            hash: transactionHash as `0x${string}`
+          });
+
+          if (receipt && receipt.status === 'success') {
+            // 交易成功
+            clearInterval(intervalId);
+
+            // 从事件日志中查找tokenId
+            const log = receipt.logs.find(log =>
+              log.address.toLowerCase() === ACHIEVEMENT_CONTRACT_ADDRESS.toLowerCase()
+            );
+
+            if (log && log.topics.length > 1) {
+              try {
+                // 简单解析tokenId (第一个topic是事件签名，第二个是tokenId)
+                const tokenIdHex = log.topics[1];
+                const newTokenId = BigInt(tokenIdHex).toString();
+                setTokenId(newTokenId);
+
+                // 通知后端交易已确认
+                await confirmMintToBackend(newTokenId);
+              } catch (error) {
+                console.error("解析日志失败:", error);
               }
-              
-              setIsPendingConfirmation(false);
-              setSuccess(true);
-            } else if (receipt && receipt.status === 0) {
-              // 交易失败
-              clearInterval(intervalId);
-              setIsPendingConfirmation(false);
-              setError("交易失败，请重试");
             }
+
+            setIsPendingConfirmation(false);
+            setSuccess(true);
+          } else if (receipt && receipt.status === 'reverted') {
+            // 交易失败
+            clearInterval(intervalId);
+            setIsPendingConfirmation(false);
+            setError("交易失败，请重试");
           }
         } catch (error) {
           console.error("检查交易状态失败:", error);
         }
       }, 5000); // 每5秒检查一次
     }
-    
+
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [transactionHash, isPendingConfirmation, confirmMintToBackend]);
-  
+  }, [transactionHash, isPendingConfirmation, confirmMintToBackend, publicClient]);
+
   // 准备成就元数据
   const prepareMetadata = () => {
     // 元数据结构
@@ -164,23 +165,23 @@ export default function AchievementMinter({
         { trait_type: "Date Awarded", value: new Date().toISOString().split('T')[0] }
       ]
     };
-    
+
     // 添加叙事相关属性
     if (narrativeId) {
       metadata.attributes.push({ trait_type: "Narrative ID", value: narrativeId });
     }
-    
+
     // 添加贡献相关属性
     if (contributionId) {
       metadata.attributes.push({ trait_type: "Contribution ID", value: contributionId });
     }
-    
+
     // 添加FID
     metadata.attributes.push({ trait_type: "Contributor FID", value: userFid.toString() });
-    
+
     return metadata;
   };
-  
+
   // 获取成就类型描述
   const getAchievementTypeValue = (type: AchievementType) => {
     switch (type) {
@@ -200,18 +201,18 @@ export default function AchievementMinter({
   // 处理铸造请求
   const handleMint = async () => {
     if (!context?.user?.fid) return;
-    if (!window.ethereum) {
-      setError("请安装MetaMask或其他兼容的以太坊钱包");
+    if (!isConnected || !walletClient) {
+      setError("请先连接钱包");
       return;
     }
-    
+
     try {
       setIsMinting(true);
       setError(null);
-      
+
       // 准备成就元数据
       const metadata = prepareMetadata();
-      
+
       // 请求铸造参数
       const result = await api.requestMint({
         recipientFid: userFid,
@@ -222,28 +223,25 @@ export default function AchievementMinter({
         description: info.description,
         metadata: metadata
       });
-      
+
       if (result.success && result.transactionParams) {
         // 请求用户签名交易
         try {
-          const provider = new ethers.providers.Web3Provider(window.ethereum);
-          const signer = provider.getSigner();
-          
           // 发送交易
-          const tx = await signer.sendTransaction({
-            to: result.transactionParams.to,
-            data: result.transactionParams.data,
-            value: result.transactionParams.value || "0",
-            gasLimit: result.transactionParams.gasLimit || undefined
+          const hash = await walletClient.sendTransaction({
+            to: result.transactionParams.to as `0x${string}`,
+            data: result.transactionParams.data as `0x${string}`,
+            value: BigInt(result.transactionParams.value || "0"),
+            gas: result.transactionParams.gasLimit ? BigInt(result.transactionParams.gasLimit) : undefined
           });
-          
-          console.log("交易已发送:", tx.hash);
-          setTransactionHash(tx.hash);
+
+          console.log("交易已发送:", hash);
+          setTransactionHash(hash);
           setIsPendingConfirmation(true);
-          
+
           // 等待交易确认会在useEffect中处理
         } catch (txError: any) {
-          if (txError.code === 4001) { // 用户拒绝交易
+          if (txError.message?.includes('User rejected')) {
             setError("您取消了交易");
           } else {
             console.error("交易失败:", txError);
@@ -368,4 +366,4 @@ export default function AchievementMinter({
       </div>
     </div>
   );
-} 
+}
