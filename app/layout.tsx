@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
   other: {
     "fc:frame": JSON.stringify({
-      "version": "1",
+      "version": "next",
       "imageUrl": "https://castchain-narratives.netlify.app/images/feed.png",
       "button": {
         "title": "启动应用",

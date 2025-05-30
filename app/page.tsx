@@ -17,7 +17,7 @@ export function generateMetadata(): Metadata {
     other: {
       // Farcaster Mini App 配置 - 2025年最新格式
       "fc:frame": JSON.stringify({
-        "version": "1",
+        "version": "next",
         "imageUrl": `${APP_URL}/images/feed.png`,
         "button": {
           "title": "启动应用",
