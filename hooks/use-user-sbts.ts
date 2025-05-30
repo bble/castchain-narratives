@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ethers } from "ethers";
+import { usePublicClient } from "wagmi";
 import { ACHIEVEMENT_CONTRACT_ADDRESS } from "@/lib/constants";
 
 // SBT合约ABI简化版
@@ -19,10 +19,11 @@ export function useUserSBTs(userAddress: string | null) {
   const [sbtDetails, setSbtDetails] = useState<SBTDetail[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const publicClient = usePublicClient();
 
   useEffect(() => {
     async function fetchSBTs() {
-      if (!userAddress || !window.ethereum) {
+      if (!userAddress || !publicClient) {
         return;
       }
 
@@ -30,17 +31,15 @@ export function useUserSBTs(userAddress: string | null) {
         setLoading(true);
         setError(null);
 
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const contract = new ethers.Contract(
-          ACHIEVEMENT_CONTRACT_ADDRESS,
-          SBT_ABI,
-          provider
-        );
-
         // 获取用户SBT数量
-        const balance = await contract.balanceOf(userAddress);
-        
-        if (balance.toNumber() === 0) {
+        const balance = await publicClient.readContract({
+          address: ACHIEVEMENT_CONTRACT_ADDRESS as `0x${string}`,
+          abi: SBT_ABI,
+          functionName: 'balanceOf',
+          args: [userAddress as `0x${string}`]
+        }) as bigint;
+
+        if (Number(balance) === 0) {
           setSbtDetails([]);
           setLoading(false);
           return;
@@ -48,23 +47,34 @@ export function useUserSBTs(userAddress: string | null) {
 
         // 获取用户所有SBT的tokenId
         const sbtIds = [];
-        for (let i = 0; i < balance.toNumber(); i++) {
-          const tokenId = await contract.tokenOfOwnerByIndex(userAddress, i);
+        for (let i = 0; i < Number(balance); i++) {
+          const tokenId = await publicClient.readContract({
+            address: ACHIEVEMENT_CONTRACT_ADDRESS as `0x${string}`,
+            abi: SBT_ABI,
+            functionName: 'tokenOfOwnerByIndex',
+            args: [userAddress as `0x${string}`, BigInt(i)]
+          }) as bigint;
           sbtIds.push(tokenId.toString());
         }
 
         // 获取每个SBT的元数据URI
         const details = await Promise.all(
           sbtIds.map(async (tokenId) => {
-            const uri = await contract.tokenURI(tokenId);
+            const uri = await publicClient.readContract({
+              address: ACHIEVEMENT_CONTRACT_ADDRESS as `0x${string}`,
+              abi: SBT_ABI,
+              functionName: 'tokenURI',
+              args: [BigInt(tokenId)]
+            }) as string;
+
             // 处理ipfs://开头的URI
             const metadataUrl = uri.replace("ipfs://", "https://ipfs.io/ipfs/");
-            
+
             // 获取元数据内容
             try {
               const response = await fetch(metadataUrl);
               const metadata = await response.json();
-              
+
               return {
                 tokenId,
                 metadata,
@@ -91,7 +101,7 @@ export function useUserSBTs(userAddress: string | null) {
     }
 
     fetchSBTs();
-  }, [userAddress]);
+  }, [userAddress, publicClient]);
 
   return { sbtDetails, loading, error };
-} 
+}
