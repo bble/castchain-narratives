@@ -61,7 +61,7 @@
 - **TypeScript**：统一的开发语言
 
 ### 区块链
-- **Base网络**：以太坊L2，低成本高效率
+- **Monad区块链**：高性能EVM兼容链，低成本高效率
 - **NFT合约**：ERC-721标准的成就徽章
 - **智能合约**：去中心化的成就验证
 
@@ -241,7 +241,7 @@ CastChainAchievement合约支持以下成就类型：
 
 ## 在Farcaster中使用
 
-本项目使用Farcaster的Frames机制实现，这意味着**无需**在Farcaster开发者平台注册或审核，可以直接部署并使用。
+本项目是一个Farcaster Mini App，可以直接在Farcaster客户端中运行，提供原生的Web应用体验。
 
 ### 部署到Farcaster生态系统
 
@@ -249,25 +249,27 @@ CastChainAchievement合约支持以下成就类型：
    - 将应用部署到Netlify后获得公开URL
    - 确保已设置环境变量，特别是`NEXT_PUBLIC_URL`
 
-2. **发布Frame**
-   - 直接在Farcaster中发布一个包含你的应用URL的Cast
-   - Farcaster会自动识别URL中的Frame元数据并渲染交互界面
+2. **配置Mini App**
+   - 在Farcaster客户端中添加Mini App
+   - 输入你的应用URL（如：https://castchain-narratives.netlify.app）
+   - Farcaster会将其识别为Mini App并提供原生体验
 
 ### 在Farcaster中使用
 
-1. **Frame渲染**
-   - 用户在Farcaster中看到你的Cast
-   - Farcaster会自动将URL渲染为交互式Frame
+1. **Mini App访问**
+   - 用户可以在Farcaster客户端的Mini Apps部分找到应用
+   - 点击即可在内嵌浏览器中打开完整的Web应用
 
 2. **用户交互**
-   - 用户可以直接在Frame中进行交互
-   - 所有交互都在Farcaster内部完成，无需离开应用
+   - 用户可以使用完整的Web应用功能
+   - 支持所有叙事创作、分支、点赞、关注等功能
+   - 无需离开Farcaster客户端
 
 ### 常见问题
 
-- **应用未渲染为Frame**: 确认`app/.well-known/farcaster.json/route.ts`和`app/page.tsx`中的Frame元数据配置正确
-- **按钮不工作**: 检查按钮配置是否符合Frame规范，确保action类型正确
-- **图片不显示**: 确保图片URL是公开可访问的，并正确设置了NEXT_PUBLIC_URL
+- **应用无法加载**: 确认应用URL可以公开访问，并正确设置了NEXT_PUBLIC_URL
+- **功能不工作**: 检查网络连接和环境变量配置
+- **样式问题**: 确保应用在移动端和桌面端都有良好的响应式设计
 
 ## 贡献指南
 
