@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { FrameProvider } from "@/components/farcaster-provider";
+import { APP_URL } from "@/lib/constants";
 
 import "./globals.css";
 
@@ -10,21 +11,25 @@ export const metadata: Metadata = {
   title: "CastChain Narratives",
   description: "协作式故事创作平台 - 在区块链上创建和分享协作式叙事故事",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+  metadataBase: new URL(APP_URL),
+  openGraph: {
+    title: "CastChain Narratives",
+    description: "协作式故事创作平台，记录在链上",
+    url: APP_URL,
+    images: [`${APP_URL}/images/feed.png`],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CastChain Narratives",
+    description: "协作式故事创作平台，记录在链上",
+    images: [`${APP_URL}/images/feed.png`],
+  },
   other: {
-    "fc:frame": JSON.stringify({
-      "version": "next",
-      "imageUrl": "https://castchain-narratives.netlify.app/images/feed.png",
-      "button": {
-        "title": "启动应用",
-        "action": {
-          "type": "launch_frame",
-          "name": "CastChain Narratives",
-          "url": "https://castchain-narratives.netlify.app",
-          "splashImageUrl": "https://castchain-narratives.netlify.app/images/icon.png",
-          "splashBackgroundColor": "#1A1B23"
-        }
-      }
-    })
+    "fc:frame": "vNext",
+    "fc:frame:image": `${APP_URL}/images/feed.png`,
+    "fc:frame:button:1": "启动应用",
+    "fc:frame:button:1:action": "launch_frame",
+    "fc:frame:button:1:target": APP_URL,
   }
 };
 

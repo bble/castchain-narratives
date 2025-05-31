@@ -54,18 +54,29 @@ export function validateAuth(headers: Record<string, string | undefined>): boole
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return false;
   }
-  
+
   const token = authHeader.substring(7);
   return !!token;
 }
 
 // 从请求头获取用户FID
 export function getUserFid(headers: Record<string, string | undefined>): number | null {
+  // 首先尝试从X-User-FID头获取
+  const userFidHeader = headers['x-user-fid'] || headers['X-User-FID'];
+  if (userFidHeader) {
+    try {
+      return parseInt(userFidHeader, 10);
+    } catch (error) {
+      // 解析失败，继续尝试其他方法
+    }
+  }
+
+  // 备用方案：从Bearer token获取
   const authHeader = headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null;
   }
-  
+
   try {
     const token = authHeader.substring(7);
     return parseInt(token, 10);
@@ -83,4 +94,4 @@ export default {
   serverError,
   validateAuth,
   getUserFid
-}; 
+};

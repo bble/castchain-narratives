@@ -1,13 +1,12 @@
 import { Handler } from '@netlify/functions';
-import db from './utils/db';
+import supabase from './utils/supabase';
 import { success, error, notFound, validateAuth, getUserFid } from './utils/response';
 import { generateId } from '../../lib/utils';
 
 export const handler: Handler = async (event, context) => {
   // 确保初始化数据库
   try {
-    await db.setupDatabase();
-    console.log('数据库初始化成功');
+    await supabase.setupDatabase();
   } catch (err: any) {
     console.error('数据库初始化失败:', err);
     return error(`数据库初始化失败: ${err.message || JSON.stringify(err)}`);
@@ -16,13 +15,13 @@ export const handler: Handler = async (event, context) => {
   // 从路径中提取用户FID
   const paths = event.path.split('/');
   const userIndex = paths.indexOf('users');
-  
+
   if (userIndex === -1 || userIndex + 1 >= paths.length) {
     return error('User FID is required');
   }
-  
+
   const userFid = parseInt(paths[userIndex + 1], 10);
-  
+
   if (isNaN(userFid)) {
     return error('Invalid user FID');
   }
@@ -35,30 +34,27 @@ export const handler: Handler = async (event, context) => {
       const onlyUnread = queryParams.onlyUnread === 'true';
       const page = parseInt(queryParams.page || '1', 10);
       const limit = parseInt(queryParams.limit || '20', 10);
-      
+
       let notifications;
-      
+
       if (onlyUnread) {
-        // 获取所有通知然后过滤未读通知（因为没有专门的索引）
-        const allNotifications = await db.query(
-          db.indexes.notificationsByUser, 
-          [userFid], 
-          { limit: limit * 2 } // 获取更多记录以确保过滤后有足够的结果
-        );
-        
-        // 在内存中过滤未读通知
-        notifications = allNotifications
-          .filter(n => n.isRead === false)
-          .slice(0, limit);
+        // 获取未读通知
+        notifications = await supabase.query(supabase.tables.notifications, {
+          filters: { user_fid: userFid },
+          orderBy: { column: 'created_at', ascending: false },
+          limit
+        });
+        // 在应用层过滤未读通知（因为read_at为null表示未读）
+        notifications = notifications.filter(n => !n.read_at);
       } else {
         // 获取所有通知
-        notifications = await db.query(
-          db.indexes.notificationsByUser, 
-          [userFid],
-          { limit }
-        );
+        notifications = await supabase.query(supabase.tables.notifications, {
+          filters: { user_fid: userFid },
+          orderBy: { column: 'created_at', ascending: false },
+          limit
+        });
       }
-      
+
       return success(notifications);
     } catch (err: any) {
       console.error(`Error fetching notifications for user ${userFid}:`, err);
@@ -72,32 +68,46 @@ export const handler: Handler = async (event, context) => {
       if (!validateAuth(event.headers)) {
         return error('Authentication required', 401);
       }
-      
+
       const authUserFid = getUserFid(event.headers);
-      
+
       // 确保用户只能标记自己的通知
       if (authUserFid !== userFid) {
         return error('Unauthorized to mark notifications as read for another user', 403);
       }
-      
-      // 获取用户的所有通知
-      const allNotifications = await db.query(
-        db.indexes.notificationsByUser, 
-        [userFid]
-      );
-      
-      // 在内存中过滤未读通知
-      const unreadNotifications = allNotifications.filter(n => n.isRead === false);
-      
-      // 更新每个通知为已读
-      await Promise.all(unreadNotifications.map(notification => 
-        db.update(db.collections.notifications, notification.id, {
-          ...notification,
-          isRead: true
+
+      // 获取用户的所有未读通知
+      const unreadNotifications = await supabase.query(supabase.tables.notifications, {
+        filters: { user_fid: userFid },
+        orderBy: { column: 'created_at', ascending: false }
+      });
+
+      // 过滤出真正未读的通知
+      const notificationsToUpdate = unreadNotifications.filter(n => !n.read_at);
+
+      if (notificationsToUpdate.length === 0) {
+        return success({
+          success: true,
+          count: 0,
+          message: '没有未读通知需要标记'
+        });
+      }
+
+      // 批量更新通知为已读
+      const now = new Date().toISOString();
+      const updatePromises = notificationsToUpdate.map(notification =>
+        supabase.update(supabase.tables.notifications, notification.id, {
+          read_at: now
         })
-      ));
-      
-      return success({ success: true, count: unreadNotifications.length });
+      );
+
+      await Promise.all(updatePromises);
+
+      return success({
+        success: true,
+        count: notificationsToUpdate.length,
+        message: `成功标记 ${notificationsToUpdate.length} 条通知为已读`
+      });
     } catch (err: any) {
       console.error(`Error marking all notifications as read for user ${userFid}:`, err);
       return error(`Error marking notifications as read: ${err.message}`);
@@ -106,6 +116,6 @@ export const handler: Handler = async (event, context) => {
     // 处理CORS预检请求
     return success({});
   }
-  
+
   return error(`Method ${event.httpMethod} not allowed`, 405);
-}; 
+};

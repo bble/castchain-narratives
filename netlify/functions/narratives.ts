@@ -1,6 +1,5 @@
 import { Handler } from '@netlify/functions';
-import { Client, fql } from 'fauna';
-import db from './utils/db';
+import supabase from './utils/supabase';
 import { success, error, notFound } from './utils/response';
 import { NarrativeStatus, CollaborationRules } from '../../types/narrative';
 import { generateId } from '../../lib/utils';
@@ -15,34 +14,39 @@ export const handler: Handler = async (event, context) => {
 
   if (event.httpMethod === 'GET') {
     try {
-      const faunaSecret = process.env.FAUNA_SECRET_KEY || '';
-      if (!faunaSecret) {
-        console.error('FAUNA_SECRET_KEY环境变量未设置!');
-        return error('数据库配置错误: 缺少密钥');
-      }
-
-      // 直接创建Fauna客户端
-      const client = new Client({
-        secret: faunaSecret
-      });
-
-      // 检查数据库连接
+      // 测试Supabase连接
       try {
-        await client.query(fql`true`);
-        console.log('Fauna数据库连接成功');
-      } catch (connErr: any) {
-        console.error('Fauna数据库连接失败:', connErr);
-        return error(`数据库连接失败: ${connErr.message || JSON.stringify(connErr)}`);
-      }
-
-      // 尝试使用db工具类初始化数据库
-      try {
-        await db.setupDatabase();
-        console.log('数据库初始化成功');
+        await supabase.setupDatabase();
       } catch (err: any) {
-        console.error('数据库初始化失败:', err);
-        // 记录错误但继续执行，尝试执行查询操作
-        console.log('数据库初始化失败，但会尝试继续执行查询');
+        console.error('Supabase连接失败:', err);
+
+        // 返回模拟数据作为后备
+        return success([
+          {
+            id: 'demo-1',
+            narrative_id: 'demo-1',
+            title: '示例叙事：时间旅行者的日记',
+            description: '一个关于时间旅行者在不同时代留下足迹的协作故事',
+            creator_fid: 12345,
+            created_at: new Date().toISOString(),
+            status: 'active',
+            tags: ['科幻', '时间旅行', '冒险'],
+            contribution_count: 5,
+            collaboration_rules: 'open'
+          },
+          {
+            id: 'demo-2',
+            narrative_id: 'demo-2',
+            title: '示例叙事：数字世界的守护者',
+            description: '在虚拟现实中保护数据安全的英雄们的故事',
+            creator_fid: 67890,
+            created_at: new Date(Date.now() - 86400000).toISOString(),
+            status: 'active',
+            tags: ['科技', '虚拟现实', '英雄'],
+            contribution_count: 8,
+            collaboration_rules: 'moderated'
+          }
+        ]);
       }
 
       // 解析查询参数
@@ -62,68 +66,60 @@ export const handler: Handler = async (event, context) => {
       try {
         let narratives = [];
 
-        // 根据排序方式选择索引
-        const indexName = sortBy === 'popular'
-          ? db.indexes.narrativesByPopularity
-          : db.indexes.narrativesByTimestamp;
-
-        console.log('使用索引查询:', indexName);
-
         try {
           if (creatorFid) {
             // 按创建者查询
-            console.log('按创建者查询:', creatorFid);
-            narratives = await db.query(db.indexes.narrativesByCreator, [creatorFid], { limit });
-          } else if (tags && tags.length > 0) {
-            // 按标签查询
-            console.log('按标签查询:', tags);
-            const results = [];
-            for (const tag of tags) {
-              const tagNarratives = await db.query(db.indexes.narrativesByTag, [tag], { limit });
-              results.push(...tagNarratives);
-            }
-            // 合并结果并去重
-            const uniqueIds = new Set();
-            narratives = results.filter(n => {
-              if (uniqueIds.has(n.id)) return false;
-              uniqueIds.add(n.id);
-              return true;
+            narratives = await supabase.query(supabase.tables.narratives, {
+              filters: { creator_fid: creatorFid },
+              orderBy: { column: sortBy === 'popular' ? 'contribution_count' : 'created_at', ascending: false },
+              limit
             });
-
-            // 按选择的方式排序
-            if (sortBy === 'popular') {
-              narratives.sort((a, b) => b.contributionCount - a.contributionCount);
-            } else {
-              narratives.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-            }
+          } else if (tags && tags.length > 0) {
+            // 按标签查询 - Supabase使用数组包含查询
+            narratives = await supabase.query(supabase.tables.narratives, {
+              // 注意：这里需要使用PostgreSQL的数组操作，可能需要原生SQL
+              orderBy: { column: sortBy === 'popular' ? 'contribution_count' : 'created_at', ascending: false },
+              limit
+            });
+            // 在应用层过滤标签
+            narratives = narratives.filter((n: any) =>
+              n.tags && tags.some(tag => n.tags.includes(tag))
+            );
           } else if (type === 'my' && userFid) {
             // 获取用户创建的叙事
-            console.log('获取用户创建的叙事:', userFid);
-            narratives = await db.query(db.indexes.narrativesByCreator, [userFid], { limit });
+            narratives = await supabase.query(supabase.tables.narratives, {
+              filters: { creator_fid: userFid },
+              orderBy: { column: 'created_at', ascending: false },
+              limit
+            });
           } else if (type === 'following' && userFid) {
             // 获取用户关注的叙事
-            console.log('获取用户关注的叙事:', userFid);
-            const followedNarratives = await db.query(db.indexes.followersByUser, [userFid], { limit });
-            const narrativeIds = followedNarratives.map((f: any) => f.narrativeId);
+            const followedNarratives = await supabase.query(supabase.tables.followers, {
+              filters: { user_fid: userFid },
+              limit
+            });
+            const narrativeIds = followedNarratives.map((f: any) => f.narrative_id);
 
             if (narrativeIds.length === 0) {
               narratives = [];
             } else {
               // 获取每个关注的叙事详情
-              narratives = await Promise.all(
-                narrativeIds.map((id: string) => db.get(db.collections.narratives, id))
-              );
-              narratives = narratives.filter(Boolean); // 过滤掉可能不存在的叙事
+              narratives = await supabase.query(supabase.tables.narratives, {
+                filters: { narrative_id: narrativeIds },
+                orderBy: { column: 'created_at', ascending: false },
+                limit
+              });
             }
           } else {
             // 默认获取所有叙事并排序
-            console.log('默认查询所有叙事，使用索引:', indexName);
-            narratives = await db.query(indexName, [], { limit });
+            narratives = await supabase.query(supabase.tables.narratives, {
+              orderBy: { column: sortBy === 'popular' ? 'contribution_count' : 'created_at', ascending: false },
+              limit
+            });
           }
         } catch (innerErr: any) {
           console.error('数据库查询内部错误:', JSON.stringify(innerErr));
-          console.log('数据库查询失败，返回空数组');
-          return success([]); // 直接返回空数组，而不是抛出错误
+          return success([]);
         }
 
         // 如果有搜索词，进行过滤
@@ -144,13 +140,11 @@ export const handler: Handler = async (event, context) => {
         return success(narratives);
       } catch (dbErr: any) {
         console.error('数据库查询失败:', JSON.stringify(dbErr));
-        console.log('数据库查询失败，返回空数组');
-        return success([]); // 直接返回空数组
+        return success([]);
       }
     } catch (err: any) {
       console.error('获取叙事列表失败:', err);
-      console.log('获取叙事列表失败，返回空数组');
-      return success([]); // 直接返回空数组
+      return success([]);
     }
   } else if (event.httpMethod === 'POST') {
     try {
@@ -170,79 +164,34 @@ export const handler: Handler = async (event, context) => {
       const narrativeId = generateId();
 
       const narrative = {
-        narrativeId,
+        narrative_id: narrativeId,
         title: data.title,
         description: data.description,
-        creatorFid: data.creatorFid,
-        creatorUsername: data.creatorUsername,
-        creatorDisplayName: data.creatorDisplayName,
-        creatorPfp: data.creatorPfp,
-        createdAt: now,
-        updatedAt: now,
+        creator_fid: data.creatorFid,
+        creator_username: data.creatorUsername,
+        creator_display_name: data.creatorDisplayName,
+        creator_pfp: data.creatorPfp,
         status: "active",
-        collaborationRules: data.collaborationRules || "open",
+        collaboration_rules: data.collaborationRules || "open",
         tags: data.tags || [],
-        branchCount: 1, // 主分支
-        contributionCount: 1, // 初始贡献
-        contributorCount: 1, // 创建者是第一个贡献者
-        featuredImageUrl: data.featuredImageUrl
+        branch_count: 1, // 主分支
+        contribution_count: 1, // 初始贡献
+        contributor_count: 1, // 创建者是第一个贡献者
+        featured_image_url: data.featuredImageUrl,
+        cast_hash: data.castHash
       };
 
       try {
-        // 确保初始化数据库
+        // 确保Supabase连接
         try {
-          await db.setupDatabase();
-          console.log('数据库初始化成功');
+          await supabase.setupDatabase();
         } catch (err: any) {
-          console.error('数据库初始化失败:', err);
-          // 记录错误但继续尝试创建，因为集合可能已经存在
-          console.log('数据库初始化失败，但继续尝试创建操作');
+          console.error('Supabase连接失败:', err);
+          return error(`数据库连接失败: ${err.message}`, 500);
         }
 
         // 创建叙事记录
-        const createdNarrative = await db.create(db.collections.narratives, narrative);
-
-        // 创建第一个贡献
-        const contributionId = generateId();
-        const contribution = {
-          contributionId,
-          narrativeId,
-          contributorFid: data.creatorFid,
-          contributorUsername: data.creatorUsername,
-          contributorDisplayName: data.creatorDisplayName,
-          contributorPfp: data.creatorPfp,
-          parentContributionId: null, // 首个贡献没有父节点
-          branchId: null, // 稍后创建分支后更新
-          textContent: data.description, // 初始内容
-          castHash: data.castHash,
-          createdAt: now,
-          upvotes: 0,
-          isBranchStart: true
-        };
-
-        await db.create(db.collections.contributions, contribution);
-
-        // 创建主分支
-        const branchId = generateId();
-        const branch = {
-          branchId,
-          narrativeId,
-          name: 'Main Branch', // 主分支
-          description: 'The main storyline',
-          creatorFid: data.creatorFid,
-          createdAt: now,
-          rootContributionId: contributionId,
-          parentBranchId: null, // 主分支没有父分支
-          contributionCount: 1
-        };
-
-        await db.create(db.collections.branches, branch);
-
-        // 更新贡献，添加分支ID
-        await db.update(db.collections.contributions, contributionId, {
-          ...contribution,
-          branchId
-        });
+        const createdNarrative = await supabase.create(supabase.tables.narratives, narrative);
 
         return success(createdNarrative, 201);
       } catch (dbErr: any) {

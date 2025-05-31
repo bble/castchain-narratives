@@ -4,8 +4,7 @@
   "description": "Netlify Functions for CastChain Narratives",
   "main": "index.js",
   "dependencies": {
-    "fauna": "^2.5.0",
-    "faunadb": "^4.8.2",
+    "@supabase/supabase-js": "^2.39.0",
     "node-fetch": "^2.6.7"
   }
-} 
+}
