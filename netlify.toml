@@ -1,5 +1,6 @@
 [build]
   command = "npm run build"
+  publish = ".next"
   functions = "netlify/functions"
 
 [[plugins]]
@@ -63,4 +64,10 @@
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
+  status = 200
+
+# 处理Next.js动态路由和SPA路由
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
   status = 200
