@@ -14,8 +14,8 @@ const getBaseUrl = () => {
 export const APP_URL = getBaseUrl();
 
 // API相关常量
-export const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? "/.netlify/functions" 
+export const API_BASE_URL = process.env.NODE_ENV === 'production'
+  ? `${getBaseUrl()}/.netlify/functions`
   : "/api";
 
 // Monad网络相关常量
@@ -28,7 +28,7 @@ export const ACHIEVEMENT_CONTRACT_ADDRESS = "0xC94F53281Ef92Cb9651b57C805eA5D283
 
 // 标签列表
 export const NARRATIVE_TAGS = [
-  "科幻", "奇幻", "悬疑", "冒险", "恐怖", "浪漫", "历史", "现代", 
+  "科幻", "奇幻", "悬疑", "冒险", "恐怖", "浪漫", "历史", "现代",
   "太空", "战争", "神话", "未来", "古代", "末日", "校园", "魔法",
   "赛博朋克", "蒸汽朋克", "克苏鲁", "武侠", "仙侠", "灵异"
 ];

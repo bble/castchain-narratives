@@ -10,20 +10,14 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  // 获取叙事数据 (服务器端渲染)
-  const narrative = await api.getNarrative(params.id);
-  
-  if (!narrative) {
-    return {
-      title: "故事不存在 | CastChain Narratives",
-    };
-  }
-  
-  // 构建 Farcaster Frame
+  // 暂时移除服务器端API调用，避免部署问题
+  const narrativeId = params.id;
+
+  // 构建默认的 Farcaster Frame
   const frame = {
     version: "next",
     image: `${APP_URL}/images/feed.png`,
-    title: narrative.title,
+    title: `叙事 ${narrativeId}`,
     buttons: [
       {
         label: "阅读故事",
@@ -37,11 +31,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 
   return {
-    title: `${narrative.title} | CastChain Narratives`,
-    description: narrative.description,
+    title: `叙事 ${narrativeId} | CastChain Narratives`,
+    description: "探索协作叙事的无限可能",
     openGraph: {
-      title: narrative.title,
-      description: narrative.description,
+      title: `叙事 ${narrativeId}`,
+      description: "探索协作叙事的无限可能",
       type: "article",
     },
     other: {
@@ -52,4 +46,4 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default function NarrativePage({ params }: PageProps) {
   return <NarrativeDetail narrativeId={params.id} />;
-} 
+}
