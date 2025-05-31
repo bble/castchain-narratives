@@ -71,9 +71,13 @@ export function FarcasterActions() {
                 </ul>
                 <button
                   className="bg-purple-600 text-white rounded-md p-2 text-sm hover:bg-purple-700"
-                  onClick={() => window.open('https://farcaster.xyz', '_blank')}
+                  onClick={() => {
+                    // 复制链接而不是打开新窗口
+                    navigator.clipboard.writeText(window.location.href);
+                    alert('应用链接已复制，请在Farcaster中打开');
+                  }}
                 >
-                  在 Farcaster 中打开
+                  复制应用链接
                 </button>
               </div>
             )}

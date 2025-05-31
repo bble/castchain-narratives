@@ -44,21 +44,11 @@ export const handler: Handler = async (event, context) => {
         return error('Recipient FID and achievement type are required');
       }
 
-      // 在真实环境中，这里应该包含更多的逻辑，比如验证用户是否有权限铸造成就
-      // 并准备智能合约交互的参数
+      // 验证用户是否有权限铸造成就
+      // 这里应该包含实际的智能合约交互逻辑
 
-      // 简化示例：返回交易参数
-      const mockTransactionParams = {
-        to: "0x1234567890abcdef1234567890abcdef12345678",
-        data: "0x...", // 实际上这应该是编码过的合约调用数据
-        value: "0",
-        gasLimit: "300000"
-      };
-
-      return success({
-        success: true,
-        transactionParams: mockTransactionParams
-      });
+      // 目前返回错误，因为智能合约功能尚未完全实现
+      return error('成就铸造功能正在开发中，请稍后再试', 501);
     } catch (err: any) {
       console.error(`Error preparing mint:`, err);
       return error(`Error preparing mint: ${err.message}`);

@@ -36,7 +36,7 @@ export function generateMetadata(): Metadata {
 
 export default function HomePage() {
   return (
-    <div>
+    <div className="w-full min-h-screen">
       {/* 主页面现在直接是 Mini App 体验 */}
       <Home />
     </div>

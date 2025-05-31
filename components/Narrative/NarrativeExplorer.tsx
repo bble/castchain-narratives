@@ -20,40 +20,69 @@ export function NarrativeExplorer({ type }: NarrativeExplorerProps) {
 
   // 加载叙事数据
   useEffect(() => {
+    let isMounted = true; // 防止组件卸载后设置状态
+
     async function loadNarratives() {
       try {
+        if (!isMounted) return;
         setLoading(true);
-        
+
         const options: any = {
           type,
           userFid: context?.user?.fid,
         };
-        
+
         if (searchTerm) {
           options.searchTerm = searchTerm;
         }
-        
+
         if (selectedTag) {
           options.tags = [selectedTag];
         }
-        
+
+        console.log('加载叙事数据，选项:', options);
         const narrativesData = await api.getNarratives(options);
-        setNarratives(narrativesData);
-        
-        // 提取所有标签
-        const tags = Array.from(
-          new Set(narrativesData.flatMap((narrative) => narrative.tags))
-        );
-        setAllTags(tags);
-        
+        console.log('获取到叙事数据:', narrativesData);
+
+        if (!isMounted) return; // 检查组件是否仍然挂载
+
+        // 确保narrativesData是数组
+        const validNarratives = Array.isArray(narrativesData) ? narrativesData : [];
+        setNarratives(validNarratives);
+
+        // 提取所有标签，确保安全处理
+        try {
+          const tags = Array.from(
+            new Set(validNarratives.flatMap((narrative) => {
+              if (narrative && Array.isArray(narrative.tags)) {
+                return narrative.tags;
+              }
+              return [];
+            }))
+          );
+          setAllTags(tags);
+        } catch (tagError) {
+          console.warn('提取标签失败:', tagError);
+          setAllTags([]);
+        }
+
         setLoading(false);
       } catch (error) {
         console.error("加载叙事失败", error);
-        setLoading(false);
+        if (isMounted) {
+          setNarratives([]); // 设置为空数组而不是保持旧状态
+          setAllTags([]);
+          setLoading(false);
+        }
       }
     }
-    
+
     loadNarratives();
+
+    // 清理函数
+    return () => {
+      isMounted = false;
+    };
   }, [type, context?.user?.fid, searchTerm, selectedTag]);
 
   const handleTagToggle = (tag: string) => {
@@ -106,8 +135,10 @@ export function NarrativeExplorer({ type }: NarrativeExplorerProps) {
 
       {/* 加载中状态 */}
       {loading && (
-        <div className="flex justify-center py-8">
-          <div className="animate-spin h-8 w-8 border-2 border-purple-500 rounded-full border-t-transparent"></div>
+        <div className="flex flex-col items-center justify-center py-16 min-h-[400px]">
+          <div className="animate-spin h-12 w-12 border-4 border-purple-500 rounded-full border-t-transparent mb-6"></div>
+          <p className="text-gray-300 text-lg font-medium mb-2">正在加载叙事...</p>
+          <p className="text-gray-500 text-sm">请稍候，正在获取最新的故事内容</p>
         </div>
       )}
 
@@ -129,17 +160,41 @@ export function NarrativeExplorer({ type }: NarrativeExplorerProps) {
 
       {/* 如果没有结果 */}
       {!loading && narratives.length === 0 && (
-        <div className="rounded-lg border border-gray-800 bg-gray-900 p-6 text-center">
-          <p className="text-lg font-medium">未找到叙事</p>
-          <p className="mt-2 text-sm text-gray-400">
-            {type === "discover"
-              ? "尝试调整搜索条件或选择其他标签"
-              : type === "my"
-              ? "你还没有创建过叙事，点击下方按钮开始创建"
-              : "你还没有关注任何叙事"}
+        <div className="rounded-lg border border-gray-800 bg-gray-900 p-8 text-center">
+          <div className="mb-4">
+            <svg className="mx-auto h-12 w-12 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <p className="text-lg font-medium text-white mb-2">
+            {type === "discover" ? "暂无叙事" : type === "my" ? "你还没有创建叙事" : "暂无关注的叙事"}
           </p>
+          <p className="text-sm text-gray-400 mb-6">
+            {type === "discover"
+              ? "成为第一个创建叙事的人，开启协作故事的旅程"
+              : type === "my"
+              ? "创建你的第一个叙事，与社区一起编织精彩故事"
+              : "探索并关注感兴趣的叙事，参与协作创作"}
+          </p>
+          {type !== "following" && (
+            <button
+              className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              onClick={() => {
+                // 触发创建叙事模态框
+                const createButton = document.querySelector('[data-create-narrative]') as HTMLButtonElement;
+                if (createButton) {
+                  createButton.click();
+                }
+              }}
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              创建叙事
+            </button>
+          )}
         </div>
       )}
     </div>
   );
-} 
+}

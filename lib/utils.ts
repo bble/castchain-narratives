@@ -1,38 +1,62 @@
 /**
  * 格式化距离当前时间的时间间隔
- * @param date 要格式化的日期
+ * @param date 要格式化的日期（Date对象或ISO字符串）
  * @returns 格式化后的字符串，如"5分钟前"、"2小时前"、"3天前"等
  */
-export function formatDistanceToNow(date: Date): string {
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
-  if (diffInSeconds < 60) {
-    return `${diffInSeconds}秒前`;
+export function formatDistanceToNow(date: Date | string): string {
+  try {
+    // 处理字符串日期
+    let dateObj: Date;
+    if (typeof date === 'string') {
+      dateObj = new Date(date);
+    } else {
+      dateObj = date;
+    }
+
+    // 检查日期是否有效
+    if (!dateObj || isNaN(dateObj.getTime())) {
+      console.warn('无效的日期:', date);
+      return '时间未知';
+    }
+
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - dateObj.getTime()) / 1000);
+
+    // 如果时间差为负数或NaN，返回默认值
+    if (isNaN(diffInSeconds) || diffInSeconds < 0) {
+      return '刚刚';
+    }
+
+    if (diffInSeconds < 60) {
+      return diffInSeconds === 0 ? '刚刚' : `${diffInSeconds}秒前`;
+    }
+
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes}分钟前`;
+    }
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) {
+      return `${diffInHours}小时前`;
+    }
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 30) {
+      return `${diffInDays}天前`;
+    }
+
+    const diffInMonths = Math.floor(diffInDays / 30);
+    if (diffInMonths < 12) {
+      return `${diffInMonths}个月前`;
+    }
+
+    const diffInYears = Math.floor(diffInMonths / 12);
+    return `${diffInYears}年前`;
+  } catch (error) {
+    console.error('格式化时间失败:', error, '输入:', date);
+    return '时间未知';
   }
-  
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  if (diffInMinutes < 60) {
-    return `${diffInMinutes}分钟前`;
-  }
-  
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) {
-    return `${diffInHours}小时前`;
-  }
-  
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 30) {
-    return `${diffInDays}天前`;
-  }
-  
-  const diffInMonths = Math.floor(diffInDays / 30);
-  if (diffInMonths < 12) {
-    return `${diffInMonths}个月前`;
-  }
-  
-  const diffInYears = Math.floor(diffInMonths / 12);
-  return `${diffInYears}年前`;
 }
 
 /**
@@ -65,11 +89,11 @@ export function parseUrlParams(url: string): Record<string, string> {
   const params: Record<string, string> = {};
   const urlObj = new URL(url);
   const searchParams = new URLSearchParams(urlObj.search);
-  
+
   for (const [key, value] of searchParams.entries()) {
     params[key] = value;
   }
-  
+
   return params;
 }
 
@@ -153,7 +177,7 @@ export function objectToQueryString(params: Record<string, any>): string {
  */
 export function deepMerge<T extends object>(target: T, source: Partial<T>): T {
   const output = { ...target };
-  
+
   if (isObject(target) && isObject(source)) {
     Object.keys(source).forEach((key) => {
       if (isObject(source[key as keyof typeof source])) {
@@ -170,7 +194,7 @@ export function deepMerge<T extends object>(target: T, source: Partial<T>): T {
       }
     });
   }
-  
+
   return output;
 }
 
@@ -181,4 +205,4 @@ export function deepMerge<T extends object>(target: T, source: Partial<T>): T {
  */
 function isObject(item: any): boolean {
   return item && typeof item === "object" && !Array.isArray(item);
-} 
+}

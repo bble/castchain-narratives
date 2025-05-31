@@ -7,7 +7,7 @@ import { api } from "@/lib/api";
 import AchievementMinter from "./AchievementMinter";
 
 export function UserAchievements() {
-  const { context } = useMiniAppContext();
+  const { context, actions } = useMiniAppContext();
   const [achievements, setAchievements] = useState<UserAchievement[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState<AchievementType | null>(null);
@@ -134,14 +134,20 @@ export function UserAchievements() {
                         Token #{achievement.tokenId}
                       </span>
                       {achievement.transactionHash && (
-                        <a
-                          href={`https://explorer.monad.xyz/tx/${achievement.transactionHash}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          onClick={() => {
+                            const url = `https://explorer.monad.xyz/tx/${achievement.transactionHash}`;
+                            if (actions?.openUrl) {
+                              actions.openUrl(url);
+                            } else {
+                              navigator.clipboard.writeText(url);
+                              alert('交易链接已复制到剪贴板');
+                            }
+                          }}
                           className="text-xs text-purple-400 hover:underline"
                         >
                           查看详情
-                        </a>
+                        </button>
                       )}
                     </div>
                   </div>
@@ -197,4 +203,4 @@ export function UserAchievements() {
       )}
     </div>
   );
-} 
+}

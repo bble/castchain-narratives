@@ -28,20 +28,39 @@ function HomeContent() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>('');
 
   // 检查未读通知和处理新用户引导
   useEffect(() => {
-    if (context?.user?.fid) {
-      // 从API获取未读通知状态
-      api.getUserNotifications(context.user.fid, { onlyUnread: true })
-        .then(notifications => setHasUnreadNotifications(notifications.length > 0))
-        .catch(err => console.error("获取通知状态失败", err));
+    try {
+      setDebugInfo('开始初始化...');
 
-      // 检查是否需要显示引导
-      if (typeof window !== 'undefined') {
-        const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding");
-        setShowOnboarding(hasSeenOnboarding !== "true");
+      if (context?.user?.fid) {
+        setDebugInfo('用户已登录，FID: ' + context.user.fid);
+
+        // 从API获取未读通知状态
+        api.getUserNotifications(context.user.fid, { onlyUnread: true })
+          .then(notifications => {
+            setHasUnreadNotifications(notifications.length > 0);
+            setDebugInfo('通知状态加载完成');
+          })
+          .catch(err => {
+            console.error("获取通知状态失败", err);
+            setDebugInfo('通知状态加载失败: ' + err.message);
+          });
+
+        // 检查是否需要显示引导
+        if (typeof window !== 'undefined') {
+          const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding");
+          setShowOnboarding(hasSeenOnboarding !== "true");
+          setDebugInfo('引导状态检查完成');
+        }
+      } else {
+        setDebugInfo('用户未登录或context未加载');
       }
+    } catch (error: any) {
+      setDebugInfo('初始化错误: ' + error.message);
+      console.error('HomeContent初始化错误:', error);
     }
   }, [context?.user?.fid]);
 
@@ -50,7 +69,7 @@ function HomeContent() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#1A1B23] text-white">
+    <div className="min-h-screen w-full bg-[#1A1B23] text-white flex flex-col">
       {/* 顶部导航 */}
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-800 bg-[#1A1B23] p-4">
         <div className="flex items-center">
@@ -90,8 +109,8 @@ function HomeContent() {
       </header>
 
       {/* 内容区域 */}
-      <main className="flex-1 px-4 py-6">
-        <div className="mx-auto max-w-6xl">
+      <main className="flex-1 w-full px-4 py-6">
+        <div className="mx-auto max-w-6xl w-full">
           {/* 移动端标签页 */}
           <div className="mb-6 flex sm:hidden">
             <div className="grid w-full grid-cols-4 rounded-lg bg-gray-900 p-1">
@@ -111,6 +130,13 @@ function HomeContent() {
             </div>
           </div>
 
+          {/* 调试信息 */}
+          {process.env.NODE_ENV === 'development' && debugInfo && (
+            <div className="mb-4 p-2 bg-gray-800 rounded text-xs text-yellow-400">
+              调试: {debugInfo}
+            </div>
+          )}
+
           {/* 页面标题和创建按钮 */}
           <div className="mb-6 flex items-center justify-between">
             <h1 className="text-2xl font-bold">
@@ -125,6 +151,7 @@ function HomeContent() {
 
             {activeTab !== Tab.ACHIEVEMENTS && (
               <button
+                data-create-narrative
                 className="rounded-lg bg-purple-600 px-4 py-2 font-medium text-white shadow-lg hover:bg-purple-700"
                 onClick={() => setShowCreateModal(true)}
               >

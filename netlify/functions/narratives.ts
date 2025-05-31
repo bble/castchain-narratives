@@ -19,34 +19,7 @@ export const handler: Handler = async (event, context) => {
         await supabase.setupDatabase();
       } catch (err: any) {
         console.error('Supabase连接失败:', err);
-
-        // 返回模拟数据作为后备
-        return success([
-          {
-            id: 'demo-1',
-            narrative_id: 'demo-1',
-            title: '示例叙事：时间旅行者的日记',
-            description: '一个关于时间旅行者在不同时代留下足迹的协作故事',
-            creator_fid: 12345,
-            created_at: new Date().toISOString(),
-            status: 'active',
-            tags: ['科幻', '时间旅行', '冒险'],
-            contribution_count: 5,
-            collaboration_rules: 'open'
-          },
-          {
-            id: 'demo-2',
-            narrative_id: 'demo-2',
-            title: '示例叙事：数字世界的守护者',
-            description: '在虚拟现实中保护数据安全的英雄们的故事',
-            creator_fid: 67890,
-            created_at: new Date(Date.now() - 86400000).toISOString(),
-            status: 'active',
-            tags: ['科技', '虚拟现实', '英雄'],
-            contribution_count: 8,
-            collaboration_rules: 'moderated'
-          }
-        ]);
+        return error(`数据库连接失败: ${err.message}`, 500);
       }
 
       // 解析查询参数
@@ -137,7 +110,28 @@ export const handler: Handler = async (event, context) => {
           return success([]);
         }
 
-        return success(narratives);
+        // 映射数据库字段到前端字段
+        const mappedNarratives = narratives.map((n: any) => ({
+          narrativeId: n.narrative_id,
+          title: n.title,
+          description: n.description,
+          creatorFid: n.creator_fid,
+          creatorUsername: n.creator_username,
+          creatorDisplayName: n.creator_display_name,
+          creatorPfp: n.creator_pfp,
+          createdAt: n.created_at,
+          updatedAt: n.updated_at,
+          status: n.status,
+          collaborationRules: n.collaboration_rules,
+          tags: n.tags || [],
+          branchCount: n.branch_count || 1,
+          contributionCount: n.contribution_count || 1,
+          contributorCount: n.contributor_count || 1,
+          featuredImageUrl: n.featured_image_url
+        }));
+
+        console.log(`成功获取${mappedNarratives.length}个叙事`);
+        return success(mappedNarratives);
       } catch (dbErr: any) {
         console.error('数据库查询失败:', JSON.stringify(dbErr));
         return success([]);

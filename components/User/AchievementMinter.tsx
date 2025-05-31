@@ -24,7 +24,7 @@ export default function AchievementMinter({
   onMintSuccess,
   onClose,
 }: AchievementMinterProps) {
-  const { context } = useMiniAppContext();
+  const { context, actions } = useMiniAppContext();
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
@@ -288,14 +288,20 @@ export default function AchievementMinter({
               恭喜！你的 {info.title} 已成功铸造
             </p>
             {transactionHash && (
-              <a
-                href={`${MONAD_EXPLORER_URL}/tx/${transactionHash}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => {
+                  const url = `${MONAD_EXPLORER_URL}/tx/${transactionHash}`;
+                  if (actions?.openUrl) {
+                    actions.openUrl(url);
+                  } else {
+                    navigator.clipboard.writeText(url);
+                    alert('交易链接已复制到剪贴板');
+                  }
+                }}
                 className="text-purple-400 hover:underline text-sm"
               >
                 查看交易详情
-              </a>
+              </button>
             )}
             <button
               onClick={onClose}
@@ -314,14 +320,20 @@ export default function AchievementMinter({
               请耐心等待交易被区块链确认
             </p>
             {transactionHash && (
-              <a
-                href={`${MONAD_EXPLORER_URL}/tx/${transactionHash}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => {
+                  const url = `${MONAD_EXPLORER_URL}/tx/${transactionHash}`;
+                  if (actions?.openUrl) {
+                    actions.openUrl(url);
+                  } else {
+                    navigator.clipboard.writeText(url);
+                    alert('交易链接已复制到剪贴板');
+                  }
+                }}
                 className="text-purple-400 hover:underline text-sm"
               >
                 查看交易详情
-              </a>
+              </button>
             )}
           </div>
         ) : (

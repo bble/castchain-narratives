@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { FrameProvider } from "@/components/farcaster-provider";
 import { APP_URL } from "@/lib/constants";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 import "./globals.css";
 
@@ -41,7 +42,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <FrameProvider>{children}</FrameProvider>
+        <ErrorBoundary>
+          <FrameProvider>{children}</FrameProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

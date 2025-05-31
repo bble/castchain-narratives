@@ -11,9 +11,8 @@ export const handler: Handler = async (event, context) => {
     return error(`数据库初始化失败: ${err.message || JSON.stringify(err)}`);
   }
 
-  // 从路径中提取叙事ID
-  const paths = event.path.split('/');
-  const narrativeId = paths[paths.indexOf('narratives') + 1];
+  // 从查询参数中获取叙事ID
+  const narrativeId = event.queryStringParameters?.narrativeId;
 
   if (!narrativeId) {
     return error('Narrative ID is required');
@@ -38,7 +37,20 @@ export const handler: Handler = async (event, context) => {
         orderBy: { column: 'created_at', ascending: false }
       });
 
-      return success(branches);
+      // 映射数据库字段到前端字段
+      const mappedBranches = branches.map((b: any) => ({
+        branchId: b.branch_id,
+        narrativeId: b.narrative_id,
+        name: b.name,
+        description: b.description,
+        creatorFid: b.creator_fid,
+        createdAt: b.created_at,
+        rootContributionId: b.root_contribution_id || '',
+        parentBranchId: b.parent_branch_id,
+        contributionCount: b.contribution_count || 0
+      }));
+
+      return success(mappedBranches);
     } catch (err: any) {
       console.error(`Error fetching branches for narrative ${narrativeId}:`, err);
       return error(`Error fetching branches: ${err.message}`);

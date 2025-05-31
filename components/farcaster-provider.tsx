@@ -46,27 +46,48 @@ export function FrameProvider({ children }: FrameProviderProps) {
   useEffect(() => {
     const load = async () => {
       try {
+        console.log("开始加载Farcaster SDK...");
+
+        // 检查是否在支持的环境中
+        if (typeof window === 'undefined') {
+          console.warn("不在浏览器环境中，跳过SDK加载");
+          return;
+        }
+
         const context = await sdk.context;
+        console.log("获取到Farcaster context:", context);
+
         if (context) {
           setContext(context as FrameContext);
           setActions(sdk.actions);
-          setIsEthProviderAvailable(sdk.wallet.ethProvider ? true : false);
+          setIsEthProviderAvailable(sdk.wallet?.ethProvider ? true : false);
+          console.log("Farcaster context设置成功");
         } else {
+          console.warn("未获取到Farcaster context，可能不在Farcaster环境中");
           setError("Failed to load Farcaster context");
         }
-        await sdk.actions.ready();
+
+        // 尝试调用ready，但不强制要求成功
+        try {
+          await sdk.actions.ready();
+          console.log("SDK ready调用成功");
+        } catch (readyErr) {
+          console.warn("SDK ready调用失败，但继续运行:", readyErr);
+        }
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to initialize SDK"
-        );
-        console.error("SDK initialization error:", err);
+        const errorMessage = err instanceof Error ? err.message : "Failed to initialize SDK";
+        console.error("SDK初始化错误:", err);
+        setError(errorMessage);
       }
     };
 
     if (sdk && !isSDKLoaded) {
       load().then(() => {
         setIsSDKLoaded(true);
-        console.log("SDK loaded");
+        console.log("SDK加载完成");
+      }).catch((err) => {
+        console.error("SDK加载失败:", err);
+        setIsSDKLoaded(true); // 即使失败也标记为已加载，避免无限重试
       });
     }
   }, [isSDKLoaded]);

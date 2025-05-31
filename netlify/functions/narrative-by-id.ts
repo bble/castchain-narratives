@@ -11,12 +11,11 @@ export const handler: Handler = async (event, context) => {
     return error(`数据库初始化失败: ${err.message || JSON.stringify(err)}`);
   }
 
-  // 从路径中提取叙事ID
-  const path = event.path;
-  const narrativeId = path.split('/').pop();
+  // 从查询参数中获取叙事ID
+  const narrativeId = event.queryStringParameters?.id;
 
   if (!narrativeId) {
-    return error('需要提供叙事ID');
+    return error('需要提供叙事ID参数');
   }
 
   if (event.httpMethod === 'GET') {
@@ -33,7 +32,27 @@ export const handler: Handler = async (event, context) => {
         return notFound('未找到该叙事');
       }
 
-      return success(narrative);
+      // 映射数据库字段到前端字段
+      const mappedNarrative = {
+        narrativeId: narrative.narrative_id,
+        title: narrative.title,
+        description: narrative.description,
+        creatorFid: narrative.creator_fid,
+        creatorUsername: narrative.creator_username,
+        creatorDisplayName: narrative.creator_display_name,
+        creatorPfp: narrative.creator_pfp,
+        createdAt: narrative.created_at,
+        updatedAt: narrative.updated_at,
+        status: narrative.status,
+        collaborationRules: narrative.collaboration_rules,
+        tags: narrative.tags || [],
+        branchCount: narrative.branch_count || 1,
+        contributionCount: narrative.contribution_count || 1,
+        contributorCount: narrative.contributor_count || 1,
+        featuredImageUrl: narrative.featured_image_url
+      };
+
+      return success(mappedNarrative);
     } catch (err: any) {
       console.error(`获取叙事${narrativeId}失败:`, err);
       return error(`获取叙事失败: ${err.message || JSON.stringify(err)}`);

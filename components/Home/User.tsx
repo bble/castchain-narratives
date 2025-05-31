@@ -57,7 +57,7 @@ export function User({ compact = false }: UserProps) {
             用户名: <span className="font-medium">@{context?.user?.username}</span>
           </p>
           <p className="text-sm">
-            FID: <span className="font-mono bg-gray-800 px-2 py-1 rounded-md text-xs">{context?.user?.fid}</span>
+            FID: <span className="font-mono bg-gray-800 px-2 py-1 rounded-md text-xs">{context?.user?.fid || 'undefined'}</span>
           </p>
         </div>
       </div>

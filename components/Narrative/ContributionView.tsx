@@ -24,14 +24,14 @@ export default function ContributionView({ contribution }: ContributionViewProps
       alert("请先登录Farcaster账号");
       return;
     }
-    
+
     try {
       setIsLiking(true);
       const result = await api.likeContribution(
-        contribution.narrativeId, 
+        contribution.narrativeId,
         contribution.contributionId
       );
-      
+
       if (result.success) {
         setUpvotes(result.upvotes);
       }
@@ -55,7 +55,15 @@ export default function ContributionView({ contribution }: ContributionViewProps
 
   // 处理查看原Cast点击
   const handleViewCastClick = () => {
-    window.open(`https://farcaster.xyz/${contribution.contributorUsername || contribution.contributorFid}/casts/${contribution.castHash}`, "_blank");
+    if (actions?.openUrl) {
+      // 在Mini App中使用Farcaster的openUrl
+      actions.openUrl(`https://farcaster.xyz/${contribution.contributorUsername || contribution.contributorFid}/casts/${contribution.castHash}`);
+    } else {
+      // 降级到复制链接
+      const castUrl = `https://farcaster.xyz/${contribution.contributorUsername || contribution.contributorFid}/casts/${contribution.castHash}`;
+      navigator.clipboard.writeText(castUrl);
+      alert('Cast链接已复制到剪贴板');
+    }
   };
 
   return (
@@ -64,9 +72,9 @@ export default function ContributionView({ contribution }: ContributionViewProps
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           {contribution.contributorPfp ? (
-            <img 
-              src={contribution.contributorPfp} 
-              alt="贡献者头像" 
+            <img
+              src={contribution.contributorPfp}
+              alt="贡献者头像"
               className="h-8 w-8 rounded-full"
             />
           ) : (
@@ -78,7 +86,7 @@ export default function ContributionView({ contribution }: ContributionViewProps
             <div className="font-medium">
               {contribution.contributorDisplayName || contribution.contributorUsername || `FID: ${contribution.contributorFid}`}
             </div>
-            <button 
+            <button
               className="text-xs text-purple-400 hover:text-purple-300"
               onClick={handleViewCastClick}
             >
@@ -137,4 +145,4 @@ export default function ContributionView({ contribution }: ContributionViewProps
       </div>
     </div>
   );
-} 
+}

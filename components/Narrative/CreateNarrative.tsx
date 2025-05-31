@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMiniAppContext } from "@/hooks/use-miniapp-context";
+import { useRouter } from "next/navigation";
 import { CollaborationRules } from "@/types/narrative";
 import { api } from "@/lib/api";
 import { NARRATIVE_TAGS } from "@/lib/constants";
@@ -30,6 +31,7 @@ interface CreateNarrativeProps {
 
 export function CreateNarrative({ onClose }: CreateNarrativeProps) {
   const { context, actions } = useMiniAppContext();
+  const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -53,7 +55,7 @@ export function CreateNarrative({ onClose }: CreateNarrativeProps) {
       alert("请先连接Farcaster账号");
       return;
     }
-    
+
     if (!title.trim() || !description.trim()) {
       alert("请填写标题和开篇内容");
       return;
@@ -70,7 +72,7 @@ export function CreateNarrative({ onClose }: CreateNarrativeProps) {
       // 使用Farcaster的composeCast发布创世Cast
       if (actions) {
         const castText = `#CastChainNarratives\n\n【新故事】${title}\n\n${description}\n\n标签: ${selectedTags.map(tag => `#${tag}`).join(' ')}`;
-        
+
         // 通过Frames API发起Cast
         const castResult = await actions.composeCast({
           text: castText,
@@ -94,9 +96,9 @@ export function CreateNarrative({ onClose }: CreateNarrativeProps) {
 
           // 关闭模态框
           onClose();
-          
-          // 重定向到新创建的叙事页面
-          window.location.href = `/narratives/${narrative.narrativeId}`;
+
+          // 导航到新创建的叙事页面
+          router.push(`/narratives/${narrative.narrativeId}`);
         } else {
           alert("创建Cast失败，请重试");
         }
@@ -243,4 +245,4 @@ export function CreateNarrative({ onClose }: CreateNarrativeProps) {
       </div>
     </div>
   );
-} 
+}

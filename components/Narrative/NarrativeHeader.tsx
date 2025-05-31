@@ -17,7 +17,7 @@ export default function NarrativeHeader({ narrative }: NarrativeHeaderProps) {
       alert("请先登录Farcaster账号以关注叙事");
       return;
     }
-    
+
     try {
       const result = await api.followNarrative(narrative.narrativeId, context.user.fid);
       if (result.success) {
@@ -55,9 +55,9 @@ export default function NarrativeHeader({ narrative }: NarrativeHeaderProps) {
 
         <div className="mb-4 flex items-center">
           {narrative.creatorPfp ? (
-            <img 
-              src={narrative.creatorPfp} 
-              alt="创作者头像" 
+            <img
+              src={narrative.creatorPfp}
+              alt="创作者头像"
               className="h-10 w-10 rounded-full mr-3"
             />
           ) : (
@@ -69,7 +69,7 @@ export default function NarrativeHeader({ narrative }: NarrativeHeaderProps) {
           )}
           <div>
             <div className="font-medium">
-              {narrative.creatorDisplayName || narrative.creatorUsername || `FID: ${narrative.creatorFid}`}
+              {narrative.creatorDisplayName || narrative.creatorUsername || `FID: ${narrative.creatorFid || 'unknown'}`}
             </div>
             <div className="text-xs text-gray-400">
               最后更新: {lastUpdatedText}
@@ -135,4 +135,4 @@ export default function NarrativeHeader({ narrative }: NarrativeHeaderProps) {
       </div>
     </div>
   );
-} 
+}
