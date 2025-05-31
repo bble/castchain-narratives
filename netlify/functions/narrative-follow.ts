@@ -12,15 +12,12 @@ export const handler: Handler = async (event, context) => {
     return error(`数据库初始化失败: ${err.message || JSON.stringify(err)}`);
   }
 
-  // 从路径中提取叙事ID
-  const paths = event.path.split('/');
-  const narrativeIndex = paths.indexOf('narratives');
+  // 从查询参数中获取叙事ID
+  const narrativeId = event.queryStringParameters?.narrativeId;
 
-  if (narrativeIndex === -1 || narrativeIndex + 1 >= paths.length) {
+  if (!narrativeId) {
     return error('Narrative ID is required');
   }
-
-  const narrativeId = paths[narrativeIndex + 1];
 
   // 关注叙事
   if (event.httpMethod === 'POST') {

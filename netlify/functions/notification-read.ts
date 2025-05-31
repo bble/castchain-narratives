@@ -11,15 +11,12 @@ export const handler: Handler = async (event, context) => {
     return error(`数据库初始化失败: ${err.message || JSON.stringify(err)}`);
   }
 
-  // 从路径中提取通知ID
-  const paths = event.path.split('/');
-  const notificationIndex = paths.indexOf('notifications');
+  // 从查询参数中获取通知ID
+  const notificationId = event.queryStringParameters?.notificationId;
 
-  if (notificationIndex === -1 || notificationIndex + 1 >= paths.length) {
+  if (!notificationId) {
     return error('Notification ID is required');
   }
-
-  const notificationId = paths[notificationIndex + 1];
 
   // 标记单个通知为已读
   if (event.httpMethod === 'POST') {

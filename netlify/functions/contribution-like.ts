@@ -12,16 +12,9 @@ export const handler: Handler = async (event, context) => {
     return error(`数据库初始化失败: ${err.message || JSON.stringify(err)}`);
   }
 
-  // 从路径中提取叙事ID和贡献ID
-  // 路径格式: /.netlify/functions/contribution-like/narrativeId/contributionId
-  const paths = event.path.split('/').filter(p => p);
-
-  if (paths.length < 4) {
-    return error('Invalid path format. Expected: /contribution-like/narrativeId/contributionId');
-  }
-
-  const narrativeId = paths[paths.length - 2];
-  const contributionId = paths[paths.length - 1];
+  // 从查询参数中获取叙事ID和贡献ID
+  const narrativeId = event.queryStringParameters?.narrativeId;
+  const contributionId = event.queryStringParameters?.contributionId;
 
   if (!narrativeId || !contributionId) {
     return error('Narrative ID and Contribution ID are required');

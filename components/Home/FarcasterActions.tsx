@@ -16,7 +16,19 @@ export function FarcasterActions() {
           <div className="flex flex-col space-y-4 justify-start">
             <button
               className="bg-white text-black rounded-md p-2 text-sm"
-              onClick={() => actions?.addFrame()}
+              onClick={async () => {
+                try {
+                  if (actions?.addFrame) {
+                    await actions.addFrame();
+                    alert("addFrame 调用成功！");
+                  } else {
+                    alert("addFrame 方法不可用");
+                  }
+                } catch (error) {
+                  console.error("addFrame 失败:", error);
+                  alert(`addFrame 失败: ${error instanceof Error ? error.message : "未知错误"}`);
+                }
+              }}
             >
               addFrame
             </button>

@@ -12,17 +12,16 @@ export const handler: Handler = async (event, context) => {
     return error(`数据库初始化失败: ${err.message || JSON.stringify(err)}`);
   }
 
-  // 从路径中提取用户FID
-  const paths = event.path.split('/');
-  const userIndex = paths.indexOf('users');
+  // 从查询参数中获取用户FID
+  const userFid = event.queryStringParameters?.userFid;
 
-  if (userIndex === -1 || userIndex + 1 >= paths.length) {
+  if (!userFid) {
     return error('User FID is required');
   }
 
-  const userFid = parseInt(paths[userIndex + 1], 10);
+  const parsedUserFid = parseInt(userFid, 10);
 
-  if (isNaN(userFid)) {
+  if (isNaN(parsedUserFid)) {
     return error('Invalid user FID');
   }
 
@@ -40,7 +39,7 @@ export const handler: Handler = async (event, context) => {
       if (onlyUnread) {
         // 获取未读通知
         notifications = await supabase.query(supabase.tables.notifications, {
-          filters: { user_fid: userFid },
+          filters: { user_fid: parsedUserFid },
           orderBy: { column: 'created_at', ascending: false },
           limit
         });
@@ -49,7 +48,7 @@ export const handler: Handler = async (event, context) => {
       } else {
         // 获取所有通知
         notifications = await supabase.query(supabase.tables.notifications, {
-          filters: { user_fid: userFid },
+          filters: { user_fid: parsedUserFid },
           orderBy: { column: 'created_at', ascending: false },
           limit
         });
@@ -62,7 +61,7 @@ export const handler: Handler = async (event, context) => {
     }
   }
   // 标记所有通知为已读
-  else if (event.httpMethod === 'POST' && event.path.endsWith('read-all')) {
+  else if (event.httpMethod === 'POST') {
     try {
       // 验证用户认证
       if (!validateAuth(event.headers)) {
@@ -72,13 +71,13 @@ export const handler: Handler = async (event, context) => {
       const authUserFid = getUserFid(event.headers);
 
       // 确保用户只能标记自己的通知
-      if (authUserFid !== userFid) {
+      if (authUserFid !== parsedUserFid) {
         return error('Unauthorized to mark notifications as read for another user', 403);
       }
 
       // 获取用户的所有未读通知
       const unreadNotifications = await supabase.query(supabase.tables.notifications, {
-        filters: { user_fid: userFid },
+        filters: { user_fid: parsedUserFid },
         orderBy: { column: 'created_at', ascending: false }
       });
 

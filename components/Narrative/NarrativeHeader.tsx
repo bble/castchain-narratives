@@ -4,6 +4,7 @@ import { useMiniAppContext } from "@/hooks/use-miniapp-context";
 import { Narrative } from "@/types/narrative";
 import { formatDistanceToNow } from "@/lib/utils";
 import { api } from "@/lib/api";
+import { useState, useEffect } from "react";
 
 interface NarrativeHeaderProps {
   narrative: Narrative;
@@ -11,21 +12,82 @@ interface NarrativeHeaderProps {
 
 export default function NarrativeHeader({ narrative }: NarrativeHeaderProps) {
   const { actions, context } = useMiniAppContext();
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
+
+  // 检查本地存储中的收藏状态
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const favorites = localStorage.getItem('castchain-favorites');
+      if (favorites) {
+        try {
+          const favoritesArray = JSON.parse(favorites);
+          setIsFavorited(favoritesArray.includes(narrative.narrativeId));
+        } catch (error) {
+          console.error('解析收藏列表失败:', error);
+        }
+      }
+    }
+  }, [narrative.narrativeId]);
+
+  // 保存收藏状态到本地存储
+  const saveFavoriteToLocal = (favorited: boolean) => {
+    if (typeof window !== 'undefined') {
+      try {
+        const favorites = localStorage.getItem('castchain-favorites');
+        let favoritesArray: string[] = [];
+
+        if (favorites) {
+          favoritesArray = JSON.parse(favorites);
+        }
+
+        if (favorited && !favoritesArray.includes(narrative.narrativeId)) {
+          favoritesArray.push(narrative.narrativeId);
+        } else if (!favorited) {
+          favoritesArray = favoritesArray.filter(id => id !== narrative.narrativeId);
+        }
+
+        localStorage.setItem('castchain-favorites', JSON.stringify(favoritesArray));
+      } catch (error) {
+        console.error('保存收藏状态失败:', error);
+      }
+    }
+  };
 
   const handleFollowClick = async () => {
     if (!context?.user?.fid) {
-      alert("请先登录Farcaster账号以关注叙事");
+      alert("请在Farcaster中打开应用以使用关注功能");
       return;
     }
 
+    if (isFollowLoading) return;
+
     try {
-      const result = await api.followNarrative(narrative.narrativeId, context.user.fid);
-      if (result.success) {
-        alert("关注成功!");
+      setIsFollowLoading(true);
+
+      if (isFollowing) {
+        // 取消关注
+        const result = await api.unfollowNarrative(narrative.narrativeId, context.user.fid);
+        if (result.success) {
+          setIsFollowing(false);
+          alert("取消关注成功!");
+        }
+      } else {
+        // 关注
+        const result = await api.followNarrative(narrative.narrativeId, context.user.fid);
+        if (result.success) {
+          setIsFollowing(true);
+          alert("关注成功!");
+        }
       }
     } catch (error) {
-      console.error("关注失败", error);
-      alert("关注失败，请重试");
+      console.error("关注操作失败", error);
+      const errorMessage = error instanceof Error ? error.message : "操作失败";
+      alert(`操作失败: ${errorMessage}`);
+    } finally {
+      setIsFollowLoading(false);
     }
   };
 
@@ -115,10 +177,15 @@ export default function NarrativeHeader({ narrative }: NarrativeHeaderProps) {
 
       <div className="flex space-x-2">
         <button
-          className="flex-1 rounded-lg bg-gray-700 px-3 py-2 text-sm font-medium text-white hover:bg-gray-600"
+          className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium text-white transition ${
+            isFollowing
+              ? "bg-purple-600 hover:bg-purple-700"
+              : "bg-gray-700 hover:bg-gray-600"
+          } ${isFollowLoading ? "opacity-50 cursor-not-allowed" : ""}`}
           onClick={handleFollowClick}
+          disabled={isFollowLoading}
         >
-          关注
+          {isFollowLoading ? "..." : isFollowing ? "已关注" : "关注"}
         </button>
         <button
           className="flex-1 rounded-lg bg-gray-700 px-3 py-2 text-sm font-medium text-white hover:bg-gray-600"
@@ -127,10 +194,55 @@ export default function NarrativeHeader({ narrative }: NarrativeHeaderProps) {
           分享
         </button>
         <button
-          className="flex-1 rounded-lg bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-700"
-          onClick={() => actions?.addFrame()}
+          className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium text-white transition ${
+            isFavorited
+              ? "bg-yellow-600 hover:bg-yellow-700"
+              : "bg-purple-600 hover:bg-purple-700"
+          } ${isFavoriteLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+          onClick={async () => {
+            if (isFavoriteLoading) return;
+
+            try {
+              setIsFavoriteLoading(true);
+
+              const newFavoriteState = !isFavorited;
+
+              // 先更新本地状态和存储
+              setIsFavorited(newFavoriteState);
+              saveFavoriteToLocal(newFavoriteState);
+
+              // 尝试调用Farcaster的addFrame（如果可用）
+              if (actions?.addFrame && newFavoriteState) {
+                try {
+                  // 检查是否在Farcaster环境中
+                  if (typeof window !== 'undefined' && window.parent !== window) {
+                    await actions.addFrame();
+                    alert("已添加到Farcaster收藏！");
+                  } else {
+                    alert("已添加到本地收藏！（在Farcaster中打开可同步到Farcaster收藏）");
+                  }
+                } catch (frameError) {
+                  console.error("Farcaster addFrame失败:", frameError);
+                  alert("已添加到本地收藏！（Farcaster同步失败）");
+                }
+              } else {
+                // 没有Farcaster actions或者是取消收藏
+                if (newFavoriteState) {
+                  alert("已添加到本地收藏！（在Farcaster中打开可同步到Farcaster收藏）");
+                } else {
+                  alert("已从收藏中移除！");
+                }
+              }
+            } catch (error) {
+              console.error("添加收藏失败:", error);
+              alert(`添加收藏失败: ${error instanceof Error ? error.message : "未知错误"}`);
+            } finally {
+              setIsFavoriteLoading(false);
+            }
+          }}
+          disabled={isFavoriteLoading}
         >
-          添加收藏
+          {isFavoriteLoading ? "..." : isFavorited ? "已收藏" : "添加收藏"}
         </button>
       </div>
     </div>

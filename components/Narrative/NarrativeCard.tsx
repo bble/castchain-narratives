@@ -4,14 +4,18 @@ import { useMiniAppContext } from "@/hooks/use-miniapp-context";
 import { Narrative } from "@/types/narrative";
 import { formatDistanceToNow } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
+import { useState } from "react";
 
 interface NarrativeCardProps {
   narrative: Narrative;
 }
 
 export function NarrativeCard({ narrative }: NarrativeCardProps) {
-  const { actions } = useMiniAppContext();
+  const { actions, context } = useMiniAppContext();
   const router = useRouter();
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
 
   // 安全检查
   if (!narrative) {
@@ -41,12 +45,41 @@ export function NarrativeCard({ narrative }: NarrativeCardProps) {
     handleViewNarrative(e);
   }
 
-  function handleFollow() {
+  async function handleFollow(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!context?.user?.fid) {
+      alert("请在Farcaster中打开应用以使用关注功能");
+      return;
+    }
+
+    if (isFollowLoading) return;
+
     try {
-      // 在实际应用中，这里应该调用API关注叙事
-      console.log(`关注叙事: ${narrative.narrativeId}`);
+      setIsFollowLoading(true);
+
+      if (isFollowing) {
+        // 取消关注
+        const result = await api.unfollowNarrative(narrative.narrativeId, context.user.fid);
+        if (result.success) {
+          setIsFollowing(false);
+          alert("取消关注成功!");
+        }
+      } else {
+        // 关注
+        const result = await api.followNarrative(narrative.narrativeId, context.user.fid);
+        if (result.success) {
+          setIsFollowing(true);
+          alert("关注成功!");
+        }
+      }
     } catch (error) {
-      console.error('关注叙事失败:', error);
+      console.error('关注操作失败:', error);
+      const errorMessage = error instanceof Error ? error.message : "操作失败";
+      alert(`操作失败: ${errorMessage}`);
+    } finally {
+      setIsFollowLoading(false);
     }
   }
 
@@ -175,10 +208,15 @@ export function NarrativeCard({ narrative }: NarrativeCardProps) {
               阅读
             </button>
             <button
-              className="rounded-md bg-gray-800 px-3 py-2 text-xs font-medium text-white transition hover:bg-gray-700"
+              className={`rounded-md px-3 py-2 text-xs font-medium text-white transition ${
+                isFollowing
+                  ? "bg-purple-600 hover:bg-purple-700"
+                  : "bg-gray-800 hover:bg-gray-700"
+              } ${isFollowLoading ? "opacity-50 cursor-not-allowed" : ""}`}
               onClick={handleFollow}
+              disabled={isFollowLoading}
             >
-              关注
+              {isFollowLoading ? "..." : isFollowing ? "已关注" : "关注"}
             </button>
             <button
               className="rounded-md bg-gray-800 px-3 py-2 text-xs font-medium text-white transition hover:bg-gray-700"

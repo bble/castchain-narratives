@@ -33,7 +33,7 @@ export default function ContributionView({ contribution }: ContributionViewProps
       );
 
       if (result.success) {
-        setUpvotes(result.upvotes);
+        setUpvotes(result.like_count || result.upvotes || upvotes + 1);
       }
     } catch (error) {
       console.error("点赞失败", error);

@@ -177,7 +177,7 @@ class API {
     contribution: NarrativeContribution;
     branch?: NarrativeBranch;
   }> {
-    const endpoint = `/narratives/${data.narrativeId}/contributions`;
+    const endpoint = `/branch-create`;
     return this.request<{
       contribution: NarrativeContribution;
       branch?: NarrativeBranch;
@@ -185,17 +185,17 @@ class API {
   }
 
   // 点赞贡献
-  async likeContribution(narrativeId: string, contributionId: string): Promise<{ success: boolean; upvotes: number }> {
-    const endpoint = `/narratives/${narrativeId}/contributions/${contributionId}/like`;
-    return this.request<{ success: boolean; upvotes: number }>(endpoint, "POST");
+  async likeContribution(narrativeId: string, contributionId: string): Promise<{ success: boolean; like_count: number; upvotes?: number }> {
+    const endpoint = `/contribution-like?narrativeId=${narrativeId}&contributionId=${contributionId}`;
+    return this.request<{ success: boolean; like_count: number; upvotes?: number }>(endpoint, "POST");
   }
 
   // 获取用户成就
   async getUserAchievements(userFid: number, achievementType?: AchievementType): Promise<UserAchievement[]> {
-    let endpoint = `/users/${userFid}/achievements`;
+    let endpoint = `/user-achievements?userFid=${userFid}`;
 
     if (achievementType) {
-      endpoint += `?type=${achievementType}`;
+      endpoint += `&type=${achievementType}`;
     }
 
     return this.request<UserAchievement[]>(endpoint);
@@ -215,7 +215,7 @@ class API {
     transactionParams?: any;
     message?: string;
   }> {
-    const endpoint = `/achievements/mint`;
+    const endpoint = `/achievement-mint`;
     return this.request<{
       success: boolean;
       transactionParams?: any;
@@ -225,14 +225,24 @@ class API {
 
   // 关注叙事
   async followNarrative(narrativeId: string, userFid: number): Promise<{ success: boolean }> {
-    const endpoint = `/narratives/${narrativeId}/follow`;
-    return this.request<{ success: boolean }>(endpoint, "POST", { userFid });
+    const endpoint = `/narrative-follow?narrativeId=${narrativeId}`;
+    // 添加模拟认证头用于测试
+    const authHeaders = {
+      'X-User-FID': userFid.toString(),
+      'X-Auth-Token': 'demo-token'
+    };
+    return this.request<{ success: boolean }>(endpoint, "POST", { userFid }, authHeaders);
   }
 
   // 取消关注叙事
   async unfollowNarrative(narrativeId: string, userFid: number): Promise<{ success: boolean }> {
-    const endpoint = `/narratives/${narrativeId}/unfollow`;
-    return this.request<{ success: boolean }>(endpoint, "POST", { userFid });
+    const endpoint = `/narrative-follow?narrativeId=${narrativeId}`;
+    // 添加模拟认证头用于测试
+    const authHeaders = {
+      'X-User-FID': userFid.toString(),
+      'X-Auth-Token': 'demo-token'
+    };
+    return this.request<{ success: boolean }>(endpoint, "DELETE", { userFid }, authHeaders);
   }
 
   // 确认成就铸造完成
@@ -274,6 +284,7 @@ class API {
     limit?: number;
   } = {}): Promise<Notification[]> {
     const queryParams = new URLSearchParams();
+    queryParams.append("userFid", userFid.toString());
 
     if (options.onlyUnread) {
       queryParams.append("onlyUnread", "true");
@@ -287,19 +298,19 @@ class API {
       queryParams.append("limit", options.limit.toString());
     }
 
-    const endpoint = `/users/${userFid}/notifications${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const endpoint = `/user-notifications?${queryParams.toString()}`;
     return this.request<Notification[]>(endpoint);
   }
 
   // 标记通知为已读
   async markNotificationAsRead(notificationId: string): Promise<{ success: boolean }> {
-    const endpoint = `/notifications/${notificationId}/read`;
+    const endpoint = `/notification-read?notificationId=${notificationId}`;
     return this.request<{ success: boolean }>(endpoint, "POST");
   }
 
   // 标记所有通知为已读
   async markAllNotificationsAsRead(userFid: number): Promise<{ success: boolean }> {
-    const endpoint = `/users/${userFid}/notifications/read-all`;
+    const endpoint = `/user-notifications?userFid=${userFid}`;
     return this.request<{ success: boolean }>(endpoint, "POST");
   }
 }

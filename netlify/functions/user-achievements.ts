@@ -12,17 +12,16 @@ export const handler: Handler = async (event, context) => {
     return error(`数据库初始化失败: ${err.message || JSON.stringify(err)}`);
   }
 
-  // 从路径中提取用户FID
-  const paths = event.path.split('/');
-  const userIndex = paths.indexOf('users');
+  // 从查询参数中获取用户FID
+  const userFid = event.queryStringParameters?.userFid;
 
-  if (userIndex === -1 || userIndex + 1 >= paths.length) {
+  if (!userFid) {
     return error('User FID is required');
   }
 
-  const userFid = parseInt(paths[userIndex + 1], 10);
+  const parsedUserFid = parseInt(userFid, 10);
 
-  if (isNaN(userFid)) {
+  if (isNaN(parsedUserFid)) {
     return error('Invalid user FID');
   }
 
@@ -37,13 +36,13 @@ export const handler: Handler = async (event, context) => {
       if (achievementType) {
         // 查询特定类型的成就
         achievements = await supabase.query(supabase.tables.achievements, {
-          filters: { user_fid: userFid, achievement_type: achievementType },
+          filters: { user_fid: parsedUserFid, achievement_type: achievementType },
           orderBy: { column: 'earned_at', ascending: false }
         });
       } else {
         // 查询所有成就
         achievements = await supabase.query(supabase.tables.achievements, {
-          filters: { user_fid: userFid },
+          filters: { user_fid: parsedUserFid },
           orderBy: { column: 'earned_at', ascending: false }
         });
       }
