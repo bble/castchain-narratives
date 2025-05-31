@@ -76,6 +76,16 @@ class API {
     };
   }
 
+  // 公共请求方法，供组件直接调用
+  public async makeRequest<T>(
+    endpoint: string,
+    method: string = "GET",
+    data?: any,
+    customHeaders?: Record<string, string>
+  ): Promise<T> {
+    return this.request(endpoint, method, data, customHeaders);
+  }
+
   // 获取叙事列表
   async getNarratives(
     options: {
@@ -243,6 +253,24 @@ class API {
       'X-Auth-Token': 'demo-token'
     };
     return this.request<{ success: boolean }>(endpoint, "DELETE", { userFid }, authHeaders);
+  }
+
+  // 检查关注状态
+  async checkFollowStatus(narrativeId: string, userFid: number): Promise<{
+    is_following: boolean;
+    follower_count: number;
+    followed_at?: string
+  }> {
+    const endpoint = `/narrative-follow?narrativeId=${narrativeId}`;
+    const authHeaders = {
+      'X-User-FID': userFid.toString(),
+      'X-Auth-Token': 'demo-token'
+    };
+    return this.request<{
+      is_following: boolean;
+      follower_count: number;
+      followed_at?: string
+    }>(endpoint, "GET", null, authHeaders);
   }
 
   // 确认成就铸造完成

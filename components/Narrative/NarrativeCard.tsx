@@ -5,7 +5,7 @@ import { Narrative } from "@/types/narrative";
 import { formatDistanceToNow } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface NarrativeCardProps {
   narrative: Narrative;
@@ -16,6 +16,23 @@ export function NarrativeCard({ narrative }: NarrativeCardProps) {
   const router = useRouter();
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
+
+  // 检查关注状态
+  useEffect(() => {
+    const checkFollowStatus = async () => {
+      if (!context?.user?.fid) return;
+
+      try {
+        const result = await api.checkFollowStatus(narrative.narrativeId, context.user.fid);
+        setIsFollowing(result.is_following || false);
+      } catch (error) {
+        console.error('检查关注状态失败:', error);
+        // 不显示错误，静默失败
+      }
+    };
+
+    checkFollowStatus();
+  }, [narrative.narrativeId, context?.user?.fid]);
 
   // 安全检查
   if (!narrative) {

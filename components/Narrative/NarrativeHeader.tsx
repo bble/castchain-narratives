@@ -32,6 +32,23 @@ export default function NarrativeHeader({ narrative }: NarrativeHeaderProps) {
     }
   }, [narrative.narrativeId]);
 
+  // 检查关注状态
+  useEffect(() => {
+    const checkFollowStatus = async () => {
+      if (!context?.user?.fid) return;
+
+      try {
+        const result = await api.checkFollowStatus(narrative.narrativeId, context.user.fid);
+        setIsFollowing(result.is_following || false);
+      } catch (error) {
+        console.error('检查关注状态失败:', error);
+        // 不显示错误，静默失败
+      }
+    };
+
+    checkFollowStatus();
+  }, [narrative.narrativeId, context?.user?.fid]);
+
   // 保存收藏状态到本地存储
   const saveFavoriteToLocal = (favorited: boolean) => {
     if (typeof window !== 'undefined') {
