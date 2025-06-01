@@ -1,0 +1,93 @@
+<svg width="800" height="400" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景渐变 -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1B23;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#2D1B69;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1A1B23;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="nodeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="800" height="400" fill="url(#bgGradient)"/>
+  
+  <!-- 背景装饰网格 -->
+  <g opacity="0.1">
+    <defs>
+      <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#6366f1" stroke-width="1"/>
+      </pattern>
+    </defs>
+    <rect width="800" height="400" fill="url(#grid)"/>
+  </g>
+  
+  <!-- 主要叙事网络图 -->
+  <g transform="translate(100, 100)">
+    <!-- 主故事线 -->
+    <circle cx="50" cy="100" r="8" fill="url(#nodeGradient)"/>
+    <circle cx="150" cy="100" r="8" fill="url(#nodeGradient)"/>
+    <circle cx="250" cy="100" r="8" fill="url(#nodeGradient)"/>
+    <circle cx="350" cy="100" r="8" fill="url(#nodeGradient)"/>
+    <circle cx="450" cy="100" r="8" fill="url(#nodeGradient)"/>
+    
+    <!-- 主线连接 -->
+    <path d="M58 100 L142 100" stroke="#6366f1" stroke-width="3" stroke-linecap="round"/>
+    <path d="M158 100 L242 100" stroke="#6366f1" stroke-width="3" stroke-linecap="round"/>
+    <path d="M258 100 L342 100" stroke="#6366f1" stroke-width="3" stroke-linecap="round"/>
+    <path d="M358 100 L442 100" stroke="#6366f1" stroke-width="3" stroke-linecap="round"/>
+    
+    <!-- 分支故事线 -->
+    <!-- 从第二个节点分支 -->
+    <path d="M150 92 L200 50" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="200" cy="50" r="6" fill="#8b5cf6"/>
+    <path d="M206 50 L250 30" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="250" cy="30" r="5" fill="#a855f7"/>
+    
+    <!-- 从第三个节点分支 -->
+    <path d="M250 108 L300 150" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="300" cy="150" r="6" fill="#8b5cf6"/>
+    <path d="M306 150 L350 170" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="350" cy="170" r="5" fill="#a855f7"/>
+    
+    <!-- 从第四个节点分支 -->
+    <path d="M350 92 L400 60" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="400" cy="60" r="6" fill="#8b5cf6"/>
+    <path d="M350 108 L400 140" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="400" cy="140" r="6" fill="#8b5cf6"/>
+    
+    <!-- 二级分支 -->
+    <path d="M406 60 L450 40" stroke="#a855f7" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="450" cy="40" r="4" fill="#a855f7"/>
+    <path d="M406 140 L450 160" stroke="#a855f7" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="450" cy="160" r="4" fill="#a855f7"/>
+  </g>
+  
+  <!-- 标题文字 -->
+  <text x="400" y="80" text-anchor="middle" font-family="Inter, sans-serif" font-size="36" font-weight="700" fill="#ffffff">
+    CastChain Narratives
+  </text>
+  <text x="400" y="110" text-anchor="middle" font-family="Inter, sans-serif" font-size="18" font-weight="400" fill="#a855f7">
+    协作式故事创作平台
+  </text>
+  
+  <!-- 底部描述 -->
+  <text x="400" y="340" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="400" fill="#9ca3af">
+    在区块链上创建分支叙事，与社区共同编织故事
+  </text>
+  
+  <!-- 装饰性元素 -->
+  <g opacity="0.3">
+    <!-- 左侧装饰 -->
+    <circle cx="50" cy="50" r="2" fill="#6366f1"/>
+    <circle cx="70" cy="80" r="1.5" fill="#8b5cf6"/>
+    <circle cx="30" cy="120" r="1" fill="#a855f7"/>
+    
+    <!-- 右侧装饰 -->
+    <circle cx="750" cy="350" r="2" fill="#6366f1"/>
+    <circle cx="730" cy="320" r="1.5" fill="#8b5cf6"/>
+    <circle cx="770" cy="280" r="1" fill="#a855f7"/>
+  </g>
+</svg>

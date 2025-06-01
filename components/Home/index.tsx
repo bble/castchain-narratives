@@ -73,7 +73,12 @@ function HomeContent() {
       {/* 顶部导航 */}
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-800 bg-[#1A1B23] p-4">
         <div className="flex items-center">
-          <div className="mr-4 text-xl font-bold text-purple-400">CastChain</div>
+          <img
+            src="/images/logo-text.svg"
+            alt="CastChain Narratives"
+            className="h-8 mr-2"
+            style={{ filter: 'brightness(1.2)' }}
+          />
           <div className="hidden space-x-2 sm:flex">
             {Object.values(Tab).map((tab) => (
               <button

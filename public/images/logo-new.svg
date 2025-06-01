@@ -1,0 +1,47 @@
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="200" height="60" rx="8" fill="#1A1B23"/>
+  
+  <!-- 主要图标 - 分支链条 -->
+  <g transform="translate(10, 15)">
+    <!-- 中心节点 -->
+    <circle cx="15" cy="15" r="4" fill="#6366f1" stroke="#8b5cf6" stroke-width="2"/>
+    
+    <!-- 分支线条 -->
+    <path d="M19 15 L25 10" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+    <path d="M19 15 L25 15" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+    <path d="M19 15 L25 20" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+    
+    <!-- 分支节点 -->
+    <circle cx="25" cy="10" r="3" fill="#8b5cf6"/>
+    <circle cx="25" cy="15" r="3" fill="#8b5cf6"/>
+    <circle cx="25" cy="20" r="3" fill="#8b5cf6"/>
+    
+    <!-- 连接线到更远的节点 -->
+    <path d="M28 10 L32 8" stroke="#a855f7" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M28 15 L32 15" stroke="#a855f7" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M28 20 L32 22" stroke="#a855f7" stroke-width="1.5" stroke-linecap="round"/>
+    
+    <!-- 远端节点 -->
+    <circle cx="32" cy="8" r="2" fill="#a855f7"/>
+    <circle cx="32" cy="15" r="2" fill="#a855f7"/>
+    <circle cx="32" cy="22" r="2" fill="#a855f7"/>
+  </g>
+  
+  <!-- 文字部分 -->
+  <text x="50" y="25" font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#ffffff">
+    CastChain
+  </text>
+  <text x="50" y="42" font-family="Inter, sans-serif" font-size="12" font-weight="400" fill="#a855f7">
+    Narratives
+  </text>
+  
+  <!-- 装饰性链条元素 -->
+  <g transform="translate(150, 20)">
+    <rect x="0" y="8" width="8" height="4" rx="2" fill="#6366f1"/>
+    <rect x="10" y="8" width="8" height="4" rx="2" fill="#8b5cf6"/>
+    <rect x="20" y="8" width="8" height="4" rx="2" fill="#a855f7"/>
+    <path d="M8 10 L10 10" stroke="#6366f1" stroke-width="2"/>
+    <path d="M18 10 L20 10" stroke="#8b5cf6" stroke-width="2"/>
+  </g>
+</svg>
