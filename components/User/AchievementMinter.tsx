@@ -40,22 +40,22 @@ export default function AchievementMinter({
     [AchievementType.CREATOR]: {
       title: "创作者成就",
       description: "创建原创叙事的杰出创作者",
-      imgUrl: "/images/creator-badge.png",
+      imgUrl: "/images/creator-achievement.svg",
     },
     [AchievementType.CONTRIBUTOR]: {
       title: "贡献者徽章",
       description: "积极参与并创作高质量故事内容的贡献者",
-      imgUrl: "/images/contributor-badge.png",
+      imgUrl: "/images/contributor-achievement.svg",
     },
     [AchievementType.POPULAR_BRANCH]: {
       title: "分支先锋成就",
       description: "创建受欢迎分支的开创者",
-      imgUrl: "/images/branch-pioneer.png",
+      imgUrl: "/images/branch-pioneer-achievement.svg",
     },
     [AchievementType.COMPLETED_NARRATIVE]: {
       title: "完成叙事成就",
       description: "参与并完成一个叙事的成就",
-      imgUrl: "/images/completed-narrative.png",
+      imgUrl: "/images/completed-narrative-achievement.svg",
     }
   };
 
@@ -80,7 +80,7 @@ export default function AchievementMinter({
           type: achievementType,
           title: info.title,
           description: info.description,
-          imageUrl: info.imgUrl || "https://picsum.photos/300/300",
+          imageUrl: info.imgUrl || "/images/creator-achievement.svg",
           awardedAt: new Date().toISOString(),
           ownerFid: userFid,
           narrativeId: narrativeId,

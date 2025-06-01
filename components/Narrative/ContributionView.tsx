@@ -29,7 +29,8 @@ export default function ContributionView({ contribution }: ContributionViewProps
       setIsLiking(true);
       const result = await api.likeContribution(
         contribution.narrativeId,
-        contribution.contributionId
+        contribution.contributionId,
+        context.user.fid
       );
 
       if (result.success) {
@@ -37,6 +38,7 @@ export default function ContributionView({ contribution }: ContributionViewProps
       }
     } catch (error) {
       console.error("点赞失败", error);
+      alert("点赞失败，请重试");
     } finally {
       setIsLiking(false);
     }

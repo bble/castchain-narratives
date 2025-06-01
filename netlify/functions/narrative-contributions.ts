@@ -197,8 +197,53 @@ export const handler: Handler = async (event, context) => {
         await supabase.create(supabase.tables.notifications, notification);
       }
 
+      // 映射数据库字段到前端字段
+      const mappedContribution = {
+        contributionId: createdContribution.contribution_id,
+        narrativeId: createdContribution.narrative_id,
+        branchId: createdContribution.branch_id,
+        contributorFid: createdContribution.contributor_fid,
+        contributorUsername: createdContribution.contributor_username,
+        contributorDisplayName: createdContribution.contributor_display_name,
+        contributorPfp: createdContribution.contributor_pfp,
+        textContent: createdContribution.content,
+        contentType: createdContribution.content_type,
+        parentContributionId: createdContribution.parent_contribution_id,
+        orderIndex: createdContribution.order_index,
+        castHash: createdContribution.cast_hash,
+        createdAt: createdContribution.created_at,
+        upvotes: 0,
+        downvotes: 0,
+        likeCount: 0
+      };
+
+      // 如果创建了新分支，也返回分支信息
+      let branchInfo = null;
+      if (data.isBranchStart && branchId !== 'main-branch') {
+        const branches = await supabase.query(supabase.tables.branches, {
+          filters: { branch_id: branchId },
+          limit: 1
+        });
+
+        if (branches.length > 0) {
+          const branch = branches[0];
+          branchInfo = {
+            branchId: branch.branch_id,
+            narrativeId: branch.narrative_id,
+            name: branch.name,
+            description: branch.description,
+            creatorFid: branch.creator_fid,
+            createdAt: branch.created_at,
+            rootContributionId: branch.root_contribution_id || '',
+            parentBranchId: branch.parent_branch_id,
+            contributionCount: branch.contribution_count || 0
+          };
+        }
+      }
+
       return success({
-        contribution: createdContribution,
+        contribution: mappedContribution,
+        branch: branchInfo,
         message: '贡献创建成功'
       }, 201);
     } catch (err: any) {

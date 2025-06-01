@@ -74,6 +74,7 @@ export function NarrativeExplorer({ type }: NarrativeExplorerProps) {
           setAllTags([]);
           setLoading(false);
         }
+        // 不重新抛出错误，让组件正常显示空状态
       }
     }
 

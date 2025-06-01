@@ -1,0 +1,93 @@
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="branchGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#D97706;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#B45309;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="treeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#047857;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background Circle -->
+  <circle cx="150" cy="150" r="140" fill="url(#branchGradient)" stroke="#1F2937" stroke-width="4"/>
+  
+  <!-- Inner Circle -->
+  <circle cx="150" cy="150" r="110" fill="none" stroke="#FFFFFF" stroke-width="2" opacity="0.3"/>
+  
+  <!-- Tree Trunk -->
+  <rect x="140" y="180" width="20" height="60" fill="#8B4513" stroke="#654321" stroke-width="2"/>
+  
+  <!-- Main Branch Structure -->
+  <g stroke="#10B981" stroke-width="4" fill="none" stroke-linecap="round">
+    <!-- Central trunk -->
+    <line x1="150" y1="180" x2="150" y2="120"/>
+    
+    <!-- Left branches -->
+    <path d="M150 160 Q130 150 110 140"/>
+    <path d="M150 140 Q125 130 100 120"/>
+    <path d="M110 140 Q95 135 80 130"/>
+    
+    <!-- Right branches -->
+    <path d="M150 160 Q170 150 190 140"/>
+    <path d="M150 140 Q175 130 200 120"/>
+    <path d="M190 140 Q205 135 220 130"/>
+    
+    <!-- Top branches -->
+    <path d="M150 120 Q140 110 130 100"/>
+    <path d="M150 120 Q160 110 170 100"/>
+  </g>
+  
+  <!-- Branch Nodes -->
+  <g fill="#FFFFFF" stroke="#10B981" stroke-width="2">
+    <circle cx="150" cy="160" r="6"/>
+    <circle cx="150" cy="140" r="6"/>
+    <circle cx="150" cy="120" r="6"/>
+    <circle cx="110" cy="140" r="5"/>
+    <circle cx="190" cy="140" r="5"/>
+    <circle cx="100" cy="120" r="4"/>
+    <circle cx="200" cy="120" r="4"/>
+    <circle cx="80" cy="130" r="4"/>
+    <circle cx="220" cy="130" r="4"/>
+    <circle cx="130" cy="100" r="4"/>
+    <circle cx="170" cy="100" r="4"/>
+  </g>
+  
+  <!-- Leaves -->
+  <g fill="url(#treeGradient)" opacity="0.8">
+    <ellipse cx="100" cy="115" rx="8" ry="12" transform="rotate(-20 100 115)"/>
+    <ellipse cx="200" cy="115" rx="8" ry="12" transform="rotate(20 200 115)"/>
+    <ellipse cx="80" cy="125" rx="6" ry="10" transform="rotate(-30 80 125)"/>
+    <ellipse cx="220" cy="125" rx="6" ry="10" transform="rotate(30 220 125)"/>
+    <ellipse cx="130" cy="95" rx="6" ry="10" transform="rotate(-15 130 95)"/>
+    <ellipse cx="170" cy="95" rx="6" ry="10" transform="rotate(15 170 95)"/>
+  </g>
+  
+  <!-- Pioneer Flag -->
+  <g transform="translate(150, 80)">
+    <line x1="0" y1="0" x2="0" y2="30" stroke="#8B4513" stroke-width="3"/>
+    <path d="M0 0 L25 5 L20 15 L0 10 Z" fill="#EF4444" stroke="#DC2626" stroke-width="1"/>
+    <circle cx="0" cy="0" r="3" fill="#FCD34D"/>
+  </g>
+  
+  <!-- Growth Arrows -->
+  <g stroke="#FFFFFF" stroke-width="2" fill="#FFFFFF" opacity="0.7">
+    <path d="M70 110 L75 105 L70 100 M75 105 L85 105"/>
+    <path d="M230 110 L225 105 L230 100 M225 105 L215 105"/>
+    <path d="M140 85 L145 80 L150 85 M145 80 L145 70"/>
+    <path d="M160 85 L155 80 L150 85 M155 80 L155 70"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="150" y="260" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="16" font-weight="bold">分支先锋</text>
+  <text x="150" y="280" text-anchor="middle" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="12">BRANCH PIONEER</text>
+</svg>

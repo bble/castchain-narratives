@@ -187,17 +187,39 @@ class API {
     contribution: NarrativeContribution;
     branch?: NarrativeBranch;
   }> {
-    const endpoint = `/branch-create`;
+    const endpoint = `/narrative-contributions?narrativeId=${data.narrativeId}`;
+
+    // 转换字段名以匹配后端API期望的格式
+    const requestData = {
+      contributorFid: data.contributorFid,
+      contributorUsername: data.contributorUsername,
+      contributorDisplayName: data.contributorDisplayName,
+      contributorPfp: data.contributorPfp,
+      content: data.textContent, // 后端期望的是 content 而不是 textContent
+      castHash: data.castHash,
+      parentContributionId: data.parentContributionId,
+      isBranchStart: data.isBranchStart,
+      branchName: data.branchName,
+      branchDescription: data.branchDescription
+    };
+
     return this.request<{
       contribution: NarrativeContribution;
       branch?: NarrativeBranch;
-    }>(endpoint, "POST", data);
+    }>(endpoint, "POST", requestData);
   }
 
   // 点赞贡献
-  async likeContribution(narrativeId: string, contributionId: string): Promise<{ success: boolean; like_count: number; upvotes?: number }> {
+  async likeContribution(narrativeId: string, contributionId: string, userFid?: number): Promise<{ success: boolean; like_count: number; upvotes?: number }> {
     const endpoint = `/contribution-like?narrativeId=${narrativeId}&contributionId=${contributionId}`;
-    return this.request<{ success: boolean; like_count: number; upvotes?: number }>(endpoint, "POST");
+
+    // 添加认证头
+    const authHeaders: Record<string, string> | undefined = userFid ? {
+      'X-User-FID': userFid.toString(),
+      'X-Auth-Token': 'demo-token'
+    } : undefined;
+
+    return this.request<{ success: boolean; like_count: number; upvotes?: number }>(endpoint, "POST", {}, authHeaders);
   }
 
   // 获取用户成就

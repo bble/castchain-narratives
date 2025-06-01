@@ -54,25 +54,25 @@ export function UserAchievements() {
       type: AchievementType.CREATOR,
       title: "创作者成就",
       description: "创建原创叙事的杰出创作者",
-      imgUrl: "/images/creator-badge.png",
+      imgUrl: "/images/creator-achievement.svg",
     },
     {
       type: AchievementType.CONTRIBUTOR,
       title: "贡献者徽章",
       description: "积极参与并创作高质量故事内容的贡献者",
-      imgUrl: "/images/contributor-badge.png",
+      imgUrl: "/images/contributor-achievement.svg",
     },
     {
       type: AchievementType.POPULAR_BRANCH,
       title: "分支先锋成就",
       description: "创建受欢迎分支的开创者",
-      imgUrl: "/images/branch-pioneer.png",
+      imgUrl: "/images/branch-pioneer-achievement.svg",
     },
     {
       type: AchievementType.COMPLETED_NARRATIVE,
       title: "完成叙事成就",
       description: "参与并完成一个叙事的成就",
-      imgUrl: "/images/completed-narrative.png",
+      imgUrl: "/images/completed-narrative-achievement.svg",
     }
   ];
 
@@ -121,7 +121,7 @@ export function UserAchievements() {
                 >
                   <div className="h-40 bg-gray-800 flex items-center justify-center">
                     <img
-                      src={achievement.imageUrl || "/images/achievement-placeholder.png"}
+                      src={achievement.imageUrl || "/images/creator-achievement.svg"}
                       alt={achievement.title}
                       className="h-full w-full object-contain"
                     />
