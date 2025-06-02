@@ -203,8 +203,33 @@ export default function AchievementMinter({
   // 处理铸造请求
   const handleMint = async () => {
     if (!context?.user?.fid) return;
-    if (!isConnected || !walletClient) {
-      setError("请先连接钱包");
+
+    // 在 Farcaster Mini App 环境中，尝试获取钱包客户端
+    // 即使 isConnected 状态可能还没有更新
+    try {
+      // 首先尝试获取当前的钱包客户端
+      const currentWalletClient = walletClient;
+
+      if (!currentWalletClient) {
+        // 如果没有钱包客户端，检查是否在 Farcaster 环境中
+        if (!actions) {
+          setError("请先连接钱包");
+          return;
+        }
+
+        // 在 Farcaster 环境中，钱包可能需要时间初始化
+        // 给一个短暂的延迟让钱包状态更新
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // 重新检查钱包状态
+        if (!isConnected) {
+          setError("请先连接钱包");
+          return;
+        }
+      }
+    } catch (err) {
+      console.error("检查钱包状态失败:", err);
+      setError("钱包连接检查失败，请重试");
       return;
     }
 
@@ -229,8 +254,14 @@ export default function AchievementMinter({
       if (result.success && result.transactionParams) {
         // 请求用户签名交易
         try {
+          // 确保我们有钱包客户端
+          const currentWalletClient = walletClient;
+          if (!currentWalletClient) {
+            throw new Error("钱包客户端不可用");
+          }
+
           // 发送交易
-          const hash = await walletClient.sendTransaction({
+          const hash = await currentWalletClient.sendTransaction({
             to: result.transactionParams.to as `0x${string}`,
             data: result.transactionParams.data as `0x${string}`,
             value: BigInt(result.transactionParams.value || "0"),
