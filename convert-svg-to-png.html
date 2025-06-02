@@ -76,117 +76,145 @@
             
             ctx.globalAlpha = 1;
             
-            // 链条装饰
-            const buttonGradient = ctx.createLinearGradient(70, 70, 130, 130);
-            buttonGradient.addColorStop(0, '#8b5cf6');
-            buttonGradient.addColorStop(1, '#3b82f6');
-            ctx.fillStyle = buttonGradient;
-            ctx.beginPath();
-            ctx.arc(100, 100, 30, 0, 2 * Math.PI);
-            ctx.fill();
+            // 加载并绘制真正的官方 logo - 移动到更中心的位置
+            let logosLoaded = 0;
+            const totalLogos = 2;
+
+            function checkAllLogosLoaded() {
+                logosLoaded++;
+                if (logosLoaded >= totalLogos) {
+                    // 所有 logo 加载完成后，更新 PNG 下载链接
+                    setTimeout(updatePngDownload, 100);
+                }
+            }
+
+            function loadOfficialLogos() {
+                // Monad 官方 logo (左上角往中间靠) - 从官网直接获取
+                const monadImg = new Image();
+                monadImg.crossOrigin = 'anonymous';
+                monadImg.onload = function() {
+                    ctx.drawImage(monadImg, 150, 50, 80, 80);
+                    checkAllLogosLoaded();
+                };
+                monadImg.onerror = function() {
+                    console.log('Monad logo 加载失败，使用备用设计');
+                    // 备用设计 - 钻石形状
+                    const x = 190, y = 90, size = 30;
+                    ctx.fillStyle = 'white';
+                    ctx.beginPath();
+                    ctx.moveTo(x, y - size);
+                    ctx.lineTo(x + size, y);
+                    ctx.lineTo(x, y + size);
+                    ctx.lineTo(x - size, y);
+                    ctx.closePath();
+                    ctx.fill();
+                    checkAllLogosLoaded();
+                };
+                // 使用官网的 logomark SVG
+                monadImg.src = 'https://cdn.prod.website-files.com/667c57e6f9254a4b6d914440/67b135627be8437b3cda15ae_Monad%20Logomark.svg';
+
+                // Farcaster 官方 logo (右上角往中间靠) - 从官方 brand assets 获取
+                const farcasterImg = new Image();
+                farcasterImg.crossOrigin = 'anonymous';
+                farcasterImg.onload = function() {
+                    ctx.drawImage(farcasterImg, 970, 50, 80, 80);
+                    checkAllLogosLoaded();
+                };
+                farcasterImg.onerror = function() {
+                    console.log('Farcaster logo 加载失败，尝试备用 URL');
+                    // 尝试备用 URL
+                    const farcasterImg2 = new Image();
+                    farcasterImg2.crossOrigin = 'anonymous';
+                    farcasterImg2.onload = function() {
+                        ctx.drawImage(farcasterImg2, 970, 50, 80, 80);
+                        checkAllLogosLoaded();
+                    };
+                    farcasterImg2.onerror = function() {
+                        console.log('所有 Farcaster logo 都加载失败，使用备用设计');
+                        // 最终备用设计
+                        const x = 1010, y = 90, size = 30;
+                        ctx.fillStyle = '#8a63d2';
+                        ctx.fillRect(x - size, y - size, size * 2, size * 2);
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(x - 15, y - 20, 8, 30);
+                        ctx.fillRect(x + 7, y - 20, 8, 30);
+                        ctx.fillRect(x - 15, y - 20, 30, 6);
+                        checkAllLogosLoaded();
+                    };
+                    // 备用 PNG URL
+                    farcasterImg2.src = 'https://raw.githubusercontent.com/vrypan/farcaster-brand/main/icons/icon-rounded/purple-white.png';
+                };
+                // 主要 SVG URL
+                farcasterImg.src = 'https://raw.githubusercontent.com/vrypan/farcaster-brand/main/icons/icon-rounded/purple-white.svg';
+            }
+
+            // 调用函数加载官方 logo
+            loadOfficialLogos();
             
-            ctx.fillStyle = 'white';
-            ctx.font = '20px Arial, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('🔗', 100, 110);
-            
-            // 主标题 - 紫色渐变
+            // 主标题 - 紫色渐变，增大字体
             const titleGradient = ctx.createLinearGradient(400, 180, 800, 220);
             titleGradient.addColorStop(0, '#a855f7');
             titleGradient.addColorStop(1, '#8b5cf6');
-            
+
             ctx.fillStyle = titleGradient;
-            ctx.font = 'bold 72px Arial, sans-serif';
+            ctx.font = 'bold 96px Arial, sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText('CastChain', 600, 200);
-            
-            // 副标题
+            ctx.fillText('CastChain', 600, 180);
+
+            // 副标题，进一步增大字体
             ctx.fillStyle = '#c7d2fe';
-            ctx.font = '28px Arial, sans-serif';
-            ctx.fillText('Narratives', 600, 240);
-            
-            // 描述
+            ctx.font = '42px Arial, sans-serif';
+            ctx.fillText('Narratives', 600, 230);
+
+            // 描述，进一步增大字体 - 增加行间距
             ctx.fillStyle = '#a5b4fc';
-            ctx.font = '24px Arial, sans-serif';
-            ctx.fillText('协作式故事创作平台 · 记录在链上', 600, 290);
+            ctx.font = '32px Arial, sans-serif';
+            ctx.fillText('协作式故事创作平台 · 记录在链上', 600, 320);
             
-            // 功能图标和文字
+            // 功能图标和文字，增大尺寸并居中对齐
             const features = [
-                { text: '创作故事', x: 300, emoji: '✍️' },
-                { text: '分支协作', x: 500, emoji: '🤝' },
-                { text: '获得成就', x: 700, emoji: '🏆' },
-                { text: '链上记录', x: 900, emoji: '🔗' }
+                { text: '创作故事', x: 375, emoji: '✍️' },
+                { text: '分支协作', x: 525, emoji: '🤝' },
+                { text: '获得成就', x: 675, emoji: '🏆' },
+                { text: '链上记录', x: 825, emoji: '🔗' }
             ];
-            
+
             features.forEach(feature => {
-                // 图标圆圈
-                ctx.fillStyle = buttonGradient;
+                // 图标圆圈，进一步增大尺寸 - 增加行间距
+                const iconGradient = ctx.createLinearGradient(feature.x - 35, 380, feature.x + 35, 445);
+                iconGradient.addColorStop(0, '#8b5cf6');
+                iconGradient.addColorStop(1, '#3b82f6');
+                ctx.fillStyle = iconGradient;
                 ctx.beginPath();
-                ctx.arc(feature.x, 350, 25, 0, 2 * Math.PI);
+                ctx.arc(feature.x, 415, 35, 0, 2 * Math.PI);
                 ctx.fill();
-                
-                // 图标
+
+                // 图标，进一步增大字体
                 ctx.fillStyle = 'white';
-                ctx.font = '20px Arial, sans-serif';
+                ctx.font = '28px Arial, sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText(feature.emoji, feature.x, 355);
-                
-                // 文字
+                ctx.fillText(feature.emoji, feature.x, 425);
+
+                // 文字，进一步增大字体
                 ctx.fillStyle = '#c7d2fe';
-                ctx.font = '16px Arial, sans-serif';
-                ctx.fillText(feature.text, feature.x, 395);
+                ctx.font = '24px Arial, sans-serif';
+                ctx.fillText(feature.text, feature.x, 470);
             });
             
-            // 按钮
-            const mainButtonGradient = ctx.createLinearGradient(500, 460, 700, 510);
-            mainButtonGradient.addColorStop(0, '#8b5cf6');
-            mainButtonGradient.addColorStop(1, '#3b82f6');
-            
-            ctx.fillStyle = mainButtonGradient;
-            ctx.roundRect(500, 460, 200, 50, 25);
-            ctx.fill();
-            
-            ctx.fillStyle = 'white';
-            ctx.font = 'bold 20px Arial, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('立即加入', 600, 490);
-            
-            // 品牌标识
-            // Powered by Monad
-            ctx.fillStyle = 'rgba(255,255,255,0.1)';
-            ctx.roundRect(100, 550, 180, 40, 15);
-            ctx.fill();
-            
-            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-            ctx.lineWidth = 1;
-            ctx.roundRect(100, 550, 180, 40, 15);
-            ctx.stroke();
-            
-            ctx.fillStyle = '#3b82f6';
-            ctx.font = 'bold 18px Arial, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('Powered by Monad', 190, 575);
-            
-            // Built for Farcaster
-            ctx.fillStyle = 'rgba(255,255,255,0.1)';
-            ctx.roundRect(920, 550, 180, 40, 15);
-            ctx.fill();
-            
-            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-            ctx.roundRect(920, 550, 180, 40, 15);
-            ctx.stroke();
-            
-            ctx.fillStyle = '#8b5cf6';
-            ctx.font = 'bold 18px Arial, sans-serif';
-            ctx.fillText('Built for Farcaster', 1010, 575);
-            
-            // 下载
+            // 移除按钮部分
+
+            // 移除底部品牌标识，保持简洁
+        }
+
+        // 更新 PNG 下载链接的函数
+        function updatePngDownload() {
+            console.log('所有 logo 加载完成，生成 PNG...');
             const link = document.createElement('a');
             link.download = 'farcaster-cover.png';
             link.href = canvas.toDataURL('image/png', 1.0);
             link.click();
         }
-        
+
         // 页面加载时自动绘制预览
         window.onload = function() {
             convertAndDownload();

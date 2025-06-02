@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>获取官方 Logo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1b2e;
+            color: white;
+        }
+        .logo-container {
+            display: flex;
+            gap: 40px;
+            margin: 20px 0;
+            align-items: center;
+        }
+        .logo-item {
+            text-align: center;
+        }
+        .logo-item img {
+            max-width: 200px;
+            max-height: 100px;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .download-btn {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .download-btn:hover {
+            background: #5855eb;
+        }
+    </style>
+</head>
+<body>
+    <h1>官方 Logo 集成</h1>
+    
+    <div class="logo-container">
+        <div class="logo-item">
+            <h3>Monad Logo</h3>
+            <img id="monad-logo" src="https://docs.monad.xyz/img/monad-logo.svg" alt="Monad Logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjNjM2NmYxIiByeD0iMTAiLz4KPHR5cGUgeD0iNTAiIHk9IjU1IiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNDAiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+TTwvdGV4dD4KPC9zdmc+'"/>
+            <br>
+            <button class="download-btn" onclick="downloadLogo('monad')">下载 Monad Logo</button>
+        </div>
+        
+        <div class="logo-item">
+            <h3>Farcaster Logo</h3>
+            <img id="farcaster-logo" src="https://github.com/farcasterxyz/brand/raw/main/logos/farcaster-logo.svg" alt="Farcaster Logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjOGE2M2QyIiByeD0iMTAiLz4KPHN2ZyB4PSIyNSIgeT0iMjUiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCI+CjxjaXJjbGUgY3g9IjI1IiBjeT0iMjUiIHI9IjMiIGZpbGw9IndoaXRlIi8+CjxjaXJjbGUgY3g9IjE1IiBjeT0iMTUiIHI9IjIiIGZpbGw9IndoaXRlIi8+CjxjaXJjbGUgY3g9IjM1IiBjeT0iMTUiIHI9IjIiIGZpbGw9IndoaXRlIi8+CjxjaXJjbGUgY3g9IjE1IiBjeT0iMzUiIHI9IjIiIGZpbGw9IndoaXRlIi8+CjxjaXJjbGUgY3g9IjM1IiBjeT0iMzUiIHI9IjIiIGZpbGw9IndoaXRlIi8+CjwvZz4KPC9zdmc+'"/>
+            <br>
+            <button class="download-btn" onclick="downloadLogo('farcaster')">下载 Farcaster Logo</button>
+        </div>
+    </div>
+    
+    <h2>备用官方 Logo 链接</h2>
+    <div>
+        <h3>Monad 官方资源：</h3>
+        <ul>
+            <li><a href="https://monad.xyz" target="_blank" style="color: #6366f1;">Monad 官网</a></li>
+            <li><a href="https://docs.monad.xyz" target="_blank" style="color: #6366f1;">Monad 文档</a></li>
+        </ul>
+        
+        <h3>Farcaster 官方资源：</h3>
+        <ul>
+            <li><a href="https://www.farcaster.xyz" target="_blank" style="color: #8a63d2;">Farcaster 官网</a></li>
+            <li><a href="https://github.com/farcasterxyz/brand" target="_blank" style="color: #8a63d2;">Farcaster 品牌资源</a></li>
+        </ul>
+    </div>
+    
+    <button class="download-btn" onclick="createCoverWithOfficialLogos()" style="background: #8b5cf6; font-size: 16px; padding: 15px 30px;">
+        使用官方 Logo 生成封面
+    </button>
+
+    <script>
+        function downloadLogo(type) {
+            const img = document.getElementById(type + '-logo');
+            const link = document.createElement('a');
+            link.download = type + '-logo.svg';
+            link.href = img.src;
+            link.click();
+        }
+        
+        function createCoverWithOfficialLogos() {
+            // 这里我们将创建一个新的封面，集成官方 logo
+            alert('正在准备集成官方 Logo 到封面中...');
+            
+            // 创建一个新的 canvas 来绘制带有官方 logo 的封面
+            const canvas = document.createElement('canvas');
+            canvas.width = 1200;
+            canvas.height = 630;
+            const ctx = canvas.getContext('2d');
+            
+            // 背景渐变
+            const bgGradient = ctx.createLinearGradient(0, 0, 1200, 630);
+            bgGradient.addColorStop(0, '#1e1b4b');
+            bgGradient.addColorStop(0.5, '#312e81');
+            bgGradient.addColorStop(1, '#4c1d95');
+            
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, 1200, 630);
+            
+            // 装饰圆圈
+            ctx.globalAlpha = 0.3;
+            const circle1 = ctx.createRadialGradient(240, 150, 0, 240, 150, 150);
+            circle1.addColorStop(0, '#6366f1');
+            circle1.addColorStop(1, 'transparent');
+            ctx.fillStyle = circle1;
+            ctx.fillRect(90, 0, 300, 300);
+            
+            const circle2 = ctx.createRadialGradient(960, 480, 0, 960, 480, 120);
+            circle2.addColorStop(0, '#8b5cf6');
+            circle2.addColorStop(1, 'transparent');
+            ctx.fillStyle = circle2;
+            ctx.fillRect(840, 360, 240, 240);
+            
+            ctx.globalAlpha = 1;
+            
+            // 主标题 - 紫色渐变
+            const titleGradient = ctx.createLinearGradient(400, 180, 800, 220);
+            titleGradient.addColorStop(0, '#a855f7');
+            titleGradient.addColorStop(1, '#8b5cf6');
+            
+            ctx.fillStyle = titleGradient;
+            ctx.font = 'bold 84px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('CastChain', 600, 200);
+            
+            // 副标题
+            ctx.fillStyle = '#c7d2fe';
+            ctx.font = '36px Arial, sans-serif';
+            ctx.fillText('Narratives', 600, 250);
+            
+            // 描述
+            ctx.fillStyle = '#a5b4fc';
+            ctx.font = '28px Arial, sans-serif';
+            ctx.fillText('协作式故事创作平台 · 记录在链上', 600, 300);
+            
+            // 功能图标
+            const features = [
+                { text: '创作故事', x: 350, emoji: '✍️' },
+                { text: '分支协作', x: 500, emoji: '🤝' },
+                { text: '获得成就', x: 650, emoji: '🏆' },
+                { text: '链上记录', x: 800, emoji: '🔗' }
+            ];
+            
+            features.forEach(feature => {
+                const iconGradient = ctx.createLinearGradient(feature.x - 30, 330, feature.x + 30, 390);
+                iconGradient.addColorStop(0, '#8b5cf6');
+                iconGradient.addColorStop(1, '#3b82f6');
+                ctx.fillStyle = iconGradient;
+                ctx.beginPath();
+                ctx.arc(feature.x, 360, 30, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                ctx.fillStyle = 'white';
+                ctx.font = '24px Arial, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(feature.emoji, feature.x, 370);
+                
+                ctx.fillStyle = '#c7d2fe';
+                ctx.font = '20px Arial, sans-serif';
+                ctx.fillText(feature.text, feature.x, 410);
+            });
+            
+            // 添加官方 logo 占位符
+            // Monad logo (左上)
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.fillRect(80, 50, 100, 60);
+            ctx.fillStyle = '#6366f1';
+            ctx.font = '14px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Monad Logo', 130, 85);
+            
+            // Farcaster logo (右上)
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.fillRect(1020, 50, 100, 60);
+            ctx.fillStyle = '#8a63d2';
+            ctx.font = '14px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Farcaster Logo', 1070, 85);
+            
+            // 下载
+            const link = document.createElement('a');
+            link.download = 'farcaster-cover-with-official-logos.png';
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+        }
+    </script>
+</body>
+</html>
