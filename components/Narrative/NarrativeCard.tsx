@@ -144,11 +144,19 @@ export function NarrativeCard({ narrative }: NarrativeCardProps) {
     >
         {/* 封面图片 */}
         {narrative.featuredImageUrl && (
-          <div className="h-40 w-full overflow-hidden">
+          <div className="h-40 w-full overflow-hidden bg-gray-800">
             <img
               src={narrative.featuredImageUrl}
               alt={narrative.title}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover transition-opacity duration-300"
+              loading="lazy"
+              onLoad={(e) => {
+                e.currentTarget.style.opacity = '1';
+              }}
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+              style={{ opacity: 0 }}
             />
           </div>
         )}
@@ -162,14 +170,23 @@ export function NarrativeCard({ narrative }: NarrativeCardProps) {
                   src={narrative.creatorPfp}
                   alt="创作者头像"
                   className="h-6 w-6 rounded-full"
+                  loading="lazy"
+                  onError={(e) => {
+                    // 如果头像加载失败，显示默认头像
+                    e.currentTarget.style.display = 'none';
+                    const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
                 />
-              ) : (
-                <div className="h-6 w-6 rounded-full bg-gray-700 flex items-center justify-center">
-                  <span className="text-xs">
-                    {narrative.creatorDisplayName?.slice(0, 1) || narrative.creatorUsername?.slice(0, 1) || "?"}
-                  </span>
-                </div>
-              )}
+              ) : null}
+              <div
+                className="h-6 w-6 rounded-full bg-gray-700 flex items-center justify-center"
+                style={{ display: narrative.creatorPfp ? 'none' : 'flex' }}
+              >
+                <span className="text-xs">
+                  {narrative.creatorDisplayName?.slice(0, 1) || narrative.creatorUsername?.slice(0, 1) || "?"}
+                </span>
+              </div>
               <span className="text-sm text-gray-300">
                 {narrative.creatorDisplayName || narrative.creatorUsername || `FID: ${narrative.creatorFid || 'unknown'}`}
               </span>

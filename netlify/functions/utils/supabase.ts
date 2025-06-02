@@ -138,6 +138,40 @@ export async function remove(table: string, id: string): Promise<boolean> {
   }
 }
 
+// 计数记录
+export async function count(table: string, options: {
+  filters?: { [key: string]: any };
+} = {}): Promise<number> {
+  try {
+    const client = getSupabaseClient();
+
+    let queryBuilder = client.from(table).select('*', { count: 'exact', head: true });
+
+    // 应用过滤条件
+    if (options.filters) {
+      Object.entries(options.filters).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          queryBuilder = queryBuilder.in(key, value);
+        } else {
+          queryBuilder = queryBuilder.eq(key, value);
+        }
+      });
+    }
+
+    const { count: totalCount, error } = await queryBuilder;
+
+    if (error) {
+      logError(`计数失败 [${table}]:`, error);
+      throw error;
+    }
+
+    return totalCount || 0;
+  } catch (error) {
+    logError(`计数异常 [${table}]:`, error);
+    throw error;
+  }
+}
+
 // 查询记录
 export async function query(table: string, options: {
   filters?: { [key: string]: any };
@@ -233,6 +267,7 @@ export default {
   update,
   remove,
   query,
+  count,
   testConnection,
   setupDatabase,
   tables

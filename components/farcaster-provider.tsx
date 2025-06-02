@@ -73,6 +73,10 @@ export function FrameProvider({ children }: FrameProviderProps) {
           console.log("SDK ready调用成功");
         } catch (readyErr) {
           console.warn("SDK ready调用失败，但继续运行:", readyErr);
+          // 即使 ready 失败，也设置基本的 context 和 actions
+          if (context && !actions) {
+            setActions(sdk.actions);
+          }
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Failed to initialize SDK";

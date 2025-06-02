@@ -98,7 +98,12 @@ class API {
       type?: 'discover' | 'my' | 'following';
       userFid?: number;
     } = {}
-  ): Promise<Narrative[]> {
+  ): Promise<{
+    narratives: Narrative[];
+    totalCount: number;
+    currentPage: number;
+    hasMore: boolean;
+  } | Narrative[]> {
     const { page = 1, limit = 20, searchTerm, tags, creatorFid, sortBy = 'latest', type, userFid } = options;
 
     // 构建查询参数
@@ -125,7 +130,19 @@ class API {
     }
 
     const endpoint = `/narratives?${queryParams.toString()}`;
-    return this.request<Narrative[]>(endpoint);
+    const result = await this.request<{
+      narratives: Narrative[];
+      totalCount: number;
+      currentPage: number;
+      hasMore: boolean;
+    } | Narrative[]>(endpoint);
+
+    // 兼容旧格式（直接返回数组）和新格式（返回对象）
+    if (Array.isArray(result)) {
+      return result;
+    }
+
+    return result;
   }
 
   // 获取单个叙事

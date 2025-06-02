@@ -16,7 +16,12 @@ export function NarrativeExplorer({ type }: NarrativeExplorerProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [allTags, setAllTags] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
+  const ITEMS_PER_PAGE = 5;
 
   // 加载叙事数据
   useEffect(() => {
@@ -26,10 +31,14 @@ export function NarrativeExplorer({ type }: NarrativeExplorerProps) {
       try {
         if (!isMounted) return;
         setLoading(true);
+        setCurrentPage(1);
+        setHasMore(true);
 
         const options: any = {
           type,
           userFid: context?.user?.fid,
+          page: 1,
+          limit: ITEMS_PER_PAGE,
         };
 
         if (searchTerm) {
@@ -46,9 +55,26 @@ export function NarrativeExplorer({ type }: NarrativeExplorerProps) {
 
         if (!isMounted) return; // 检查组件是否仍然挂载
 
-        // 确保narrativesData是数组
-        const validNarratives = Array.isArray(narrativesData) ? narrativesData : [];
+        // 处理新的响应格式
+        let validNarratives: Narrative[] = [];
+        let total = 0;
+        let hasMoreData = true;
+
+        if (Array.isArray(narrativesData)) {
+          // 兼容旧格式
+          validNarratives = narrativesData;
+          total = narrativesData.length;
+          hasMoreData = narrativesData.length === ITEMS_PER_PAGE;
+        } else {
+          // 新格式
+          validNarratives = narrativesData.narratives || [];
+          total = narrativesData.totalCount || 0;
+          hasMoreData = narrativesData.hasMore || false;
+        }
+
         setNarratives(validNarratives);
+        setTotalCount(total);
+        setHasMore(hasMoreData);
 
         // 提取所有标签，确保安全处理
         try {
@@ -72,6 +98,8 @@ export function NarrativeExplorer({ type }: NarrativeExplorerProps) {
         if (isMounted) {
           setNarratives([]); // 设置为空数组而不是保持旧状态
           setAllTags([]);
+          setTotalCount(0);
+          setHasMore(false);
           setLoading(false);
         }
         // 不重新抛出错误，让组件正常显示空状态
@@ -91,6 +119,61 @@ export function NarrativeExplorer({ type }: NarrativeExplorerProps) {
       setSelectedTag(null);
     } else {
       setSelectedTag(tag);
+    }
+  };
+
+  // 加载更多数据
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+
+    try {
+      setLoadingMore(true);
+      const nextPage = currentPage + 1;
+
+      const options: any = {
+        type,
+        userFid: context?.user?.fid,
+        page: nextPage,
+        limit: ITEMS_PER_PAGE,
+      };
+
+      if (searchTerm) {
+        options.searchTerm = searchTerm;
+      }
+
+      if (selectedTag) {
+        options.tags = [selectedTag];
+      }
+
+      console.log('加载更多数据，选项:', options);
+      const moreNarratives = await api.getNarratives(options);
+      console.log('获取到更多数据:', moreNarratives);
+
+      // 处理响应格式
+      let validMoreNarratives: Narrative[] = [];
+      let hasMoreData = true;
+
+      if (Array.isArray(moreNarratives)) {
+        // 兼容旧格式
+        validMoreNarratives = moreNarratives;
+        hasMoreData = moreNarratives.length === ITEMS_PER_PAGE;
+      } else {
+        // 新格式
+        validMoreNarratives = moreNarratives.narratives || [];
+        hasMoreData = moreNarratives.hasMore || false;
+      }
+
+      // 追加到现有数据
+      setNarratives(prev => [...prev, ...validMoreNarratives]);
+      setCurrentPage(nextPage);
+
+      // 检查是否还有更多数据
+      setHasMore(hasMoreData);
+
+    } catch (error) {
+      console.error("加载更多数据失败", error);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -146,17 +229,43 @@ export function NarrativeExplorer({ type }: NarrativeExplorerProps) {
       {/* 结果数量 */}
       {!loading && (
         <p className="text-sm text-gray-400">
-          找到 {narratives.length} 个符合条件的叙事
+          显示 {narratives.length} / {totalCount} 个符合条件的叙事
         </p>
       )}
 
       {/* 叙事列表 */}
       {!loading && narratives.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
-          {narratives.map((narrative) => (
-            <NarrativeCard key={narrative.narrativeId} narrative={narrative} />
-          ))}
-        </div>
+        <>
+          <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
+            {narratives.map((narrative) => (
+              <NarrativeCard key={narrative.narrativeId} narrative={narrative} />
+            ))}
+          </div>
+
+          {/* 加载更多按钮 */}
+          {hasMore && (
+            <div className="flex justify-center pt-6">
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                  loadingMore
+                    ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                    : "bg-purple-600 text-white hover:bg-purple-700"
+                }`}
+              >
+                {loadingMore ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin h-4 w-4 border-2 border-white rounded-full border-t-transparent"></div>
+                    <span>加载中...</span>
+                  </div>
+                ) : (
+                  "加载更多"
+                )}
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {/* 如果没有结果 */}

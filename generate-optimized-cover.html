@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生成优化封面</title>
+</head>
+<body>
+    <canvas id="canvas" width="1200" height="630" style="border: 1px solid #ccc;"></canvas>
+    <br>
+    <button onclick="downloadCanvas()">下载优化封面 (PNG)</button>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 创建渐变背景
+        const bgGradient = ctx.createLinearGradient(0, 0, 1200, 630);
+        bgGradient.addColorStop(0, '#0f0f23');
+        bgGradient.addColorStop(0.5, '#1a1b2e');
+        bgGradient.addColorStop(1, '#16213e');
+        
+        // 填充背景
+        ctx.fillStyle = bgGradient;
+        ctx.fillRect(0, 0, 1200, 630);
+        
+        // 装饰圆圈
+        const circle1 = ctx.createRadialGradient(300, 150, 0, 300, 150, 150);
+        circle1.addColorStop(0, 'rgba(99, 102, 241, 0.2)');
+        circle1.addColorStop(1, 'rgba(99, 102, 241, 0)');
+        ctx.fillStyle = circle1;
+        ctx.fillRect(150, 0, 300, 300);
+        
+        const circle2 = ctx.createRadialGradient(900, 480, 0, 900, 480, 120);
+        circle2.addColorStop(0, 'rgba(139, 92, 246, 0.2)');
+        circle2.addColorStop(1, 'rgba(139, 92, 246, 0)');
+        ctx.fillStyle = circle2;
+        ctx.fillRect(780, 360, 240, 240);
+        
+        // 主标题
+        ctx.fillStyle = '#8b5cf6';
+        ctx.font = 'bold 72px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('CastChain', 600, 200);
+        
+        // 副标题
+        ctx.fillStyle = '#a5b4fc';
+        ctx.font = '600 48px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Narratives', 600, 260);
+        
+        // 描述文字
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '400 24px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('协作式故事创作平台 · 记录在链上', 600, 320);
+        
+        // 功能点
+        const features = [
+            { x: 380, text: '协作创作' },
+            { x: 520, text: '链上存储' },
+            { x: 660, text: '多线叙事' },
+            { x: 800, text: 'NFT成就' }
+        ];
+        
+        features.forEach((feature, index) => {
+            const colors = ['#6366f1', '#8b5cf6', '#a855f7', '#fbbf24'];
+            
+            // 圆点
+            ctx.fillStyle = colors[index];
+            ctx.beginPath();
+            ctx.arc(feature.x, 420, 6, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // 文字
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '500 14px Arial, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(feature.text, feature.x + 20, 425);
+        });
+        
+        // 按钮
+        ctx.fillStyle = '#8b5cf6';
+        ctx.roundRect(500, 480, 200, 50, 25);
+        ctx.fill();
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('立即加入', 600, 510);
+        
+        // Monad标识 (左下角)
+        ctx.fillStyle = 'rgba(99, 102, 241, 0.8)';
+        ctx.roundRect(50, 550, 180, 40, 20);
+        ctx.fill();
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '600 16px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Powered by Monad', 140, 575);
+        
+        // Farcaster标识 (右下角)
+        ctx.fillStyle = 'rgba(138, 99, 210, 0.8)';
+        ctx.roundRect(970, 550, 180, 40, 20);
+        ctx.fill();
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '600 16px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Built for Farcaster', 1060, 575);
+        
+        function downloadCanvas() {
+            const link = document.createElement('a');
+            link.download = 'farcaster-cover-optimized.png';
+            link.href = canvas.toDataURL('image/png', 0.8); // 0.8 质量压缩
+            link.click();
+        }
+    </script>
+</body>
+</html>
