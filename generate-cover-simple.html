@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Simple Farcaster Cover</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <canvas id="canvas" width="2400" height="1260" style="border: 1px solid #ccc; width: 1200px; height: 630px;"></canvas>
+    <br><br>
+    <button onclick="downloadCanvas()">下载PNG</button>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 创建渐变背景
+        const gradient = ctx.createLinearGradient(0, 0, 2400, 1260);
+        gradient.addColorStop(0, '#1e1b4b');
+        gradient.addColorStop(0.5, '#312e81');
+        gradient.addColorStop(1, '#4c1d95');
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 2400, 1260);
+        
+        // 添加装饰圆圈
+        ctx.globalAlpha = 0.2;
+        ctx.fillStyle = '#8b5cf6';
+        ctx.beginPath();
+        ctx.arc(480, 300, 300, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        ctx.fillStyle = '#3b82f6';
+        ctx.beginPath();
+        ctx.arc(1920, 960, 240, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        ctx.globalAlpha = 1;
+        
+        // 主标题
+        ctx.fillStyle = '#8b5cf6';
+        ctx.font = 'bold 144px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('CastChain', 1200, 400);
+
+        // 副标题
+        ctx.fillStyle = '#a5b4fc';
+        ctx.font = '96px Arial, sans-serif';
+        ctx.fillText('Narratives', 1200, 520);
+
+        // 描述文字 - 使用英文避免编码问题
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '48px Arial, sans-serif';
+        ctx.fillText('Collaborative Storytelling on Blockchain', 1200, 640);
+        
+        // 特色功能标签背景
+        ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
+        ctx.roundRect(600, 760, 1200, 160, 80);
+        ctx.fill();
+
+        // 功能图标和文字 - 使用英文
+        const features = [
+            { text: 'Collaborate', x: 720 },
+            { text: 'On-Chain', x: 1000 },
+            { text: 'Multi-Story', x: 1280 },
+            { text: 'NFT Rewards', x: 1560 }
+        ];
+
+        features.forEach((feature, index) => {
+            const colors = ['#6366f1', '#8b5cf6', '#a855f7', '#fbbf24'];
+
+            // 图标圆点
+            ctx.fillStyle = colors[index];
+            ctx.beginPath();
+            ctx.arc(feature.x - 40, 840, 12, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // 功能文字
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '28px Arial, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(feature.text, feature.x, 850);
+        });
+        
+        // 按钮 - 保持中文
+        const buttonGradient = ctx.createLinearGradient(1000, 960, 1400, 1040);
+        buttonGradient.addColorStop(0, '#8b5cf6');
+        buttonGradient.addColorStop(1, '#3b82f6');
+        ctx.fillStyle = buttonGradient;
+        ctx.roundRect(1000, 960, 400, 80, 40);
+        ctx.fill();
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 40px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Join Now', 1200, 1010);
+        
+        // Monad标识 (左下角)
+        ctx.fillStyle = 'rgba(99, 102, 241, 0.8)';
+        ctx.roundRect(100, 1100, 360, 80, 40);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 32px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Powered by Monad', 280, 1150);
+
+        // Farcaster标识 (右下角)
+        ctx.fillStyle = 'rgba(138, 99, 210, 0.8)';
+        ctx.roundRect(1940, 1100, 360, 80, 40);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 32px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Built for Farcaster', 2120, 1150);
+        
+        function downloadCanvas() {
+            const link = document.createElement('a');
+            link.download = 'farcaster-cover.png';
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+        }
+    </script>
+</body>
+</html>

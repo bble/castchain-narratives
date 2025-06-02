@@ -1,0 +1,91 @@
+<svg id="cover-svg" width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <!-- 背景渐变 -->
+            <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#1e1b4b"/>
+                <stop offset="50%" style="stop-color:#312e81"/>
+                <stop offset="100%" style="stop-color:#4c1d95"/>
+            </linearGradient>
+            
+            <!-- 标题渐变 -->
+            <linearGradient id="titleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#a855f7"/>
+                <stop offset="100%" style="stop-color:#8b5cf6"/>
+            </linearGradient>
+            
+            <!-- 按钮渐变 -->
+            <linearGradient id="buttonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#8b5cf6"/>
+                <stop offset="100%" style="stop-color:#3b82f6"/>
+            </linearGradient>
+            
+            <!-- 装饰圆圈渐变 -->
+            <radialGradient id="circle1" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:0.3"/>
+                <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:0"/>
+            </radialGradient>
+            
+            <radialGradient id="circle2" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.3"/>
+                <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0"/>
+            </radialGradient>
+        </defs>
+        
+        <!-- 背景 -->
+        <rect width="1200" height="630" fill="url(#bgGradient)" rx="20"/>
+        
+        <!-- 装饰圆圈 -->
+        <circle cx="240" cy="150" r="150" fill="url(#circle1)"/>
+        <circle cx="960" cy="480" r="120" fill="url(#circle2)"/>
+        
+        <!-- 链条装饰 -->
+        <circle cx="100" cy="100" r="30" fill="url(#buttonGradient)" opacity="0.8"/>
+        <text x="100" y="110" text-anchor="middle" font-size="20" fill="white">🔗</text>
+        
+        <!-- 主标题 -->
+        <text x="600" y="200" text-anchor="middle" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="url(#titleGradient)">CastChain</text>
+        
+        <!-- 副标题 -->
+        <text x="600" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#c7d2fe">Narratives</text>
+        
+        <!-- 描述 -->
+        <text x="600" y="290" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#a5b4fc">协作式故事创作平台 · 记录在链上</text>
+        
+        <!-- 功能图标和文字 -->
+        <g transform="translate(300, 350)">
+            <!-- 创作故事 -->
+            <circle cx="0" cy="0" r="25" fill="url(#buttonGradient)"/>
+            <text x="0" y="5" text-anchor="middle" font-size="20" fill="white">✍️</text>
+            <text x="0" y="45" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#c7d2fe">创作故事</text>
+            
+            <!-- 分支协作 -->
+            <circle cx="200" cy="0" r="25" fill="url(#buttonGradient)"/>
+            <text x="200" y="5" text-anchor="middle" font-size="20" fill="white">🤝</text>
+            <text x="200" y="45" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#c7d2fe">分支协作</text>
+            
+            <!-- 获得成就 -->
+            <circle cx="400" cy="0" r="25" fill="url(#buttonGradient)"/>
+            <text x="400" y="5" text-anchor="middle" font-size="20" fill="white">🏆</text>
+            <text x="400" y="45" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#c7d2fe">获得成就</text>
+            
+            <!-- 链上记录 -->
+            <circle cx="600" cy="0" r="25" fill="url(#buttonGradient)"/>
+            <text x="600" y="5" text-anchor="middle" font-size="20" fill="white">🔗</text>
+            <text x="600" y="45" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#c7d2fe">链上记录</text>
+        </g>
+        
+        <!-- 按钮 -->
+        <rect x="500" y="460" width="200" height="50" rx="25" fill="url(#buttonGradient)"/>
+        <text x="600" y="490" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white">立即加入</text>
+        
+        <!-- 品牌标识 -->
+        <g transform="translate(100, 550)">
+            <rect x="0" y="0" width="180" height="40" rx="15" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)"/>
+            <text x="90" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#3b82f6">Powered by Monad</text>
+        </g>
+        
+        <g transform="translate(920, 550)">
+            <rect x="0" y="0" width="180" height="40" rx="15" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)"/>
+            <text x="90" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#8b5cf6">Built for Farcaster</text>
+        </g>
+    </svg>

@@ -1,0 +1,81 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景渐变 -->
+  <defs>
+    <!-- 简化的背景渐变 -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#312e81;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- 简化的文字渐变 -->
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#a855f7;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 主背景 -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+  
+  <!-- 装饰性背景元素 - 简化版 -->
+  <circle cx="300" cy="150" r="150" fill="#6366f1" opacity="0.1"/>
+  <circle cx="900" cy="480" r="120" fill="#8b5cf6" opacity="0.1"/>
+  
+  <!-- 主标题 -->
+  <text x="600" y="200" font-family="Arial, sans-serif" 
+        font-size="72" font-weight="bold" text-anchor="middle" 
+        fill="#8b5cf6">
+    CastChain
+  </text>
+  
+  <!-- 副标题 -->
+  <text x="600" y="260" font-family="Arial, sans-serif" 
+        font-size="48" font-weight="600" text-anchor="middle" 
+        fill="#a5b4fc">
+    Narratives
+  </text>
+  
+  <!-- 描述文字 -->
+  <text x="600" y="320" font-family="Arial, sans-serif" 
+        font-size="24" font-weight="400" text-anchor="middle" 
+        fill="#e2e8f0">
+    协作式故事创作平台 · 记录在链上
+  </text>
+  
+  <!-- 特色功能标签 -->
+  <rect x="300" y="380" width="600" height="80" rx="40" fill="#1e293b" opacity="0.8"/>
+  
+  <!-- 功能图标和文字 -->
+  <g>
+    <!-- 协作创作 -->
+    <circle cx="380" cy="420" r="6" fill="#6366f1"/>
+    <text x="400" y="425" font-family="Arial, sans-serif" font-size="14" font-weight="500" fill="#e2e8f0">协作创作</text>
+    
+    <!-- 链上存储 -->
+    <circle cx="520" cy="420" r="6" fill="#8b5cf6"/>
+    <text x="540" y="425" font-family="Arial, sans-serif" font-size="14" font-weight="500" fill="#e2e8f0">链上存储</text>
+    
+    <!-- 多线叙事 -->
+    <circle cx="660" cy="420" r="6" fill="#a855f7"/>
+    <text x="680" y="425" font-family="Arial, sans-serif" font-size="14" font-weight="500" fill="#e2e8f0">多线叙事</text>
+    
+    <!-- NFT成就 -->
+    <circle cx="800" cy="420" r="6" fill="#fbbf24"/>
+    <text x="820" y="425" font-family="Arial, sans-serif" font-size="14" font-weight="500" fill="#e2e8f0">NFT成就</text>
+  </g>
+  
+  <!-- 按钮 -->
+  <rect x="500" y="480" width="200" height="50" rx="25" fill="#8b5cf6"/>
+  <text x="600" y="510" font-family="Arial, sans-serif" font-size="20" font-weight="bold" 
+        text-anchor="middle" fill="white">立即加入</text>
+  
+  <!-- Monad标识 (左下角) -->
+  <rect x="50" y="550" width="180" height="40" rx="20" fill="#6366f1" opacity="0.8"/>
+  <text x="140" y="575" font-family="Arial, sans-serif" font-size="16" font-weight="600" 
+        text-anchor="middle" fill="white">Powered by Monad</text>
+  
+  <!-- Farcaster标识 (右下角) -->
+  <rect x="970" y="550" width="180" height="40" rx="20" fill="#8a63d2" opacity="0.8"/>
+  <text x="1060" y="575" font-family="Arial, sans-serif" font-size="16" font-weight="600" 
+        text-anchor="middle" fill="white">Built for Farcaster</text>
+</svg>

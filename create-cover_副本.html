@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CastChain Narratives Cover Generator</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: #1a1a1a;
+            color: white;
+        }
+        
+        .cover-container {
+            width: 1200px;
+            height: 630px;
+            margin: 0 auto;
+            position: relative;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .background-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(139, 92, 246, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 60%, rgba(168, 85, 247, 0.2) 0%, transparent 50%);
+        }
+        
+        .chain-decoration {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #8b5cf6, #3b82f6);
+            border-radius: 50%;
+            opacity: 0.8;
+        }
+        
+        .chain-decoration::before {
+            content: '🔗';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+        }
+        
+        .main-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+        }
+        
+        .title {
+            font-size: 72px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #ffffff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 28px;
+            color: #c7d2fe;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+        
+        .description {
+            font-size: 24px;
+            color: #a5b4fc;
+            margin-bottom: 50px;
+            max-width: 600px;
+        }
+        
+        .features {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+        }
+        
+        .feature {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .feature-text {
+            font-size: 16px;
+            color: #c7d2fe;
+        }
+        
+        .brand-logos {
+            position: absolute;
+            bottom: 30px;
+            left: 50px;
+            right: 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .logo-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .monad-logo {
+            color: #3b82f6;
+        }
+        
+        .farcaster-logo {
+            color: #8b5cf6;
+        }
+        
+        .button {
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+            margin-top: 20px;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .download-btn {
+            background: #10b981;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="cover-container" id="cover">
+        <div class="background-pattern"></div>
+        <div class="chain-decoration"></div>
+        
+        <div class="main-content">
+            <h1 class="title">CastChain</h1>
+            <h2 class="subtitle">Narratives</h2>
+            <p class="description">协作式故事创作平台 · 记录在链上</p>
+            
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">✍️</div>
+                    <div class="feature-text">创作故事</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🤝</div>
+                    <div class="feature-text">分支协作</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🏆</div>
+                    <div class="feature-text">获得成就</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔗</div>
+                    <div class="feature-text">链上记录</div>
+                </div>
+            </div>
+            
+            <button class="button">立即加入</button>
+        </div>
+        
+        <div class="brand-logos">
+            <div class="logo">
+                <div class="logo-text monad-logo">Powered by Monad</div>
+            </div>
+            <div class="logo">
+                <div class="logo-text farcaster-logo">Built for Farcaster</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button class="download-btn" onclick="downloadAsPNG()">下载为PNG</button>
+        <button class="download-btn" onclick="copyToClipboard()">复制图片</button>
+    </div>
+    
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script>
+        function downloadAsPNG() {
+            const element = document.getElementById('cover');
+            html2canvas(element, {
+                width: 1200,
+                height: 630,
+                scale: 2,
+                backgroundColor: null
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'farcaster-cover.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+        
+        function copyToClipboard() {
+            const element = document.getElementById('cover');
+            html2canvas(element, {
+                width: 1200,
+                height: 630,
+                scale: 2,
+                backgroundColor: null
+            }).then(canvas => {
+                canvas.toBlob(blob => {
+                    const item = new ClipboardItem({ 'image/png': blob });
+                    navigator.clipboard.write([item]).then(() => {
+                        alert('图片已复制到剪贴板！');
+                    });
+                });
+            });
+        }
+    </script>
+</body>
+</html>
