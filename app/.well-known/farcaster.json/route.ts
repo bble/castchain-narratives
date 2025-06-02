@@ -25,7 +25,7 @@ export async function GET() {
       name: "CastChain Narratives",
       iconUrl: `${baseUrl}/images/icon.png`,
       homeUrl: `${baseUrl}`,
-      imageUrl: `${baseUrl}/images/farcaster-cover.svg`,
+      imageUrl: `${baseUrl}/images/farcaster-cover.png`,
       buttonTitle: "立即加入",
       splashImageUrl: `${baseUrl}/images/feed.png`,
       splashBackgroundColor: "#1A1B23"

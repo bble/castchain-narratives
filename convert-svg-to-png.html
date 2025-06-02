@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG to PNG Converter</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: #1a1a1a;
+            color: white;
+            text-align: center;
+        }
+        
+        .controls {
+            margin: 20px 0;
+        }
+        
+        .download-btn {
+            background: #10b981;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+        
+        canvas {
+            border: 1px solid #333;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>SVG 转 PNG 转换器</h1>
+    <div class="controls">
+        <button class="download-btn" onclick="convertAndDownload()">转换并下载 PNG</button>
+    </div>
+
+    <canvas id="canvas" width="1200" height="630" style="width: 600px; height: 315px;"></canvas>
+
+    <script>
+        function convertAndDownload() {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 设置高分辨率
+            canvas.width = 1200 * 2;
+            canvas.height = 630 * 2;
+            ctx.scale(2, 2);
+            
+            // 创建渐变背景
+            const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+            gradient.addColorStop(0, '#1e1b4b');
+            gradient.addColorStop(0.5, '#312e81');
+            gradient.addColorStop(1, '#4c1d95');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 1200, 630);
+            
+            // 装饰圆圈
+            ctx.globalAlpha = 0.3;
+            ctx.fillStyle = '#8b5cf6';
+            ctx.beginPath();
+            ctx.arc(240, 150, 150, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath();
+            ctx.arc(960, 480, 120, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            ctx.globalAlpha = 1;
+            
+            // 链条装饰
+            const buttonGradient = ctx.createLinearGradient(70, 70, 130, 130);
+            buttonGradient.addColorStop(0, '#8b5cf6');
+            buttonGradient.addColorStop(1, '#3b82f6');
+            ctx.fillStyle = buttonGradient;
+            ctx.beginPath();
+            ctx.arc(100, 100, 30, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            ctx.fillStyle = 'white';
+            ctx.font = '20px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🔗', 100, 110);
+            
+            // 主标题 - 紫色渐变
+            const titleGradient = ctx.createLinearGradient(400, 180, 800, 220);
+            titleGradient.addColorStop(0, '#a855f7');
+            titleGradient.addColorStop(1, '#8b5cf6');
+            
+            ctx.fillStyle = titleGradient;
+            ctx.font = 'bold 72px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('CastChain', 600, 200);
+            
+            // 副标题
+            ctx.fillStyle = '#c7d2fe';
+            ctx.font = '28px Arial, sans-serif';
+            ctx.fillText('Narratives', 600, 240);
+            
+            // 描述
+            ctx.fillStyle = '#a5b4fc';
+            ctx.font = '24px Arial, sans-serif';
+            ctx.fillText('协作式故事创作平台 · 记录在链上', 600, 290);
+            
+            // 功能图标和文字
+            const features = [
+                { text: '创作故事', x: 300, emoji: '✍️' },
+                { text: '分支协作', x: 500, emoji: '🤝' },
+                { text: '获得成就', x: 700, emoji: '🏆' },
+                { text: '链上记录', x: 900, emoji: '🔗' }
+            ];
+            
+            features.forEach(feature => {
+                // 图标圆圈
+                ctx.fillStyle = buttonGradient;
+                ctx.beginPath();
+                ctx.arc(feature.x, 350, 25, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // 图标
+                ctx.fillStyle = 'white';
+                ctx.font = '20px Arial, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(feature.emoji, feature.x, 355);
+                
+                // 文字
+                ctx.fillStyle = '#c7d2fe';
+                ctx.font = '16px Arial, sans-serif';
+                ctx.fillText(feature.text, feature.x, 395);
+            });
+            
+            // 按钮
+            const mainButtonGradient = ctx.createLinearGradient(500, 460, 700, 510);
+            mainButtonGradient.addColorStop(0, '#8b5cf6');
+            mainButtonGradient.addColorStop(1, '#3b82f6');
+            
+            ctx.fillStyle = mainButtonGradient;
+            ctx.roundRect(500, 460, 200, 50, 25);
+            ctx.fill();
+            
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 20px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('立即加入', 600, 490);
+            
+            // 品牌标识
+            // Powered by Monad
+            ctx.fillStyle = 'rgba(255,255,255,0.1)';
+            ctx.roundRect(100, 550, 180, 40, 15);
+            ctx.fill();
+            
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 1;
+            ctx.roundRect(100, 550, 180, 40, 15);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#3b82f6';
+            ctx.font = 'bold 18px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Powered by Monad', 190, 575);
+            
+            // Built for Farcaster
+            ctx.fillStyle = 'rgba(255,255,255,0.1)';
+            ctx.roundRect(920, 550, 180, 40, 15);
+            ctx.fill();
+            
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.roundRect(920, 550, 180, 40, 15);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#8b5cf6';
+            ctx.font = 'bold 18px Arial, sans-serif';
+            ctx.fillText('Built for Farcaster', 1010, 575);
+            
+            // 下载
+            const link = document.createElement('a');
+            link.download = 'farcaster-cover.png';
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+        }
+        
+        // 页面加载时自动绘制预览
+        window.onload = function() {
+            convertAndDownload();
+        };
+    </script>
+</body>
+</html>
