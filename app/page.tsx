@@ -11,7 +11,7 @@ export function generateMetadata(): Metadata {
     openGraph: {
       title: "CastChain Narratives",
       description: "协作式故事创作平台，记录在链上",
-      images: [`${APP_URL}/images/feed.png`],
+      images: [`${APP_URL}/images/farcaster-cover.svg`],
       url: APP_URL,
     },
     other: {
