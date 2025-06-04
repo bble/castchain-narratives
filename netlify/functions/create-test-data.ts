@@ -123,12 +123,59 @@ export const handler: Handler = async (event) => {
       }
     }
 
+    // 创建一些测试成就
+    const testAchievements = [
+      {
+        achievement_id: generateId(),
+        type: 'creator',
+        title: '创作者成就',
+        description: '创建原创叙事的杰出创作者',
+        image_url: '/images/creator-achievement.svg',
+        owner_fid: 12345,
+        narrative_id: createdNarratives[0]?.narrative_id || null,
+        awarded_at: new Date().toISOString(),
+        status: 'confirmed',
+        metadata: JSON.stringify({
+          name: '创作者成就',
+          description: '创建原创叙事的杰出创作者',
+          image: '/images/creator-achievement.svg'
+        })
+      },
+      {
+        achievement_id: generateId(),
+        type: 'contributor',
+        title: '贡献者徽章',
+        description: '积极参与并创作高质量故事内容的贡献者',
+        image_url: '/images/contributor-achievement.svg',
+        owner_fid: 67890,
+        narrative_id: createdNarratives[1]?.narrative_id || null,
+        awarded_at: new Date().toISOString(),
+        status: 'confirmed',
+        metadata: JSON.stringify({
+          name: '贡献者徽章',
+          description: '积极参与并创作高质量故事内容的贡献者',
+          image: '/images/contributor-achievement.svg'
+        })
+      }
+    ];
+
+    // 创建测试成就
+    for (const achievement of testAchievements) {
+      try {
+        await supabase.create(supabase.tables.achievements, achievement);
+        console.log(`✓ 创建成就: ${achievement.title}`);
+      } catch (err) {
+        console.error(`创建成就失败: ${achievement.title}`, err);
+      }
+    }
+
     console.log('✅ 测试数据创建完成！');
 
     return success({
       message: '测试数据创建成功',
       created: createdNarratives.length,
-      narratives: createdNarratives
+      narratives: createdNarratives,
+      achievements: testAchievements.length
     });
 
   } catch (err: any) {

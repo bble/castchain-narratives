@@ -17,6 +17,9 @@ interface FrameContextValue {
   isEthProviderAvailable: boolean;
   error: string | null;
   actions: typeof sdk.actions | null;
+  isWalletReady: boolean;
+  isWalletClientReady: boolean;
+  setIsWalletClientReady: (ready: boolean) => void;
 }
 
 const FrameProviderContext = createContext<FrameContextValue | undefined>(
@@ -42,6 +45,8 @@ export function FrameProvider({ children }: FrameProviderProps) {
     useState<boolean>(false);
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isWalletReady, setIsWalletReady] = useState(false);
+  const [isWalletClientReady, setIsWalletClientReady] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -96,6 +101,35 @@ export function FrameProvider({ children }: FrameProviderProps) {
     }
   }, [isSDKLoaded]);
 
+  // 钱包预初始化 useEffect - 简化版本
+  useEffect(() => {
+    const initializeWallet = async () => {
+      if (!isSDKLoaded) {
+        return;
+      }
+
+      try {
+        console.log("开始检查钱包状态...");
+
+        // 简单检查钱包是否可用
+        if (sdk.wallet?.ethProvider) {
+          console.log("Farcaster 钱包提供者可用");
+          setIsWalletReady(true);
+        } else {
+          console.log("Farcaster 钱包提供者不可用，等待用户手动连接");
+          setIsWalletReady(true);
+        }
+      } catch (error) {
+        console.error("钱包状态检查失败:", error);
+        setIsWalletReady(true);
+      }
+    };
+
+    // 延迟一下让 SDK 完全加载
+    const timer = setTimeout(initializeWallet, 1000);
+    return () => clearTimeout(timer);
+  }, [isSDKLoaded]);
+
   return (
     <FrameProviderContext.Provider
       value={{
@@ -104,6 +138,9 @@ export function FrameProvider({ children }: FrameProviderProps) {
         isSDKLoaded,
         isEthProviderAvailable,
         error,
+        isWalletReady,
+        isWalletClientReady,
+        setIsWalletClientReady,
       }}
     >
       <FrameWalletProvider>{children}</FrameWalletProvider>

@@ -253,6 +253,7 @@ class API {
   // 请求铸造成就
   async requestMint(data: {
     recipientFid: number;
+    recipientAddress: string;
     achievementType: AchievementType;
     narrativeId?: string;
     contributionId?: string;
@@ -262,14 +263,21 @@ class API {
   }): Promise<{
     success: boolean;
     transactionParams?: any;
+    achievementId?: string;
     message?: string;
   }> {
     const endpoint = `/achievement-mint`;
+    // 添加模拟认证头用于测试
+    const authHeaders = {
+      'X-User-FID': data.recipientFid.toString(),
+      'X-Auth-Token': 'demo-token'
+    };
     return this.request<{
       success: boolean;
       transactionParams?: any;
+      achievementId?: string;
       message?: string;
-    }>(endpoint, "POST", data);
+    }>(endpoint, "POST", data, authHeaders);
   }
 
   // 关注叙事
@@ -316,13 +324,20 @@ class API {
   async confirmAchievementMint(
     achievementId: string,
     transactionHash: string,
-    tokenId: string
+    tokenId: string,
+    userFid?: number
   ): Promise<{ success: boolean }> {
-    const endpoint = `/achievements/${achievementId}/confirm`;
+    const endpoint = `/achievement-mint`;
+    // 添加模拟认证头用于测试
+    const authHeaders = {
+      'X-User-FID': userFid?.toString() || '12345', // 使用传入的用户FID
+      'X-Auth-Token': 'demo-token'
+    };
     return this.request<{ success: boolean }>(
       endpoint,
-      "POST",
-      { transactionHash, tokenId }
+      "PUT",
+      { achievementId, transactionHash, tokenId },
+      authHeaders
     );
   }
 

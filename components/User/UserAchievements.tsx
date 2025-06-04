@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useMiniAppContext } from "@/hooks/use-miniapp-context";
 import { AchievementType, UserAchievement } from "@/types/narrative";
 import { api } from "@/lib/api";
+import { MONAD_EXPLORER_URL } from "@/lib/constants";
 import AchievementMinter from "./AchievementMinter";
 
 export function UserAchievements() {
@@ -136,7 +137,7 @@ export function UserAchievements() {
                       {achievement.transactionHash && (
                         <button
                           onClick={() => {
-                            const url = `https://explorer.monad.xyz/tx/${achievement.transactionHash}`;
+                            const url = `${MONAD_EXPLORER_URL}/tx/${achievement.transactionHash}`;
                             if (actions?.openUrl) {
                               actions.openUrl(url);
                             } else {

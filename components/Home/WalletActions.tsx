@@ -2,17 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { useMiniAppContext } from "@/hooks/use-miniapp-context";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { useAccount, useConnect, useDisconnect, useSwitchChain, useWalletClient } from "wagmi";
 import { MONAD_CHAIN_ID, MONAD_RPC_URL } from "@/lib/constants";
-import { WalletSelector } from "../WalletSelector";
+import { NetworkSelector } from "../NetworkSelector";
 
 export function WalletActions() {
-  const { context, isEthProviderAvailable, actions } = useMiniAppContext();
-  const { address, isConnected } = useAccount();
+  const { context, isEthProviderAvailable, actions, setIsWalletClientReady } = useMiniAppContext();
+  const { address, isConnected, chainId } = useAccount();
   const { connect, connectors, isPending } = useConnect();
   const { disconnect } = useDisconnect();
+  const { switchChain } = useSwitchChain();
+  const { data: walletClient } = useWalletClient();
   const [error, setError] = useState<string | null>(null);
-  const [showWalletSelector, setShowWalletSelector] = useState(false);
+  const [showNetworkSelector, setShowNetworkSelector] = useState(false);
+  const [isInitializingWallet, setIsInitializingWallet] = useState(false);
 
   // 检测是否在 Mini App 环境中
   const isMiniApp = typeof window !== 'undefined' && (
@@ -32,55 +35,122 @@ export function WalletActions() {
     }
   }, [isConnected, address]);
 
-  // 通过连接器 ID 连接钱包
-  const connectWithConnector = async (connectorId: string) => {
-    console.log("尝试连接钱包，连接器 ID:", connectorId);
-    setError(null);
-
-    try {
-      // 如果已经连接，先断开
-      if (isConnected) {
-        console.log("检测到已连接状态，先断开连接");
-        disconnect();
-        // 等待断开完成
-        await new Promise(resolve => setTimeout(resolve, 500));
+  // 监听网络变化，重新初始化钱包客户端
+  useEffect(() => {
+    const initializeWalletAfterNetworkChange = async () => {
+      if (!isConnected || !chainId) {
+        return;
       }
 
-      // 查找指定的连接器
-      const targetConnector = connectors.find(connector => connector.id === connectorId);
+      console.log(`网络已切换到: ${chainId}, 重新初始化钱包客户端...`);
+      setIsInitializingWallet(true);
 
-      if (targetConnector) {
-        console.log("找到目标连接器:", targetConnector.id);
-        await connect({ connector: targetConnector });
-      } else {
-        console.error("未找到指定的连接器:", connectorId);
-        setError("未找到指定的钱包连接器");
+      try {
+        // 等待钱包客户端在新网络上准备就绪
+        let attempts = 0;
+        const maxAttempts = 20; // 最多等待 10 秒
+
+        while (attempts < maxAttempts) {
+          if (walletClient && walletClient.chain?.id === chainId) {
+            console.log("钱包客户端已在新网络上准备就绪:", {
+              clientChainId: walletClient.chain.id,
+              currentChainId: chainId,
+              address: walletClient.account?.address
+            });
+            // 更新全局钱包客户端状态
+            setIsWalletClientReady(true);
+            break;
+          }
+
+          await new Promise(resolve => setTimeout(resolve, 500));
+          attempts++;
+          console.log(`等待钱包客户端适应新网络... ${attempts}/${maxAttempts}`);
+        }
+
+        if (attempts >= maxAttempts) {
+          console.warn("钱包客户端初始化超时，但继续运行");
+          // 即使超时也标记为准备就绪，让用户可以尝试
+          setIsWalletClientReady(true);
+        }
+      } catch (error) {
+        console.error("钱包客户端重新初始化失败:", error);
+      } finally {
+        setIsInitializingWallet(false);
       }
-    } catch (err) {
-      console.error("连接钱包失败", err);
+    };
 
-      // 根据连接器类型提供更具体的错误信息
-      const targetConnector = connectors.find(connector => connector.id === connectorId);
-      let errorMessage = "钱包连接失败，请重试";
+    // 延迟一下让网络切换完全完成
+    const timer = setTimeout(initializeWalletAfterNetworkChange, 1000);
+    return () => clearTimeout(timer);
+  }, [chainId, isConnected, walletClient]);
 
-      if (targetConnector) {
-        const connectorName = targetConnector.name || targetConnector.id;
-        if (connectorName.includes('MetaMask') || connectorName.includes('injected')) {
-          errorMessage = isMiniApp
-            ? "MetaMask 在 Farcaster 中可能无法使用，请尝试使用 Farcaster 钱包"
-            : "请确保已安装 MetaMask 扩展并解锁钱包";
-        } else if (connectorName.includes('WalletConnect')) {
-          errorMessage = isMiniApp
-            ? "WalletConnect 在 Farcaster 中可能受限，请尝试使用 Farcaster 钱包"
-            : "WalletConnect 连接失败，请重试";
+  // 在 Farcaster 环境中自动连接钱包
+  useEffect(() => {
+    const autoConnect = async () => {
+      // 如果已经连接，跳过
+      if (isConnected || isPending) {
+        return;
+      }
+
+      // 如果在 Farcaster 环境中且有可用的连接器，自动连接
+      if (isMiniApp && connectors.length > 0) {
+        console.log("在 Farcaster 环境中，尝试自动连接钱包...");
+
+        // 延迟一下让组件完全加载
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // 再次检查是否已连接（可能在延迟期间已连接）
+        if (isConnected) {
+          return;
+        }
+
+        try {
+          // 优先使用 Farcaster 连接器
+          let targetConnector = connectors.find(c =>
+            c.id.includes('farcaster') || c.id.includes('frame')
+          );
+
+          // 如果没有 Farcaster 连接器，使用第一个可用的连接器
+          if (!targetConnector && connectors.length > 0) {
+            targetConnector = connectors[0];
+          }
+
+          if (targetConnector) {
+            console.log("自动连接钱包，使用连接器:", targetConnector.id);
+            await connect({ connector: targetConnector });
+          }
+        } catch (err) {
+          console.log("自动连接失败，等待用户手动连接:", err);
+          // 自动连接失败不显示错误，让用户手动连接
         }
       }
+    };
 
-      setError(errorMessage);
+    autoConnect();
+  }, [isMiniApp, connectors, isConnected, isPending, connect]);
+
+  // 切换网络
+  const handleSwitchNetwork = async (targetChainId: number) => {
+    console.log("尝试切换网络到:", targetChainId);
+    setError(null);
+    setIsInitializingWallet(true);
+    // 标记钱包客户端为未准备状态
+    setIsWalletClientReady(false);
+
+    try {
+      await switchChain({ chainId: targetChainId });
+      console.log("网络切换成功，等待钱包客户端重新初始化...");
+      // 注意：钱包客户端的重新初始化会在 useEffect 中处理
+    } catch (err) {
+      console.error("网络切换失败", err);
+      setError("网络切换失败，请手动切换到目标网络");
+      setIsInitializingWallet(false);
+      // 网络切换失败，恢复钱包客户端状态
+      setIsWalletClientReady(true);
     }
   };
 
-  // 连接钱包（显示选择器或自动连接）
+  // 连接钱包（优先使用 Farcaster 钱包）
   const connectWallet = async () => {
     console.log("连接钱包状态检查:", {
       isMiniApp,
@@ -91,21 +161,28 @@ export function WalletActions() {
 
     setError(null);
 
-    // 如果有多个连接器，显示选择器
-    if (connectors.length > 1) {
-      setShowWalletSelector(true);
-      return;
-    }
+    try {
+      // 在 Farcaster 环境中，优先使用 Farcaster 连接器
+      let targetConnector = connectors.find(c =>
+        c.id.includes('farcaster') || c.id.includes('frame')
+      );
 
-    // 如果只有一个连接器，直接连接
-    if (connectors.length === 1) {
-      await connectWithConnector(connectors[0].id);
-      return;
-    }
+      // 如果没有 Farcaster 连接器，使用第一个可用的连接器
+      if (!targetConnector && connectors.length > 0) {
+        targetConnector = connectors[0];
+      }
 
-    // 没有可用的连接器
-    console.log("没有可用的连接器");
-    setError("没有可用的钱包连接器");
+      if (targetConnector) {
+        console.log("使用连接器:", targetConnector.id);
+        await connect({ connector: targetConnector });
+      } else {
+        console.log("没有可用的连接器");
+        setError("没有可用的钱包连接器");
+      }
+    } catch (err) {
+      console.error("连接钱包失败", err);
+      setError("钱包连接失败，请重试");
+    }
   };
 
   // 断开钱包连接
@@ -130,6 +207,12 @@ export function WalletActions() {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
+  // 获取当前网络名称
+  const getCurrentNetworkName = () => {
+    if (chainId === MONAD_CHAIN_ID) return "Monad";
+    return `网络 ${chainId}`;
+  };
+
   return (
     <div>
       {isConnected && address ? (
@@ -137,14 +220,20 @@ export function WalletActions() {
           <span className="text-sm text-gray-300">
             {formatAddress(address)}
           </span>
-          {connectors.length > 1 && (
-            <button
-              className="rounded-lg bg-blue-600 px-3 py-1 text-xs text-white hover:bg-blue-700"
-              onClick={() => setShowWalletSelector(true)}
-            >
-              切换钱包
-            </button>
-          )}
+          <span className="text-xs text-gray-400">
+            {getCurrentNetworkName()}
+          </span>
+          <button
+            className={`rounded-lg px-3 py-1 text-xs text-white ${
+              isInitializingWallet
+                ? "bg-gray-600 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
+            onClick={() => setShowNetworkSelector(true)}
+            disabled={isInitializingWallet}
+          >
+            {isInitializingWallet ? "初始化中..." : "切换网络"}
+          </button>
           <button
             className="rounded-lg bg-gray-800 px-3 py-1 text-xs text-white hover:bg-gray-700"
             onClick={disconnectWallet}
@@ -163,16 +252,17 @@ export function WalletActions() {
             onClick={connectWallet}
             disabled={isPending}
           >
-            {isPending ? "连接中..." : connectors.length > 1 ? "选择钱包" : "连接钱包"}
+            {isPending ? "连接中..." : "连接钱包"}
           </button>
           {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
         </div>
       )}
 
-      <WalletSelector
-        isOpen={showWalletSelector}
-        onClose={() => setShowWalletSelector(false)}
-        onWalletSelect={connectWithConnector}
+      <NetworkSelector
+        isOpen={showNetworkSelector}
+        onClose={() => setShowNetworkSelector(false)}
+        onNetworkSelect={handleSwitchNetwork}
+        currentChainId={chainId}
       />
     </div>
   );

@@ -36,14 +36,14 @@ export const handler: Handler = async (event, context) => {
       if (achievementType) {
         // 查询特定类型的成就
         achievements = await supabase.query(supabase.tables.achievements, {
-          filters: { user_fid: parsedUserFid, achievement_type: achievementType },
-          orderBy: { column: 'earned_at', ascending: false }
+          filters: { owner_fid: parsedUserFid, type: achievementType },
+          orderBy: { column: 'awarded_at', ascending: false }
         });
       } else {
         // 查询所有成就
         achievements = await supabase.query(supabase.tables.achievements, {
-          filters: { user_fid: parsedUserFid },
-          orderBy: { column: 'earned_at', ascending: false }
+          filters: { owner_fid: parsedUserFid },
+          orderBy: { column: 'awarded_at', ascending: false }
         });
       }
 

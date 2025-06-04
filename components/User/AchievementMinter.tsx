@@ -2,10 +2,16 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useMiniAppContext } from "@/hooks/use-miniapp-context";
-import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { useAccount, usePublicClient, useWalletClient, useSwitchChain } from "wagmi";
 import { AchievementType, UserAchievement } from "@/types/narrative";
 import { api } from "@/lib/api";
-import { ACHIEVEMENT_CONTRACT_ADDRESS, MONAD_EXPLORER_URL } from "@/lib/constants";
+import {
+  ACHIEVEMENT_CONTRACT_ADDRESS,
+  MONAD_EXPLORER_URL,
+  MONAD_CHAIN_ID
+} from "@/lib/constants";
+import { monadTestnet } from "wagmi/chains";
+import { getAddress } from "viem";
 
 interface AchievementMinterProps {
   userFid: number;
@@ -24,16 +30,19 @@ export default function AchievementMinter({
   onMintSuccess,
   onClose,
 }: AchievementMinterProps) {
-  const { context, actions } = useMiniAppContext();
-  const { address, isConnected } = useAccount();
+  const { context, actions, isWalletReady, isWalletClientReady } = useMiniAppContext();
+  const { address, isConnected, chainId } = useAccount();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
+  const { switchChain } = useSwitchChain();
   const [isMinting, setIsMinting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
   const [tokenId, setTokenId] = useState<string | null>(null);
   const [isPendingConfirmation, setIsPendingConfirmation] = useState(false);
+  const [achievementId, setAchievementId] = useState<string | null>(null);
+
 
   // 铸造描述
   const achievementInfo = {
@@ -64,19 +73,22 @@ export default function AchievementMinter({
   // 向后端确认铸造完成 - 使用useCallback包装以避免不必要的重新创建
   const confirmMintToBackend = useCallback(async (newTokenId: string) => {
     try {
-      // 这里假设我们有一个achievementId
-      const achievementId = `${achievementType}-${userFid}-${Date.now()}`;
+      if (!achievementId || !transactionHash) {
+        console.error('缺少 achievementId 或 transactionHash');
+        return;
+      }
 
       await api.confirmAchievementMint(
         achievementId,
-        transactionHash!,
-        newTokenId
+        transactionHash,
+        newTokenId,
+        userFid
       );
 
       // 如果有回调，传递成就信息
       if (onMintSuccess) {
         const newAchievement: UserAchievement = {
-          achievementId,
+          achievementId: achievementId,
           type: achievementType,
           title: info.title,
           description: info.description,
@@ -86,7 +98,7 @@ export default function AchievementMinter({
           narrativeId: narrativeId,
           contributionId: contributionId,
           tokenId: newTokenId,
-          transactionHash: transactionHash!,
+          transactionHash: transactionHash,
         };
 
         onMintSuccess(newAchievement);
@@ -95,7 +107,7 @@ export default function AchievementMinter({
       console.error("确认铸造完成失败:", error);
       // 此处不阻止用户继续，仅记录错误
     }
-  }, [achievementType, userFid, transactionHash, onMintSuccess, info.title, info.description, info.imgUrl, narrativeId, contributionId]);
+  }, [achievementId, transactionHash, onMintSuccess, achievementType, info.title, info.description, info.imgUrl, userFid, narrativeId, contributionId]);
 
   // 监听交易状态
   useEffect(() => {
@@ -105,7 +117,7 @@ export default function AchievementMinter({
     if (transactionHash && isPendingConfirmation && publicClient) {
       intervalId = setInterval(async () => {
         try {
-          // 检查交易状态
+          // 检查真实的区块链交易状态
           const receipt = await publicClient.getTransactionReceipt({
             hash: transactionHash as `0x${string}`
           });
@@ -114,26 +126,34 @@ export default function AchievementMinter({
             // 交易成功
             clearInterval(intervalId);
 
-            // 从事件日志中查找tokenId
-            const log = receipt.logs.find(log =>
-              log.address.toLowerCase() === ACHIEVEMENT_CONTRACT_ADDRESS.toLowerCase()
-            );
+            // 从事件日志中查找 tokenId
+            const achievementMintedEvent = receipt.logs.find(log => {
+              // 查找 AchievementMinted 事件
+              return log.topics[0] === '0x...' // 这里应该是 AchievementMinted 事件的签名哈希
+            });
 
-            if (log && log.topics.length > 1) {
+            let newTokenId = '';
+            if (achievementMintedEvent && achievementMintedEvent.topics.length > 1) {
               try {
-                // 简单解析tokenId (第一个topic是事件签名，第二个是tokenId)
-                const tokenIdHex = log.topics[1];
+                // 解析 tokenId (第二个 topic)
+                const tokenIdHex = achievementMintedEvent.topics[1];
                 if (tokenIdHex) {
-                  const newTokenId = BigInt(tokenIdHex).toString();
-                  setTokenId(newTokenId);
-
-                  // 通知后端交易已确认
-                  await confirmMintToBackend(newTokenId);
+                  newTokenId = BigInt(tokenIdHex).toString();
                 }
               } catch (error) {
-                console.error("解析日志失败:", error);
+                console.error("解析事件日志失败:", error);
+                // 使用交易哈希的一部分作为 fallback
+                newTokenId = transactionHash.slice(-8);
               }
+            } else {
+              // 如果无法从事件中获取，使用交易哈希的一部分
+              newTokenId = transactionHash.slice(-8);
             }
+
+            setTokenId(newTokenId);
+
+            // 通知后端交易已确认
+            await confirmMintToBackend(newTokenId);
 
             setIsPendingConfirmation(false);
             setSuccess(true);
@@ -141,10 +161,20 @@ export default function AchievementMinter({
             // 交易失败
             clearInterval(intervalId);
             setIsPendingConfirmation(false);
-            setError("交易失败，请重试");
+            setError("智能合约交易失败，请重试");
           }
         } catch (error) {
           console.error("检查交易状态失败:", error);
+          // 如果是网络错误，继续轮询
+          // 如果是其他错误，停止轮询
+          if (error instanceof Error && error.message.includes('not found')) {
+            // 交易还未被打包，继续等待
+            return;
+          } else {
+            clearInterval(intervalId);
+            setIsPendingConfirmation(false);
+            setError("检查交易状态失败，请重试");
+          }
         }
       }, 5000); // 每5秒检查一次
     }
@@ -202,7 +232,30 @@ export default function AchievementMinter({
 
   // 处理铸造请求
   const handleMint = async () => {
+
     if (!context?.user?.fid) return;
+
+    // 检查网络是否为 Monad 网络
+    if (chainId !== MONAD_CHAIN_ID) {
+      try {
+        // 使用 switchChain 切换网络
+        await switchChain({ chainId: MONAD_CHAIN_ID });
+
+        // 等待网络切换完成
+        await new Promise(resolve => setTimeout(resolve, 3000));
+
+        // 重新获取当前网络状态
+        const currentChainId = await publicClient?.getChainId();
+
+        // 验证网络是否切换成功
+        if (currentChainId !== MONAD_CHAIN_ID) {
+          throw new Error(`网络切换失败，当前网络 ${currentChainId}，需要 ${MONAD_CHAIN_ID}`);
+        }
+      } catch (switchError: any) {
+        setError(`网络切换失败: ${switchError.message || '请手动切换到 Monad 测试网'}`);
+        return;
+      }
+    }
 
     // 在 Farcaster Mini App 环境中，尝试获取钱包客户端
     // 即使 isConnected 状态可能还没有更新
@@ -243,6 +296,7 @@ export default function AchievementMinter({
       // 请求铸造参数
       const result = await api.requestMint({
         recipientFid: userFid,
+        recipientAddress: address!, // 用户的钱包地址
         achievementType,
         narrativeId,
         contributionId,
@@ -252,17 +306,31 @@ export default function AchievementMinter({
       });
 
       if (result.success && result.transactionParams) {
+        // 保存从后端返回的 achievementId
+        if (result.achievementId) {
+          setAchievementId(result.achievementId);
+        }
+
         // 请求用户签名交易
         try {
-          // 确保我们有钱包客户端
-          const currentWalletClient = walletClient;
-          if (!currentWalletClient) {
-            throw new Error("钱包客户端不可用");
+          // 检查钱包连接状态
+          if (!isConnected || !address) {
+            throw new Error("钱包未连接，请先连接钱包");
           }
 
-          // 发送交易
-          const hash = await currentWalletClient.sendTransaction({
-            to: result.transactionParams.to as `0x${string}`,
+          // 检查全局钱包客户端状态
+          if (!isWalletClientReady) {
+            throw new Error("钱包客户端正在初始化中，请稍候再试");
+          }
+
+          // 检查钱包客户端
+          if (!walletClient) {
+            throw new Error("钱包客户端不可用，请重新连接钱包");
+          }
+
+          // 发送交易 (确保地址格式正确)
+          const hash = await walletClient.sendTransaction({
+            to: getAddress(result.transactionParams.to),
             data: result.transactionParams.data as `0x${string}`,
             value: BigInt(result.transactionParams.value || "0"),
             gas: result.transactionParams.gasLimit ? BigInt(result.transactionParams.gasLimit) : undefined
@@ -274,19 +342,36 @@ export default function AchievementMinter({
 
           // 等待交易确认会在useEffect中处理
         } catch (txError: any) {
+          console.error("交易详细错误:", txError);
+          console.error("错误消息:", txError.message);
+          console.error("错误代码:", txError.code);
+
           if (txError.message?.includes('User rejected')) {
             setError("您取消了交易");
+          } else if (txError.message?.includes('network')) {
+            setError(`网络错误: ${txError.message}`);
+          } else if (txError.message?.includes('insufficient')) {
+            setError("余额不足，请确保有足够的 MON 代币支付 gas 费用");
           } else {
-            console.error("交易失败:", txError);
-            setError("交易失败，请重试");
+            setError(`交易失败: ${txError.message || '未知错误'}`);
           }
         }
       } else {
         setError(result.message || "铸造请求失败");
       }
-    } catch (err) {
-      console.error("铸造失败", err);
-      setError("铸造过程发生错误，请重试");
+    } catch (err: any) {
+      console.error("铸造失败详细信息:", err);
+      console.error("错误类型:", typeof err);
+      console.error("错误消息:", err.message);
+      console.error("错误堆栈:", err.stack);
+
+      if (err.message?.includes('fetch')) {
+        setError("网络连接失败，请检查网络连接");
+      } else if (err.message?.includes('Authentication')) {
+        setError("认证失败，请重新连接钱包");
+      } else {
+        setError(`铸造过程发生错误: ${err.message || '未知错误'}`);
+      }
     } finally {
       setIsMinting(false);
     }
@@ -385,6 +470,8 @@ export default function AchievementMinter({
                 {error}
               </div>
             )}
+
+
 
             <div className="flex flex-col space-y-3">
               <button

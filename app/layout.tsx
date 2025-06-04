@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+// import { Inter } from "next/font/google";
 import { FrameProvider } from "@/components/farcaster-provider";
 import { APP_URL } from "@/lib/constants";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+// const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "CastChain Narratives",
@@ -41,7 +41,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className="font-sans">
         <ErrorBoundary>
           <FrameProvider>{children}</FrameProvider>
         </ErrorBoundary>
