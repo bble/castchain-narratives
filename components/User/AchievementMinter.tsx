@@ -7,8 +7,11 @@ import { AchievementType, UserAchievement } from "@/types/narrative";
 import { api } from "@/lib/api";
 import {
   ACHIEVEMENT_CONTRACT_ADDRESS,
+  ACHIEVEMENT_CONTRACT_ABI,
   MONAD_EXPLORER_URL,
-  MONAD_CHAIN_ID
+  MONAD_CHAIN_ID,
+  ACHIEVEMENT_TYPE_MAPPING,
+  ContractAchievementType
 } from "@/lib/constants";
 import { monadTestnet } from "wagmi/chains";
 import { getAddress } from "viem";
@@ -328,12 +331,57 @@ export default function AchievementMinter({
             throw new Error("钱包客户端不可用，请重新连接钱包");
           }
 
-          // 发送交易 (确保地址格式正确)
-          const hash = await walletClient.sendTransaction({
-            to: getAddress(result.transactionParams.to),
-            data: result.transactionParams.data as `0x${string}`,
-            value: BigInt(result.transactionParams.value || "0"),
-            gas: result.transactionParams.gasLimit ? BigInt(result.transactionParams.gasLimit) : undefined
+          // 获取合约成就类型
+          const contractAchievementType = ACHIEVEMENT_TYPE_MAPPING[achievementType as keyof typeof ACHIEVEMENT_TYPE_MAPPING];
+          if (contractAchievementType === undefined) {
+            throw new Error(`不支持的成就类型: ${achievementType}`);
+          }
+
+          // 生成元数据 URI (使用浏览器兼容的方式)
+          const metadataObject = {
+            name: `Achievement ${achievementType}`,
+            description: 'Achievement description',
+            image: '/images/creator-achievement.svg',
+            attributes: [
+              { trait_type: "Achievement Type", value: achievementType },
+              { trait_type: "Platform", value: "CastChain Narratives" },
+              { trait_type: "Network", value: "Monad" }
+            ]
+          };
+          const metadataURI = `data:application/json;base64,${btoa(JSON.stringify(metadataObject))}`;
+
+          console.log("准备调用合约:", {
+            address: ACHIEVEMENT_CONTRACT_ADDRESS,
+            functionName: 'publicMintAchievement',
+            args: [address, contractAchievementType, metadataURI, narrativeId || 0, true],
+            gas: 500000,
+            chainId: chainId
+          });
+
+          // 先检查合约是否存在 publicMintAchievement 函数
+          const contractAddress = getAddress(ACHIEVEMENT_CONTRACT_ADDRESS);
+          console.log("合约地址:", contractAddress);
+          console.log("调用参数:", {
+            recipient: address,
+            achievementType: contractAchievementType,
+            metadataURI: metadataURI.substring(0, 100) + "...",
+            narrativeId: narrativeId || 0,
+            soulbound: true
+          });
+
+          // 使用 writeContract 方法调用智能合约
+          const hash = await walletClient.writeContract({
+            address: contractAddress,
+            abi: ACHIEVEMENT_CONTRACT_ABI,
+            functionName: 'publicMintAchievement',
+            args: [
+              address as `0x${string}`, // recipient
+              contractAchievementType, // achievementType
+              metadataURI, // metadataURI
+              BigInt(narrativeId || 0), // narrativeId
+              true // soulbound
+            ],
+            gas: BigInt(500000)
           });
 
           console.log("交易已发送:", hash);

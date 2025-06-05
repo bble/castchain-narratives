@@ -26,25 +26,29 @@ export const MONAD_CURRENCY_SYMBOL = "MON";
 export const MONAD_CURRENCY_NAME = "Monad";
 
 // 成就合约地址 (正确的校验和格式)
-export const ACHIEVEMENT_CONTRACT_ADDRESS = "0xC94F53281Ef92Cb9651b57C805eA5D283754d455";
+export const ACHIEVEMENT_CONTRACT_ADDRESS = "0xf2C952F737DD260F233E2c8F74D672f9EdA859d0";
 
 // 成就类型枚举（与智能合约保持一致）
 export enum ContractAchievementType {
   BRANCH_CREATOR = 0,    // 分支开创者SBT
   CHAPTER_COMPLETER = 1, // 章节完成NFT
-  DREAM_WEAVER = 2       // 织梦者徽章
+  STORY_CONTRIBUTOR = 2, // 故事贡献者NFT
+  COMMUNITY_BUILDER = 3, // 社区建设者SBT
+  NARRATIVE_PIONEER = 4  // 叙事先锋SBT
 }
 
 // 应用成就类型到合约成就类型的映射
 export const ACHIEVEMENT_TYPE_MAPPING = {
-  'creator': ContractAchievementType.DREAM_WEAVER,
-  'contributor': ContractAchievementType.CHAPTER_COMPLETER,
+  'creator': ContractAchievementType.NARRATIVE_PIONEER,
+  'contributor': ContractAchievementType.STORY_CONTRIBUTOR,
   'branch_pioneer': ContractAchievementType.BRANCH_CREATOR,
-  'narrative_completer': ContractAchievementType.CHAPTER_COMPLETER
+  'narrative_completer': ContractAchievementType.CHAPTER_COMPLETER,
+  'community_builder': ContractAchievementType.COMMUNITY_BUILDER
 } as const;
 
 // 成就合约 ABI
 export const ACHIEVEMENT_CONTRACT_ABI = [
+
   {
     "inputs": [
       {"internalType": "address", "name": "recipient", "type": "address"},
@@ -53,7 +57,7 @@ export const ACHIEVEMENT_CONTRACT_ABI = [
       {"internalType": "uint256", "name": "narrativeId", "type": "uint256"},
       {"internalType": "bool", "name": "soulbound", "type": "bool"}
     ],
-    "name": "mintAchievement",
+    "name": "publicMintAchievement",
     "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -93,6 +97,16 @@ export const ACHIEVEMENT_CONTRACT_ABI = [
   {
     "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
     "name": "isSoulbound",
+    "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "address", "name": "user", "type": "address"},
+      {"internalType": "uint8", "name": "achievementType", "type": "uint8"}
+    ],
+    "name": "hasUserMinted",
     "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
     "stateMutability": "view",
     "type": "function"

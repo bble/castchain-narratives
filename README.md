@@ -191,46 +191,56 @@ npm run dev
 
 ## 区块链集成
 
-CastChain Narratives使用Monad区块链存储用户成就NFT/SBT。我们提供了完全独立的合约部署目录，方便您快速部署智能合约。
+CastChain Narratives使用Monad区块链存储用户成就NFT/SBT。我们提供了自动化的合约部署脚本，一键完成所有部署步骤。
 
 ### 合约部署方法
 
-由于Next.js项目使用ESM模块系统，而Hardhat依赖CommonJS，我们提供了一个完全独立的部署目录：
+#### 前置条件
+
+1. **设置私钥环境变量**：
+   ```bash
+   export PRIVATE_KEY=your_private_key_here
+   ```
+
+   或创建 `.env` 文件：
+   ```
+   PRIVATE_KEY=your_private_key_here
+   ```
+
+2. **可选：自定义网络配置**（不设置将使用默认值）：
+   ```bash
+   export MONAD_RPC_URL=https://testnet-rpc.monad.xyz
+   export MONAD_CHAIN_ID=10143
+   export MONAD_EXPLORER_URL=https://testnet.monadexplorer.com
+   export MONAD_CURRENCY_SYMBOL=MON
+   ```
+
+3. **确保钱包有足够的 MON 代币**用于支付 gas 费用
+
+#### 一键部署
+
+运行自动化部署脚本：
 
 ```bash
-# 将contract-deploy目录复制到项目外的任何位置
-cp -r contract-deploy ~/castchain-contract-deploy
-cd ~/castchain-contract-deploy
-yarn install  # 或 npm install
+./scripts/deploy-contract.sh
 ```
 
-然后按照以下步骤进行操作：
+**脚本会自动执行以下操作**：
+- 创建临时部署目录
+- 复制合约代码到独立环境
+- 安装 Hardhat 和依赖
+- 编译合约
+- 部署到 Monad 测试网
+- 验证部署并显示合约地址
 
-1. 创建`.env`文件，添加以下环境变量：
-   ```
-   PRIVATE_KEY=your_wallet_private_key_here
-   MONAD_RPC_URL=https://rpc.monad.xyz/monad
-   MONAD_TESTNET_RPC_URL=https://rpc.monad.xyz/testnet
-   ```
+#### 更新前端配置
 
-2. 编译合约：
-   ```bash
-   yarn compile  # 或 npm run compile
-   ```
-
-3. 部署合约到测试网：
-   ```bash
-   yarn deploy:testnet  # 或 npm run deploy:testnet
-   ```
-
-部署成功后，合约地址将保存在`contract-address.json`文件中，您需要手动将地址更新到`lib/constants.ts`文件中：
+部署成功后，复制输出的合约地址并更新前端配置：
 
 ```typescript
 // lib/constants.ts
 export const ACHIEVEMENT_CONTRACT_ADDRESS = "0x..."; // 更新为您部署的合约地址
 ```
-
-> **重要提示**：为了避免ESM/CommonJS模块兼容性问题，建议将合约部署目录复制到完全独立的位置，然后在那里执行编译和部署操作。
 
 ### 合约功能说明
 

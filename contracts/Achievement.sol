@@ -12,14 +12,16 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 contract CastChainAchievement is ERC721Enumerable, Ownable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
-    
+
     // 成就类型
-    enum AchievementType { 
-        BRANCH_CREATOR,    // 分支开创者SBT  
+    enum AchievementType {
+        BRANCH_CREATOR,    // 分支开创者SBT
         CHAPTER_COMPLETER, // 章节完成NFT
-        DREAM_WEAVER       // 织梦者徽章
+        STORY_CONTRIBUTOR, // 故事贡献者NFT
+        COMMUNITY_BUILDER, // 社区建设者SBT
+        NARRATIVE_PIONEER  // 叙事先锋SBT
     }
-    
+
     // 成就元数据
     struct Achievement {
         AchievementType achievementType;
@@ -27,90 +29,77 @@ contract CastChainAchievement is ERC721Enumerable, Ownable {
         uint256 narrativeId;
         bool soulbound;    // 是否为SBT (不可转让)
     }
-    
+
     // tokenId => Achievement
     mapping(uint256 => Achievement) public achievements;
-    
+
     // 授权的铸造者
     mapping(address => bool) public authorizedMinters;
-    
+
+    // 防重复铸造：用户地址 => 成就类型 => 是否已铸造
+    mapping(address => mapping(AchievementType => bool)) public hasMinted;
+
     // 事件
     event AchievementMinted(
-        address indexed recipient, 
-        uint256 indexed tokenId, 
+        address indexed recipient,
+        uint256 indexed tokenId,
         AchievementType achievementType,
         uint256 narrativeId
     );
-    
-    constructor() ERC721("CastChain Achievement", "CCA") Ownable(msg.sender) {
+
+    constructor() ERC721("CastChain Achievement", "CCA") {
         authorizedMinters[msg.sender] = true;
     }
-    
-    // 仅授权铸造者可调用的修饰符
-    modifier onlyAuthorizedMinter() {
-        require(authorizedMinters[msg.sender] || owner() == msg.sender, "Caller is not authorized");
-        _;
-    }
-    
-    // 添加铸造者权限
-    function addMinter(address minter) external onlyOwner {
-        authorizedMinters[minter] = true;
-    }
-    
-    // 移除铸造者权限
-    function removeMinter(address minter) external onlyOwner {
-        authorizedMinters[minter] = false;
-    }
-    
-    // 铸造成就
-    function mintAchievement(
+
+    // 公开铸造成就 (任何人都可以调用)
+    function publicMintAchievement(
         address recipient,
         AchievementType achievementType,
         string memory metadataURI,
         uint256 narrativeId,
         bool soulbound
-    ) external onlyAuthorizedMinter returns (uint256) {
+    ) external returns (uint256) {
+        // 防重复铸造检查
+        require(!hasMinted[recipient][achievementType], "Achievement already minted for this type");
+
         _tokenIds.increment();
         uint256 newTokenId = _tokenIds.current();
-        
+
         _safeMint(recipient, newTokenId);
-        
+
         achievements[newTokenId] = Achievement({
             achievementType: achievementType,
             metadataURI: metadataURI,
             narrativeId: narrativeId,
             soulbound: soulbound
         });
-        
+
+        // 标记为已铸造
+        hasMinted[recipient][achievementType] = true;
+
         emit AchievementMinted(recipient, newTokenId, achievementType, narrativeId);
-        
+
         return newTokenId;
     }
-    
-    // 设置成就元数据URI
-    function setTokenURI(uint256 tokenId, string memory metadataURI) external onlyAuthorizedMinter {
-        require(_exists(tokenId), "Token does not exist");
-        achievements[tokenId].metadataURI = metadataURI;
-    }
-    
+
     // 获取成就元数据URI
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
-        require(_exists(tokenId), "URI query for nonexistent token");
+        require(_ownerOf(tokenId) != address(0), "URI query for nonexistent token");
         return achievements[tokenId].metadataURI;
     }
-    
+
     // 获取成就类型
     function getAchievementType(uint256 tokenId) external view returns (AchievementType) {
-        require(_exists(tokenId), "Query for nonexistent token");
+        require(_ownerOf(tokenId) != address(0), "Query for nonexistent token");
         return achievements[tokenId].achievementType;
     }
-    
+
     // 判断是否为SBT (灵魂绑定代币)
     function isSoulbound(uint256 tokenId) external view returns (bool) {
-        require(_exists(tokenId), "Query for nonexistent token");
+        require(_ownerOf(tokenId) != address(0), "Query for nonexistent token");
         return achievements[tokenId].soulbound;
     }
-    
+
     // 重写转移函数，加入SBT限制
     function _beforeTokenTransfer(
         address from,
@@ -119,22 +108,32 @@ contract CastChainAchievement is ERC721Enumerable, Ownable {
         uint256 batchSize
     ) internal override {
         super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
-        
-        // 如果不是铸造操作且代币是SBT，则阻止转移
-        if (from != address(0) && achievements[firstTokenId].soulbound) {
-            revert("This achievement is soulbound and cannot be transferred");
+
+        // 如果不是铸造操作，检查批量转移中的所有代币是否为SBT
+        if (from != address(0)) {
+            for (uint256 i = 0; i < batchSize; i++) {
+                uint256 tokenId = firstTokenId + i;
+                if (achievements[tokenId].soulbound) {
+                    revert("This achievement is soulbound and cannot be transferred");
+                }
+            }
         }
     }
-    
+
     // 获取用户所有成就
     function getAchievementsOfOwner(address owner) external view returns (uint256[] memory) {
         uint256 balance = balanceOf(owner);
         uint256[] memory tokenIds = new uint256[](balance);
-        
+
         for (uint256 i = 0; i < balance; i++) {
             tokenIds[i] = tokenOfOwnerByIndex(owner, i);
         }
-        
+
         return tokenIds;
     }
-} 
+
+    // 检查用户是否已经铸造了某种类型的成就
+    function hasUserMinted(address user, AchievementType achievementType) external view returns (bool) {
+        return hasMinted[user][achievementType];
+    }
+}

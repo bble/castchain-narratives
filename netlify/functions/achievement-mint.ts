@@ -1,7 +1,8 @@
 import { Handler } from '@netlify/functions';
 import supabase from './utils/supabase';
 import { success, error, validateAuth } from './utils/response';
-import { createPublicClient, http, encodeFunctionData, getAddress } from 'viem';
+import { createPublicClient, createWalletClient, http, encodeFunctionData, getAddress } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 import { defineChain } from 'viem';
 import {
   MONAD_CHAIN_ID,
@@ -138,10 +139,10 @@ export const handler: Handler = async (event, context) => {
         transport: http()
       });
 
-      // 编码智能合约调用数据
+      // 编码智能合约调用数据 (使用公开铸造函数)
       const contractCallData = encodeFunctionData({
         abi: ACHIEVEMENT_CONTRACT_ABI,
-        functionName: 'mintAchievement',
+        functionName: 'publicMintAchievement',
         args: [
           recipientAddress as `0x${string}`, // recipient (用户的钱包地址)
           contractAchievementType,
