@@ -116,6 +116,30 @@ export async function update(table: string, id: string, data: any): Promise<any>
   }
 }
 
+// 根据自定义字段更新记录
+export async function updateByField(table: string, field: string, value: string, data: any): Promise<any> {
+  try {
+    const client = getSupabaseClient();
+
+    const { data: result, error } = await client
+      .from(table)
+      .update(data)
+      .eq(field, value)
+      .select()
+      .single();
+
+    if (error) {
+      logError(`更新记录失败 [${table}:${field}=${value}]:`, error);
+      throw error;
+    }
+
+    return result;
+  } catch (error) {
+    logError(`更新记录异常 [${table}:${field}=${value}]:`, error);
+    throw error;
+  }
+}
+
 // 删除记录
 export async function remove(table: string, id: string): Promise<boolean> {
   try {
@@ -265,6 +289,7 @@ export default {
   create,
   get,
   update,
+  updateByField,
   remove,
   query,
   count,

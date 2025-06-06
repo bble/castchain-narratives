@@ -19,9 +19,9 @@ interface NetworkOption {
 const NETWORK_OPTIONS: NetworkOption[] = [
   {
     id: MONAD_CHAIN_ID,
-    name: 'Monad',
+    name: 'MonadTest',
     icon: '🟣',
-    description: 'Monad Network - 推荐用于 CastChain',
+    description: 'Monad Testnet - 推荐用于 CastChain',
     rpcUrl: MONAD_RPC_URL
   },
   {

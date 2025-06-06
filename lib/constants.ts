@@ -26,7 +26,7 @@ export const MONAD_CURRENCY_SYMBOL = "MON";
 export const MONAD_CURRENCY_NAME = "Monad";
 
 // 成就合约地址 (正确的校验和格式)
-export const ACHIEVEMENT_CONTRACT_ADDRESS = "0xf2C952F737DD260F233E2c8F74D672f9EdA859d0";
+export const ACHIEVEMENT_CONTRACT_ADDRESS = "0xA972B058D7645b54b44217B8a13Ce6BC97C7a2A6";
 
 // 成就类型枚举（与智能合约保持一致）
 export enum ContractAchievementType {
@@ -39,11 +39,11 @@ export enum ContractAchievementType {
 
 // 应用成就类型到合约成就类型的映射
 export const ACHIEVEMENT_TYPE_MAPPING = {
-  'creator': ContractAchievementType.NARRATIVE_PIONEER,
-  'contributor': ContractAchievementType.STORY_CONTRIBUTOR,
-  'branch_pioneer': ContractAchievementType.BRANCH_CREATOR,
-  'narrative_completer': ContractAchievementType.CHAPTER_COMPLETER,
-  'community_builder': ContractAchievementType.COMMUNITY_BUILDER
+  'creator': ContractAchievementType.NARRATIVE_PIONEER,        // 织梦者徽章 -> 叙事先锋SBT
+  'contributor': ContractAchievementType.STORY_CONTRIBUTOR,    // 贡献者徽章 -> 故事贡献者NFT
+  'popular_branch': ContractAchievementType.BRANCH_CREATOR,    // 分支先锋成就 -> 分支开创者SBT
+  'completed_narrative': ContractAchievementType.CHAPTER_COMPLETER, // 完成叙事成就 -> 章节完成NFT
+  'community_builder': ContractAchievementType.COMMUNITY_BUILDER    // 社区建设者SBT
 } as const;
 
 // 成就合约 ABI

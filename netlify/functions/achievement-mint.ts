@@ -77,8 +77,8 @@ export const handler: Handler = async (event, context) => {
       try {
         const existingAchievements = await supabase.query(supabase.tables.achievements, {
           filters: {
-            owner_fid: recipientFid,
-            type: achievementType,
+            user_fid: recipientFid,
+            achievement_type: achievementType,
             ...(narrativeId && { narrative_id: narrativeId }),
             ...(contributionId && { contribution_id: contributionId })
           }
@@ -166,15 +166,14 @@ export const handler: Handler = async (event, context) => {
       try {
         await supabase.create(supabase.tables.achievements, {
           achievement_id: achievementId,
-          type: achievementType,
+          achievement_type: achievementType,
           title: title || `Achievement ${achievementType}`,
           description: description || 'Achievement description',
-          image_url: metadata?.image || '/images/creator-achievement.svg',
-          owner_fid: recipientFid,
+          user_fid: recipientFid,
           narrative_id: narrativeId || null,
           contribution_id: contributionId || null,
-          awarded_at: new Date().toISOString(),
-          status: 'pending', // 待确认状态
+          earned_at: new Date().toISOString(),
+          nft_contract_address: ACHIEVEMENT_CONTRACT_ADDRESS,
           metadata: metadata ? JSON.stringify(metadata) : null
         });
 
@@ -216,20 +215,17 @@ export const handler: Handler = async (event, context) => {
 
       // 更新成就状态为已确认
       try {
-        await supabase.update(supabase.tables.achievements, achievementId, {
-          status: 'confirmed',
-          transaction_hash: transactionHash,
-          token_id: tokenId || null,
-          confirmed_at: new Date().toISOString()
+        await supabase.updateByField(supabase.tables.achievements, 'achievement_id', achievementId, {
+          nft_transaction_hash: transactionHash,
+          nft_token_id: tokenId || null
         });
 
         console.log(`成就铸造已确认: ${achievementId}`);
         return success({ success: true, message: '成就铸造已确认' });
       } catch (dbErr: any) {
         console.error('更新成就状态失败:', dbErr);
-        console.log('数据库表可能不存在，但返回成功状态');
-        // 为了测试目的，仍然返回成功
-        return success({ success: true, message: '成就铸造已确认（模拟）' });
+        console.log('数据库错误详情:', dbErr);
+        return error(`更新成就状态失败: ${dbErr.message}`);
       }
     } catch (err: any) {
       console.error(`Error confirming mint:`, err);

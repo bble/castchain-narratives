@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useMiniAppContext } from "@/hooks/use-miniapp-context";
 import { useAccount, useConnect, useDisconnect, useSwitchChain, useWalletClient } from "wagmi";
 import { MONAD_CHAIN_ID, MONAD_RPC_URL } from "@/lib/constants";
@@ -27,13 +27,40 @@ export function WalletActions() {
     context !== null
   );
 
-  // 监听连接状态变化，清除错误
+  // 切换网络
+  const handleSwitchNetwork = useCallback(async (targetChainId: number) => {
+    console.log("尝试切换网络到:", targetChainId);
+    setError(null);
+    setIsInitializingWallet(true);
+    // 标记钱包客户端为未准备状态
+    setIsWalletClientReady(false);
+
+    try {
+      await switchChain({ chainId: targetChainId });
+      console.log("网络切换成功，等待钱包客户端重新初始化...");
+      // 注意：钱包客户端的重新初始化会在 useEffect 中处理
+    } catch (err) {
+      console.error("网络切换失败", err);
+      setError("网络切换失败，请手动切换到目标网络");
+      setIsInitializingWallet(false);
+      // 网络切换失败，恢复钱包客户端状态
+      setIsWalletClientReady(true);
+    }
+  }, [switchChain, setIsWalletClientReady]);
+
+  // 监听连接状态变化，清除错误并自动切换网络
   useEffect(() => {
     if (isConnected && address) {
       setError(null);
       console.log("钱包连接成功:", address);
+
+      // 如果在 Mini App 环境中且不在 Monad 网络，自动切换
+      if (isMiniApp && chainId && chainId !== MONAD_CHAIN_ID) {
+        console.log(`检测到非 Monad 网络 (${chainId})，自动切换到 Monad 测试网...`);
+        handleSwitchNetwork(MONAD_CHAIN_ID);
+      }
     }
-  }, [isConnected, address]);
+  }, [isConnected, address, chainId, isMiniApp, handleSwitchNetwork]);
 
   // 监听网络变化，重新初始化钱包客户端
   useEffect(() => {
@@ -129,26 +156,7 @@ export function WalletActions() {
     autoConnect();
   }, [isMiniApp, connectors, isConnected, isPending, connect]);
 
-  // 切换网络
-  const handleSwitchNetwork = async (targetChainId: number) => {
-    console.log("尝试切换网络到:", targetChainId);
-    setError(null);
-    setIsInitializingWallet(true);
-    // 标记钱包客户端为未准备状态
-    setIsWalletClientReady(false);
 
-    try {
-      await switchChain({ chainId: targetChainId });
-      console.log("网络切换成功，等待钱包客户端重新初始化...");
-      // 注意：钱包客户端的重新初始化会在 useEffect 中处理
-    } catch (err) {
-      console.error("网络切换失败", err);
-      setError("网络切换失败，请手动切换到目标网络");
-      setIsInitializingWallet(false);
-      // 网络切换失败，恢复钱包客户端状态
-      setIsWalletClientReady(true);
-    }
-  };
 
   // 连接钱包（优先使用 Farcaster 钱包）
   const connectWallet = async () => {
@@ -209,8 +217,20 @@ export function WalletActions() {
 
   // 获取当前网络名称
   const getCurrentNetworkName = () => {
-    if (chainId === MONAD_CHAIN_ID) return "Monad";
-    return `网络 ${chainId}`;
+    switch (chainId) {
+      case MONAD_CHAIN_ID:
+        return "MonadTest";
+      case 8453:
+        return "Base";
+      case 84532:
+        return "Base Sepolia";
+      case 1:
+        return "Ethereum";
+      case 11155111:
+        return "Sepolia";
+      default:
+        return `网络 ${chainId}`;
+    }
   };
 
   return (

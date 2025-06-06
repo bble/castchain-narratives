@@ -33,8 +33,16 @@ export function UserAchievements() {
     loadAchievements();
   }, [context?.user?.fid]);
 
+  // 检查用户是否已经拥有某个类型的成就
+  const hasAchievement = (type: AchievementType) => {
+    return achievements.some(achievement => achievement.type === type);
+  };
+
   // 处理铸造按钮点击
   const handleMintClick = (type: AchievementType) => {
+    if (hasAchievement(type)) {
+      return; // 如果已经拥有该成就，不执行任何操作
+    }
     setSelectedType(type);
     setShowMinter(true);
   };
@@ -53,8 +61,8 @@ export function UserAchievements() {
   const achievementTypes = [
     {
       type: AchievementType.CREATOR,
-      title: "创作者成就",
-      description: "创建原创叙事的杰出创作者",
+      title: "织梦者徽章",
+      description: "优质创作贡献",
       imgUrl: "/images/creator-achievement.svg",
     },
     {
@@ -65,14 +73,14 @@ export function UserAchievements() {
     },
     {
       type: AchievementType.POPULAR_BRANCH,
-      title: "分支先锋成就",
-      description: "创建受欢迎分支的开创者",
+      title: "分支开创者SBT",
+      description: "创建受欢迎分支",
       imgUrl: "/images/branch-pioneer-achievement.svg",
     },
     {
       type: AchievementType.COMPLETED_NARRATIVE,
-      title: "完成叙事成就",
-      description: "参与并完成一个叙事的成就",
+      title: "章节完成NFT",
+      description: "参与完成叙事章节",
       imgUrl: "/images/completed-narrative-achievement.svg",
     }
   ];
@@ -168,36 +176,53 @@ export function UserAchievements() {
           <div className="mt-8">
             <h3 className="text-lg font-bold mb-4">可铸造的成就</h3>
             <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-              {achievementTypes.map((achievement) => (
-                <div
-                  key={achievement.type}
-                  className="rounded-lg border border-gray-800 bg-gray-900 overflow-hidden"
-                >
-                  <div className="h-40 bg-gray-800 flex items-center justify-center">
-                    {achievement.imgUrl ? (
-                      <img
-                        src={achievement.imgUrl}
-                        alt={achievement.title}
-                        className="h-full w-full object-contain"
-                      />
-                    ) : (
-                      <div className="text-gray-600">成就图片</div>
-                    )}
+              {achievementTypes.map((achievement) => {
+                const alreadyOwned = hasAchievement(achievement.type);
+
+                return (
+                  <div
+                    key={achievement.type}
+                    className={`rounded-lg border overflow-hidden ${
+                      alreadyOwned
+                        ? 'border-gray-700 bg-gray-800 opacity-60'
+                        : 'border-gray-800 bg-gray-900'
+                    }`}
+                  >
+                    <div className="h-40 bg-gray-800 flex items-center justify-center">
+                      {achievement.imgUrl ? (
+                        <img
+                          src={achievement.imgUrl}
+                          alt={achievement.title}
+                          className={`h-full w-full object-contain ${
+                            alreadyOwned ? 'grayscale' : ''
+                          }`}
+                        />
+                      ) : (
+                        <div className="text-gray-600">成就图片</div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <h3 className={`font-bold ${alreadyOwned ? 'text-gray-500' : 'text-white'}`}>
+                        {achievement.title}
+                      </h3>
+                      <p className="text-sm text-gray-400 mt-1">
+                        {achievement.description}
+                      </p>
+                      <button
+                        onClick={() => handleMintClick(achievement.type)}
+                        disabled={alreadyOwned}
+                        className={`mt-4 w-full rounded-lg px-3 py-2 text-sm font-medium ${
+                          alreadyOwned
+                            ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                            : 'bg-purple-600 text-white hover:bg-purple-700'
+                        }`}
+                      >
+                        {alreadyOwned ? '已铸造' : '铸造成就'}
+                      </button>
+                    </div>
                   </div>
-                  <div className="p-4">
-                    <h3 className="font-bold">{achievement.title}</h3>
-                    <p className="text-sm text-gray-400 mt-1">
-                      {achievement.description}
-                    </p>
-                    <button
-                      onClick={() => handleMintClick(achievement.type)}
-                      className="mt-4 w-full rounded-lg bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-700"
-                    >
-                      铸造成就
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </>

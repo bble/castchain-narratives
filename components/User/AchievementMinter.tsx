@@ -16,6 +16,30 @@ import {
 import { monadTestnet } from "wagmi/chains";
 import { getAddress } from "viem";
 
+// 将成就信息移到组件外部，避免每次渲染时重新创建
+const ACHIEVEMENT_INFO = {
+  [AchievementType.CREATOR]: {
+    title: "织梦者徽章",
+    description: "优质创作贡献",
+    imgUrl: "/images/creator-achievement.svg",
+  },
+  [AchievementType.CONTRIBUTOR]: {
+    title: "贡献者徽章",
+    description: "积极参与并创作高质量故事内容的贡献者",
+    imgUrl: "/images/contributor-achievement.svg",
+  },
+  [AchievementType.POPULAR_BRANCH]: {
+    title: "分支开创者SBT",
+    description: "创建受欢迎分支",
+    imgUrl: "/images/branch-pioneer-achievement.svg",
+  },
+  [AchievementType.COMPLETED_NARRATIVE]: {
+    title: "章节完成NFT",
+    description: "参与完成叙事章节",
+    imgUrl: "/images/completed-narrative-achievement.svg",
+  }
+} as const;
+
 interface AchievementMinterProps {
   userFid: number;
   achievementType: AchievementType;
@@ -45,33 +69,77 @@ export default function AchievementMinter({
   const [tokenId, setTokenId] = useState<string | null>(null);
   const [isPendingConfirmation, setIsPendingConfirmation] = useState(false);
   const [achievementId, setAchievementId] = useState<string | null>(null);
+  const [balance, setBalance] = useState<string | null>(null);
+  const [gasEstimate, setGasEstimate] = useState<string | null>(null);
+  const [isLoadingGasInfo, setIsLoadingGasInfo] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
+  const info = ACHIEVEMENT_INFO[achievementType];
 
-  // 铸造描述
-  const achievementInfo = {
-    [AchievementType.CREATOR]: {
-      title: "创作者成就",
-      description: "创建原创叙事的杰出创作者",
-      imgUrl: "/images/creator-achievement.svg",
-    },
-    [AchievementType.CONTRIBUTOR]: {
-      title: "贡献者徽章",
-      description: "积极参与并创作高质量故事内容的贡献者",
-      imgUrl: "/images/contributor-achievement.svg",
-    },
-    [AchievementType.POPULAR_BRANCH]: {
-      title: "分支先锋成就",
-      description: "创建受欢迎分支的开创者",
-      imgUrl: "/images/branch-pioneer-achievement.svg",
-    },
-    [AchievementType.COMPLETED_NARRATIVE]: {
-      title: "完成叙事成就",
-      description: "参与并完成一个叙事的成就",
-      imgUrl: "/images/completed-narrative-achievement.svg",
+  // 获取余额和 gas 估算
+  const fetchGasInfo = useCallback(async () => {
+    if (!address || !publicClient || !walletClient || isLoadingGasInfo) return;
+
+    setIsLoadingGasInfo(true);
+    try {
+      // 获取余额
+      const balanceResult = await publicClient.getBalance({ address });
+      const balanceInEther = (Number(balanceResult) / 1e18).toFixed(4);
+
+      // 只有当余额发生变化时才更新状态
+      setBalance(prev => {
+        if (prev !== balanceInEther) {
+          return balanceInEther;
+        }
+        return prev;
+      });
+
+      // 使用固定的 gas 估算值避免频繁计算导致的闪烁
+      if (!gasEstimate) {
+        try {
+          const defaultGasPrice = await publicClient.getGasPrice();
+          const defaultGasCost = BigInt(200000) * defaultGasPrice; // 200k gas limit
+          const defaultGasCostInEther = (Number(defaultGasCost) / 1e18).toFixed(6);
+          setGasEstimate(defaultGasCostInEther);
+        } catch (gasError) {
+          console.error('Gas 估算失败，使用默认值:', gasError);
+          setGasEstimate('0.001'); // 设置一个默认值
+        }
+      }
+
+      setHasInitialized(true);
+    } catch (error) {
+      console.error('获取余额失败:', error);
+      setBalance('获取失败');
+      if (!gasEstimate) {
+        setGasEstimate('0.001'); // 设置一个默认值
+      }
+      setHasInitialized(true);
+    } finally {
+      setIsLoadingGasInfo(false);
     }
-  };
+  }, [address, publicClient, walletClient, isLoadingGasInfo, gasEstimate]);
 
-  const info = achievementInfo[achievementType];
+  // 当钱包连接时获取 gas 信息 - 只初始化一次
+  useEffect(() => {
+    if (!address || !publicClient || !walletClient || hasInitialized || isLoadingGasInfo) return;
+
+    // 防抖：延迟执行，避免频繁调用
+    const timeoutId = setTimeout(() => {
+      fetchGasInfo();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [address, publicClient, walletClient, hasInitialized, isLoadingGasInfo, fetchGasInfo]);
+
+  // 组件卸载时清理状态
+  useEffect(() => {
+    return () => {
+      // 清理任何正在进行的异步操作
+      setIsLoadingGasInfo(false);
+      setIsMinting(false);
+    };
+  }, []);
 
   // 向后端确认铸造完成 - 使用useCallback包装以避免不必要的重新创建
   const confirmMintToBackend = useCallback(async (newTokenId: string) => {
@@ -337,24 +405,32 @@ export default function AchievementMinter({
             throw new Error(`不支持的成就类型: ${achievementType}`);
           }
 
-          // 生成元数据 URI (使用浏览器兼容的方式)
+          // 生成元数据 URI (使用浏览器兼容的方式，支持中文字符)
+          const achievementData = ACHIEVEMENT_INFO[achievementType];
           const metadataObject = {
-            name: `Achievement ${achievementType}`,
-            description: 'Achievement description',
-            image: '/images/creator-achievement.svg',
+            name: achievementData.title,
+            description: achievementData.description,
+            image: achievementData.imgUrl,
             attributes: [
               { trait_type: "Achievement Type", value: achievementType },
               { trait_type: "Platform", value: "CastChain Narratives" },
-              { trait_type: "Network", value: "Monad" }
+              { trait_type: "Network", value: "Monad" },
+              { trait_type: "Token Type", value: achievementType === AchievementType.CREATOR || achievementType === AchievementType.POPULAR_BRANCH ? "SBT" : "NFT" }
             ]
           };
-          const metadataURI = `data:application/json;base64,${btoa(JSON.stringify(metadataObject))}`;
+
+          // 使用 TextEncoder 和 btoa 来正确处理中文字符
+          const jsonString = JSON.stringify(metadataObject);
+          const encoder = new TextEncoder();
+          const data = encoder.encode(jsonString);
+          const base64String = btoa(String.fromCharCode(...data));
+          const metadataURI = `data:application/json;base64,${base64String}`;
 
           console.log("准备调用合约:", {
             address: ACHIEVEMENT_CONTRACT_ADDRESS,
             functionName: 'publicMintAchievement',
             args: [address, contractAchievementType, metadataURI, narrativeId || 0, true],
-            gas: 500000,
+            gas: 1000000,
             chainId: chainId
           });
 
@@ -381,7 +457,7 @@ export default function AchievementMinter({
               BigInt(narrativeId || 0), // narrativeId
               true // soulbound
             ],
-            gas: BigInt(500000)
+            gas: BigInt(1000000) // 增加 gas 限制到 1M
           });
 
           console.log("交易已发送:", hash);
@@ -513,6 +589,39 @@ export default function AchievementMinter({
               <p className="text-gray-300 mt-2">{info.description}</p>
             </div>
 
+            {/* 显示余额和 gas 费用信息 */}
+            <div className="mb-4 space-y-2">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-400">钱包余额:</span>
+                <span className="text-white min-w-[80px] text-right">
+                  {!hasInitialized || isLoadingGasInfo ? (
+                    <div className="animate-pulse bg-gray-700 h-4 w-20 rounded ml-auto"></div>
+                  ) : balance ? (
+                    `${balance} MON`
+                  ) : (
+                    '获取失败'
+                  )}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-400">预估 Gas 费用:</span>
+                <span className="text-white min-w-[80px] text-right">
+                  {!hasInitialized || isLoadingGasInfo ? (
+                    <div className="animate-pulse bg-gray-700 h-4 w-20 rounded ml-auto"></div>
+                  ) : gasEstimate ? (
+                    `${gasEstimate} MON`
+                  ) : (
+                    '估算失败'
+                  )}
+                </span>
+              </div>
+              {hasInitialized && balance && gasEstimate && Number(balance) < Number(gasEstimate) && (
+                <div className="text-red-400 text-xs bg-red-900 bg-opacity-30 p-2 rounded">
+                  ⚠️ 余额不足，请确保有足够的 MON 代币支付 gas 费用
+                </div>
+              )}
+            </div>
+
             {error && (
               <div className="mb-4 rounded-lg bg-red-900 bg-opacity-30 p-3 text-red-300 text-sm">
                 {error}
@@ -524,14 +633,17 @@ export default function AchievementMinter({
             <div className="flex flex-col space-y-3">
               <button
                 onClick={handleMint}
-                disabled={isMinting}
+                disabled={isMinting || !hasInitialized || isLoadingGasInfo || Boolean(hasInitialized && balance && gasEstimate && Number(balance) < Number(gasEstimate))}
                 className={`rounded-lg px-4 py-3 font-medium text-white shadow-lg ${
-                  isMinting
-                    ? "bg-gray-700"
+                  isMinting || !hasInitialized || isLoadingGasInfo || Boolean(hasInitialized && balance && gasEstimate && Number(balance) < Number(gasEstimate))
+                    ? "bg-gray-700 cursor-not-allowed"
                     : "bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900"
                 }`}
               >
-                {isMinting ? "铸造中..." : "铸造成就"}
+                {isMinting ? "铸造中..." :
+                 !hasInitialized || isLoadingGasInfo ? "准备中..." :
+                 Boolean(hasInitialized && balance && gasEstimate && Number(balance) < Number(gasEstimate)) ? "余额不足" :
+                 "铸造成就"}
               </button>
               <button
                 onClick={onClose}

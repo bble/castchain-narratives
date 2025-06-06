@@ -36,18 +36,33 @@ export const handler: Handler = async (event, context) => {
       if (achievementType) {
         // 查询特定类型的成就
         achievements = await supabase.query(supabase.tables.achievements, {
-          filters: { owner_fid: parsedUserFid, type: achievementType },
-          orderBy: { column: 'awarded_at', ascending: false }
+          filters: { user_fid: parsedUserFid, achievement_type: achievementType },
+          orderBy: { column: 'earned_at', ascending: false }
         });
       } else {
         // 查询所有成就
         achievements = await supabase.query(supabase.tables.achievements, {
-          filters: { owner_fid: parsedUserFid },
-          orderBy: { column: 'awarded_at', ascending: false }
+          filters: { user_fid: parsedUserFid },
+          orderBy: { column: 'earned_at', ascending: false }
         });
       }
 
-      return success(achievements);
+      // 映射数据库字段到前端接口
+      const mappedAchievements = achievements.map((achievement: any) => ({
+        achievementId: achievement.achievement_id,
+        type: achievement.achievement_type,
+        title: achievement.title,
+        description: achievement.description,
+        imageUrl: achievement.image_url || "/images/creator-achievement.svg",
+        awardedAt: achievement.earned_at,
+        ownerFid: achievement.user_fid,
+        narrativeId: achievement.narrative_id,
+        contributionId: achievement.contribution_id,
+        tokenId: achievement.nft_token_id,
+        transactionHash: achievement.nft_transaction_hash
+      }));
+
+      return success(mappedAchievements);
     } catch (err: any) {
       console.error(`Error fetching achievements for user ${userFid}:`, err);
       return error(`Error fetching achievements: ${err.message}`);
